@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./src",  // base path for resolving modules
+    "paths": {
+      "@/*": ["*"]  // alias configuration
+    },
+    "target": "ES6",
+    "module": "CommonJS",
+    "outDir": "./dist", // output directory for compiled JavaScript
+    "rootDir": "./src", // your source directory
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"]
+}
