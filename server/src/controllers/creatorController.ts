@@ -1,0 +1,1 @@
+import gameRoutes from '@/routes/gameRoutes'

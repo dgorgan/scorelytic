@@ -1,0 +1,51 @@
+# Node.js
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# TypeScript (only for client, since Next.js uses TypeScript)
+client/dist/
+client/build/
+client/*.tsbuildinfo
+
+# Next.js (Frontend specific)
+client/.next/
+client/dist/
+client/build/
+
+# VS Code
+.vscode/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# Ignore node_modules in client and server directories
+client/node_modules/
+server/node_modules/
+
+# Ignore log files and temp directories in the backend
+server/*.log
+server/tmp/
+
+# IDE and editor folders
+.idea/
+
+# Operating system-specific files
+Thumbs.db
+Desktop.ini
+
+# Coverage or testing-related files
+**/coverage/
+
+# Dist and build folders (Backend)
+server/dist/
+server/build/
