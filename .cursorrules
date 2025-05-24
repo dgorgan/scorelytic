@@ -37,6 +37,7 @@ testing_rules:
   - Use `__tests__` directory colocated with feature (e.g., `__tests__/api/foo.test.ts`)
   - Use descriptive test names and test happy path + basic edge case
   - Use `jest.mock()` to mock external dependencies like Supabase or OpenAI
+  - Run all tests (e.g., `npm test`) and verify they pass before committing any code
 
 llm_usage:
   - Use the Sonnet model (or most advanced available)
