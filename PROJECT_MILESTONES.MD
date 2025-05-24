@@ -1,0 +1,63 @@
+# Project Milestones: Scorelytic
+
+## ✅ Phase 1: MVP Web App
+
+### 🎯 Core Features
+- [ ] Basic app shell and scaffolding
+- [ ] Landing page: list recently reviewed games
+- [ ] Game profile: `/games/[gameSlug]`
+  - [ ] Show title, art, and description
+  - [ ] Aggregated creator sentiment score (1–100)
+  - [ ] List of reviews (avatar, score, snippet)
+- [ ] Review detail: `/reviews/[creatorSlug]/[gameSlug]`
+  - [ ] Show full review + YouTube embed
+  - [ ] Display sentiment summary, pros, cons, bias indicators, and "also recommends"
+- [ ] Creator profile: `/creators/[creatorSlug]`
+  - [ ] Show avatar, bio, list of reviewed games
+  - [ ] Display review tendencies or trends
+
+### 🔧 Tech Setup
+- [ ] Frontend: Next.js + Tailwind CSS
+- [ ] Backend: Express, Next API routes, or Supabase
+- [ ] Models: Prisma or SQL with slug support
+- [ ] Slug-based routing logic
+- [ ] Component structure and base layout
+
+---
+
+## 🚀 Phase 2: AI Integration & SEO
+
+- [ ] Integrate OpenAI or Claude for sentiment analysis
+- [ ] Analyze YouTube transcripts or summaries
+- [ ] Output:
+  - [ ] Score (1–10)
+  - [ ] Pros / Cons
+  - [ ] Bias indicators
+  - [ ] Also Recommends (games)
+- [ ] Store results and display them on UI
+- [ ] Add SEO metadata:
+  - [ ] Open Graph
+  - [ ] Twitter Cards
+  - [ ] JSON-LD schema
+- [ ] Optimize performance for SEO
+
+---
+
+## 📊 Phase 3: Aggregation + Insights + Routing Enhancements
+
+- [ ] Normalize and compare creator review scores
+- [ ] Compute final “ContentCritic” aggregate score (0–100)
+- [ ] Compare with MetaCritic where available
+- [ ] Display score deltas on game page
+- [ ] Canonical URLs and 404 pages
+- [ ] Enhanced routing and internal linking
+
+---
+
+## 📌 Future Ideas
+
+- [ ] Creator dashboard and verification
+- [ ] Commenting / community system
+- [ ] Advanced filtering or tags
+- [ ] Game discovery by sentiment pattern
+- [ ] Social sharing & embed features
