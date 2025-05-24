@@ -1,0 +1,67 @@
+project_management:
+  - Reference PROJECT_MILESTONES.md for all feature implementations
+  - Reference DOCUMENTATION.md for all API endpoints, component structure, and data models
+  - Work incrementally — avoid large, multi-feature PRs
+  - Avoid modifying multiple unrelated files in a single change
+  - Update PROJECT_MILESTONES.md when features are completed
+  - Update DOCUMENTATION.md when new APIs, components, or models are introduced
+  - Always include a summary comment after major file edits
+  - Ask before introducing new external libraries or changing architecture
+  - Follow SEO-friendly URL patterns using slugs for creators and games
+  - Prioritize clean, human-readable URLs and structured metadata for SEO
+
+style_guidelines:
+  - Follow component-driven development
+  - Use consistent naming conventions:
+    - camelCase for JS/TS
+    - PascalCase for React components
+    - snake_case for DB fields
+  - Keep components and files small, focused, and reusable
+  - Use semantic, meaningful names for variables, functions, and components
+  - Follow established folder structure (e.g., pages/, components/, api/, utils/)
+  - Keep TypeScript types colocated with related files or in a shared types/ folder
+  - Use Tailwind CSS (or chosen styling method) consistently
+
+tech_stack:
+  - Use **Shadcn UI** components for consistent design and accessibility
+  - Use **TypeScript** for all frontend and backend code
+  - Use **React** (via Next.js) for all UI components
+  - Use **Next.js** for routing, SSR/SSG, and API routes
+  - Use **Supabase** for authentication, database, and storage
+  - Use **Vercel** for CI/CD and deployment
+
+testing_rules:
+  - Each new API route, utility function, or component should include a corresponding test using the following stack:
+  - API & utilities: Jest with ts-jest and `@supabase/supabase-js` mocked
+  - Components: React Testing Library
+  - Use `__tests__` directory colocated with feature (e.g., `__tests__/api/foo.test.ts`)
+  - Use descriptive test names and test happy path + basic edge case
+  - Use `jest.mock()` to mock external dependencies like Supabase or OpenAI
+
+llm_usage:
+  - Use the Sonnet model (or most advanced available)
+  - Always generate a plan before implementing large or complex features
+  - Confirm feature scope before starting multi-step workflows
+  - Avoid generating mock placeholder code unless explicitly requested
+  - Avoid assumptions — ask clarifying questions if data, context, or intent is unclear
+  - Prioritize real functionality over filler UI
+  - Provide file names and locations in outputs
+
+ai_context:
+  - This project is a web app called Scorelytic
+  - The purpose is to analyze sentiment from YouTube content creator reviews of games
+  - Scorelytic provides numeric scores based on AI-analyzed review content
+  - It aggregates scores to create a "ContentCritic" rating similar to Metacritic
+  - MVP focus is on displaying games, their scores, and individual reviews from creators
+
+routing:
+  - Homepage: /
+  - Game page: /games/[gameSlug]
+  - Review detail: /reviews/[creatorSlug]/[gameSlug]
+  - Creator profile: /creators/[creatorSlug]
+
+modeling:
+  - Use PostgreSQL or Prisma schema style for data model definitions
+  - Game: id, title, slug, coverArtUrl, releaseDate, metaCriticScore
+  - Creator: id, name, slug, avatarUrl, bio, channelUrl
+  - Review: id, gameId, creatorId, videoUrl, score, pros, cons, sentimentSummary, biasIndicators, alsoRecommends, createdAt
