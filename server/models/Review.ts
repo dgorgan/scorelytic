@@ -1,5 +1,5 @@
 export type Review = {
-  id: string;
+  id?: string;
   gameId: string;
   creatorId: string;
   videoUrl: string;

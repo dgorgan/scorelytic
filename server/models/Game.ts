@@ -1,5 +1,5 @@
 export type Game = {
-  id: string;
+  id?: string;
   title: string;
   slug: string;
   coverArtUrl: string;
