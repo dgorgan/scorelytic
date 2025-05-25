@@ -1,5 +1,6 @@
 // src/routes/gameRoutes.ts
 import { Router, Request, Response } from 'express';
+import { getGameById } from '../controllers/gameController';
 
 const router = Router();
 
@@ -12,5 +13,7 @@ router.get('/', (req: Request, res: Response) => {
 router.post('/', (req: Request, res: Response) => {
   res.send('Create a new game');
 });
+
+router.get('/:id', getGameById);
 
 export default router;

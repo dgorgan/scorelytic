@@ -11,6 +11,8 @@ describe('Supabase Model Types', () => {
       coverArtUrl: 'https://example.com/test.jpg',
       releaseDate: '2023-01-01',
       metaCriticScore: 90,
+      description: 'A test game',
+      contentCriticScore: 88
     };
     expect(game.title).toBe('Test Game');
   });
