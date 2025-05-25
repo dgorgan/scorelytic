@@ -2,7 +2,7 @@ import request from 'supertest';
 import app from '../../app';
 // import * as db from '../../../config/database';
 
-jest.mock('../../../config/database', () => {
+jest.mock('../../config/database', () => {
   const chain: any = {
     select: jest.fn(() => chain),
     eq: jest.fn(() => chain),
@@ -16,7 +16,7 @@ jest.mock('../../../config/database', () => {
     },
   };
 });
-const db = require('../../../config/database');
+const db = require('../../config/database');
 
 describe('GET /api/games/:id', () => {
   const gameId = 'test-game-id';
