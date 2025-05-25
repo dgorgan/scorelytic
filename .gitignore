@@ -49,3 +49,11 @@ Desktop.ini
 # Dist and build folders (Backend)
 server/dist/
 server/build/
+
+# Next.js trace files
+.next/trace
+.next/trace.json
+client/.next/trace
+client/.next/trace.json
+client/test/.next/trace
+client/test/.next/trace.json

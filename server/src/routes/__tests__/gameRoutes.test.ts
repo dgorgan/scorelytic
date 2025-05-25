@@ -1,6 +1,22 @@
 import request from 'supertest';
-import app from '../../../app';
-import * as db from '../../../config/database';
+import app from '../../app';
+// import * as db from '../../../config/database';
+
+jest.mock('../../../config/database', () => {
+  const chain: any = {
+    select: jest.fn(() => chain),
+    eq: jest.fn(() => chain),
+    order: jest.fn(() => chain),
+    in: jest.fn(() => chain),
+    single: jest.fn(async () => ({ data: {}, error: null })),
+  };
+  return {
+    supabase: {
+      from: jest.fn(() => chain),
+    },
+  };
+});
+const db = require('../../../config/database');
 
 describe('GET /api/games/:id', () => {
   const gameId = 'test-game-id';
@@ -39,10 +55,18 @@ describe('GET /api/games/:id', () => {
       channelUrl: 'ch'
     }
   ];
+  let chain: any;
   beforeEach(() => {
-    jest.spyOn(db.supabase.from('games'), 'select').mockReturnValue({ eq: () => ({ single: async () => ({ data: mockGame, error: null }) }) } as any);
-    jest.spyOn(db.supabase.from('reviews'), 'select').mockReturnValue({ eq: () => ({ order: () => ({ data: mockReviews, error: null }) }) } as any);
-    jest.spyOn(db.supabase.from('creators'), 'select').mockReturnValue({ in: () => ({ data: mockCreators, error: null }) } as any);
+    chain = db.supabase.from();
+    chain.select.mockImplementation(() => chain);
+    chain.eq.mockImplementation(() => chain);
+    chain.order.mockImplementation(() => chain);
+    chain.in.mockImplementation(() => chain);
+    chain.single.mockImplementation(async () => ({ data: mockGame, error: null }));
+    // reviews
+    chain.order.mockImplementationOnce(() => ({ data: mockReviews, error: null }));
+    // creators
+    chain.in.mockImplementationOnce(() => ({ data: mockCreators, error: null }));
   });
   afterEach(() => jest.restoreAllMocks());
   it('returns game, reviews, creators, and sentiment summary', async () => {
@@ -54,18 +78,42 @@ describe('GET /api/games/:id', () => {
     expect(res.body.sentimentSummaries).toContain('positive');
   });
   it('returns 404 if game not found', async () => {
-    jest.spyOn(db.supabase.from('games'), 'select').mockReturnValue({ eq: () => ({ single: async () => ({ data: null, error: 'not found' }) }) } as any);
+    chain.single.mockImplementationOnce(async () => ({ data: null, error: 'not found' }));
     const res = await request(app).get(`/api/games/doesnotexist`);
     expect(res.status).toBe(404);
   });
   it('returns 500 if review fetch fails', async () => {
-    jest.spyOn(db.supabase.from('reviews'), 'select').mockReturnValue({ eq: () => ({ order: () => ({ data: null, error: 'fail' }) }) } as any);
+    const originalFrom = db.supabase.from;
+    db.supabase.from = jest.fn((table: string) => {
+      if (table === 'reviews') {
+        return {
+          select: () => ({
+            eq: () => ({
+              order: async () => ({ data: null, error: 'fail' })
+            })
+          })
+        };
+      }
+      return chain;
+    });
     const res = await request(app).get(`/api/games/${gameId}`);
     expect(res.status).toBe(500);
+    db.supabase.from = originalFrom;
   });
   it('returns 500 if creator fetch fails', async () => {
-    jest.spyOn(db.supabase.from('creators'), 'select').mockReturnValue({ in: () => ({ data: null, error: 'fail' }) } as any);
+    const originalFrom = db.supabase.from;
+    db.supabase.from = jest.fn((table: string) => {
+      if (table === 'creators') {
+        return {
+          select: () => ({
+            in: async () => ({ data: null, error: 'fail' })
+          })
+        };
+      }
+      return chain;
+    });
     const res = await request(app).get(`/api/games/${gameId}`);
     expect(res.status).toBe(500);
+    db.supabase.from = originalFrom;
   });
 }); 

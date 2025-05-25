@@ -5,7 +5,7 @@ import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 // import { supabase } from '@/lib/supabaseClient';
 
-import gameRoutes from './src/routes/gameRoutes';
+import gameRoutes from './routes/gameRoutes';
 
 dotenv.config();
 
