@@ -99,12 +99,13 @@ export async function seedSupabase() {
       videoUrl: 'https://youtube.com/eldenringreview',
       score: 9.5,
       pros: ['Open world', 'Combat', 'Atmosphere'],
-      cons: ['Difficulty'],
+      cons: ['Difficulty', 'Sparse story moments'],
       sentimentSummary: 'Overwhelmingly positive',
-      biasIndicators: [],
-      alsoRecommends: ['The Witcher 3'],
+      biasIndicators: ['Fan of FromSoftware games'],
+      alsoRecommends: ['The Witcher 3', 'Dark Souls 3'],
       createdAt: '2022-03-01T12:00:00Z',
-      transcript: 'Elden Ring is a masterpiece of open world design. The combat is challenging but rewarding, and the world is full of secrets. Highly recommended for fans of FromSoftware games.'
+      transcript: `Elden Ring is a masterpiece of open world design. The combat is challenging but rewarding, and the world is full of secrets. I spent over 100 hours exploring and still found new things. The difficulty may turn off some players, and the story can be sparse at times, but the sense of discovery is unmatched. As a long-time fan of FromSoftware, this is their best work yet. If you loved Dark Souls 3 or The Witcher 3, you'll love this.`,
+      reviewSummary: 'Elden Ring offers a vast, challenging world with rewarding exploration and combat. Best for fans of FromSoftware, but the difficulty and sparse story may not appeal to everyone.'
     },
     {
       gameId: gameIdMap['the-witcher-3'],
@@ -112,13 +113,42 @@ export async function seedSupabase() {
       videoUrl: 'https://youtube.com/witcher3review',
       score: 9.2,
       pros: ['Story', 'World', 'Quests'],
-      cons: ['Bugs'],
+      cons: ['Bugs', 'Clunky combat'],
       sentimentSummary: 'Very positive',
-      biasIndicators: [],
-      alsoRecommends: ['Elden Ring'],
+      biasIndicators: ['Prefers story-driven games'],
+      alsoRecommends: ['Elden Ring', 'Red Dead Redemption 2'],
       createdAt: '2015-06-01T12:00:00Z',
-      transcript: 'The Witcher 3 sets a new standard for RPGs. The story and world are incredible, though there are some bugs. Still, it is one of the best games ever made.'
+      transcript: `The Witcher 3 sets a new standard for RPGs. The story and world are incredible, and the quests are some of the best I've played. However, there are still bugs even after patches, and the combat can feel clunky. If you value story and world-building, this is a must-play. I recommend it to fans of Elden Ring and Red Dead Redemption 2. I do tend to prefer story-driven games, so keep that in mind.`,
+      reviewSummary: 'The Witcher 3 is a must-play for story lovers, with an incredible world and quests, but bugs and clunky combat hold it back. Recommended for those who value narrative over gameplay polish.'
     },
+    {
+      gameId: gameIdMap['elden-ring'],
+      creatorId: creatorIdMap['angryjoe'],
+      videoUrl: 'https://youtube.com/eldenringnegativereview',
+      score: 5.5,
+      pros: ['Visuals'],
+      cons: ['Unfair difficulty', 'Lack of direction', 'Repetitive bosses'],
+      sentimentSummary: 'Mixed to negative',
+      biasIndicators: ['Prefers accessible games', 'Not a fan of Soulslikes'],
+      alsoRecommends: ['The Legend of Zelda: Breath of the Wild'],
+      createdAt: '2022-04-01T12:00:00Z',
+      transcript: `I know a lot of people love Elden Ring, but I just couldn't get into it. The visuals are great, but the difficulty feels unfair and the game gives you almost no direction. I found myself fighting the same types of bosses over and over. Maybe it's just not for me—I'm not a big fan of Soulslike games and prefer more accessible experiences. If you want a challenging game, go for it, but I recommend Breath of the Wild for a more welcoming adventure.`,
+      reviewSummary: 'Elden Ring is visually stunning but can be frustratingly difficult and repetitive. Not recommended for those who dislike Soulslike games or want a more guided experience.'
+    },
+    {
+      gameId: gameIdMap['the-witcher-3'],
+      creatorId: creatorIdMap['skill-up'],
+      videoUrl: 'https://youtube.com/witcher3mixedreview',
+      score: 7.0,
+      pros: ['Story', 'Side quests'],
+      cons: ['Combat', 'UI', 'Performance issues'],
+      sentimentSummary: 'Mixed',
+      biasIndicators: ['Critical of technical issues'],
+      alsoRecommends: ['Cyberpunk 2077'],
+      createdAt: '2016-01-01T12:00:00Z',
+      transcript: `The Witcher 3 is a great game, but it's not perfect. The story and side quests are top-notch, but the combat system is mediocre and the UI is clunky. I also ran into performance issues on my PC. I know some people overlook these flaws because of the narrative, but I think they matter. If you can get past the technical problems, you'll have a good time. If you want a more polished experience, try Cyberpunk 2077.`,
+      reviewSummary: 'The Witcher 3 shines in story and side quests, but technical flaws and mediocre combat may frustrate some players. Worth playing if you can overlook the issues.'
+    }
   ];
   console.log('Starting to upsert reviews');
   const { data: rawReviews, error: reviewsError } = await supabase.from('reviews').upsert(toSnake(reviews)).select();

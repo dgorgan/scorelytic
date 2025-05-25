@@ -10,5 +10,6 @@ export type Review = {
   biasIndicators: string[];
   alsoRecommends: string[];
   createdAt: string; // ISO date
-  transcript?: string;
+  transcript: string;
+  reviewSummary: string;
 };

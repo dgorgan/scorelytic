@@ -1,0 +1,1 @@
+alter table reviews add column review_summary text; 
