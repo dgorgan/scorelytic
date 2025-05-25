@@ -50,6 +50,9 @@ testing:
   test_file_suffix: ".test.ts"
   coverage_required: true
   mock_external_calls: true
+  require_tests: true
+  require_tests_pass: true
+  remind_run_tests_in_pr: true
 
 # Documentation & Comments
 docs:
@@ -64,9 +67,15 @@ project_management:
     - "documentation.md"
     - "api_spec.md"
   follow_milestones_order: true
+  pr_checklist:
+  - 'All new and existing tests pass'
+  - 'Code coverage meets threshold'
+  - 'No debug or console.log statements'
+  - 'Documentation updated if needed'
 
 # AI interaction preferences
 ai_assistant:
   ask_before_big_changes: true
   summarize_changes_in_commit: true
   avoid_suggestions_outside_scope: true
+

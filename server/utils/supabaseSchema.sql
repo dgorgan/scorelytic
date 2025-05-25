@@ -3,9 +3,11 @@ create table if not exists games (
   id uuid primary key default gen_random_uuid(),
   title text not null,
   slug text unique not null,
+  description text not null,
   coverArtUrl text not null,
   releaseDate date not null,
-  metaCriticScore int
+  metaCriticScore int,
+  contentCriticScore float
 );
 
 -- Creators table
