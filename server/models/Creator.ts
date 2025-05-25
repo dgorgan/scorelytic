@@ -1,5 +1,5 @@
 export type Creator = {
-  id: string;
+  id?: string;
   name: string;
   slug: string;
   avatarUrl: string;
