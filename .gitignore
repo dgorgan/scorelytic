@@ -57,3 +57,7 @@ client/.next/trace
 client/.next/trace.json
 client/test/.next/trace
 client/test/.next/trace.json
+
+# Next.js and SWC build/cache folders
+.next/
+.swc/
