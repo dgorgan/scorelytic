@@ -7,13 +7,13 @@
     "target": "ES6",
     "module": "CommonJS",
     "outDir": "./dist", // output directory for compiled JavaScript
-    "rootDir": ".", // allow imports from src and config
+    "rootDir": "./src", // your source directory
     "esModuleInterop": true,
     "moduleResolution": "node",
     "strict": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
   },
-  "include": ["src/**/*.ts", "config/**/*.ts"],
+  "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]
 }
