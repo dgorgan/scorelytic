@@ -103,3 +103,16 @@
 - Fallback routing for incorrect/missing slugs → 404 or redirect
 - Cache popular pages and aggregated scores
 - Keep documentation updated with all changes to APIs or routing
+
+---
+
+## 🧠 LLM Sentiment Analysis (Backend)
+
+- Utility: `analyzeTranscript(transcript: string, reviewId: string): Promise<{ summary, sentimentScore, verdict }>`
+- Sends a transcript to an LLM (mocked for now), parses the response, and updates the review's sentimentSummary field in the DB.
+- Sentiment result fields:
+  - `summary: string` — short summary of the review sentiment
+  - `sentimentScore: number` — score from 0–10
+  - `verdict: string` — e.g. "positive", "negative", "mixed"
+- Currently uses a hardcoded transcript and mock LLM response for testing.
+- Fully tested with Jest and supabase mocks.
