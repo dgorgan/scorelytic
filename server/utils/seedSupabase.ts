@@ -24,16 +24,20 @@ export async function seedSupabase() {
     {
       title: 'Elden Ring',
       slug: 'elden-ring',
+      description: 'A vast, open-world action RPG from FromSoftware.',
       coverArtUrl: 'https://example.com/eldenring.jpg',
       releaseDate: '2022-02-25',
       metaCriticScore: 95,
+      contentCriticScore: 93,
     },
     {
       title: 'The Witcher 3',
       slug: 'the-witcher-3',
+      description: 'A story-driven open world RPG set in a visually stunning fantasy universe.',
       coverArtUrl: 'https://example.com/witcher3.jpg',
       releaseDate: '2015-05-19',
       metaCriticScore: 92,
+      contentCriticScore: 90,
     },
   ];
   console.log('Starting to upsert games');
