@@ -104,6 +104,7 @@ export async function seedSupabase() {
       biasIndicators: [],
       alsoRecommends: ['The Witcher 3'],
       createdAt: '2022-03-01T12:00:00Z',
+      transcript: 'Elden Ring is a masterpiece of open world design. The combat is challenging but rewarding, and the world is full of secrets. Highly recommended for fans of FromSoftware games.'
     },
     {
       gameId: gameIdMap['the-witcher-3'],
@@ -116,6 +117,7 @@ export async function seedSupabase() {
       biasIndicators: [],
       alsoRecommends: ['Elden Ring'],
       createdAt: '2015-06-01T12:00:00Z',
+      transcript: 'The Witcher 3 sets a new standard for RPGs. The story and world are incredible, though there are some bugs. Still, it is one of the best games ever made.'
     },
   ];
   console.log('Starting to upsert reviews');
