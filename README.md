@@ -15,8 +15,7 @@ Scorelytic is designed to bridge the gap between gamers and media reviewers by o
 
 - **Backend**:
   - **Express.js** (Minimal web framework for Node.js)
-  - **MongoDB** (NoSQL database for storing reviews, user data, etc.)
-  - **Mongoose** (ODM for MongoDB)
+  - **Supabase** (PostgreSQL database, auth, and storage)
   - **TypeScript** (Ensures strong typing and better scalability)
 
 - **Development Tools**:
@@ -27,10 +26,9 @@ Scorelytic is designed to bridge the gap between gamers and media reviewers by o
 ## AI/Analytics
 
 - **Sentiment Analysis**: Utilizing natural language processing (NLP) to analyze review texts, identifying sentiment trends and bias indicators in critiques and creator reviews.
-- **Creator Score**: Based on sentiment analysis, a **curated (or weighted)** creator score will be calculated, factoring in the tone and sentiment of their reviews. This score will allow users to compare creator sentiment with traditional **critic scores** (e.g., MetaCritic, OpenCritic). The goal is to provide a more balanced view of a creator’s opinion in relation to a critic’s analysis.
+- **Creator Score**: Based on sentiment analysis, a **curated (or weighted)** creator score will be calculated, factoring in the tone and sentiment of their reviews. This score will allow users to compare creator sentiment with traditional **critic scores** (e.g., MetaCritic, OpenCritic). The goal is to provide a more balanced view of a creator's opinion in relation to a critic's analysis.
 - **Machine Learning**: For understanding review patterns and predicting potential biases based on historical data.  
 - **Bias Detection**: Scoring algorithms will calculate the degree of bias in each review, helping users to identify whether a review is skewed by personal preferences or external factors.
-
 
 ## MVP Goals (2 - 4 weeks)
 
@@ -45,12 +43,12 @@ The initial MVP focuses on building the essential features of the platform, allo
 2. **Backend** (API):
    - Create an Express.js API to serve user data and review information.
    - Implement routes for posting and retrieving reviews.
-   - Set up MongoDB to store reviews and user data.
+   - Set up Supabase (PostgreSQL) to store reviews and user data.
 
 3. **AI-Driven Insights**:
    - **Sentiment analysis**: Provide a breakdown of whether reviews are generally positive, neutral, or negative.
    - Display aggregated review data and show potential biases across critics and creators.
-   - **Data visualization**: Display review score distributions and highlight patterns between critics’ and creators’ reviews.
+   - **Data visualization**: Display review score distributions and highlight patterns between critics' and creators' reviews.
 
 4. **Authentication** (Basic login flow):
    - Users can create accounts and log in.
@@ -62,7 +60,7 @@ Once the MVP is built and tested, we aim to enhance the platform with additional
 
 1. **Advanced AI Features**:
    - Enhance sentiment analysis with more sophisticated NLP models to detect nuanced emotions in reviews.
-   - Implement **bias prediction algorithms** that show users how likely a reviewer’s opinion is to be swayed by factors like personal preferences or affiliations.
+   - Implement **bias prediction algorithms** that show users how likely a reviewer's opinion is to be swayed by factors like personal preferences or affiliations.
 
 2. **Bias Analytics**:
    - Use machine learning to analyze trends in reviewer behavior and highlight potential biases across different platforms, such as gaming publications vs. YouTube creators.
@@ -87,7 +85,7 @@ Once the MVP is built and tested, we aim to enhance the platform with additional
 
 - Node.js (v16+ recommended)
 - npm or yarn
-- MongoDB (for backend development)
+- Supabase project (for backend database, auth, and storage)
 
 ### Setup
 
@@ -119,12 +117,10 @@ Once the MVP is built and tested, we aim to enhance the platform with additional
 
 3. **Environment configuration:**
 
-    Create `.env` files in both the root and server directories.
-
-    Example for `server/.env`:
+    Create a `.env` file in the `server` directory with your Supabase credentials:
     ```plaintext
-    PORT=5000
-    MONGO_URI=mongodb://localhost:27017/scorelytic
+    SUPABASE_URL=your-supabase-url
+    SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
     ```
 
 4. **Run the development servers:**
@@ -145,7 +141,7 @@ scorelytic
 │   ├── src/               # Client source code
 │   ├── public/            # Public assets
 │   ├── package.json       # Client dependencies
-├── server/                # Backend application (Express.js)
+├── server/                # Backend application (Express.js + Supabase)
 │   ├── src/               # Server source code
 │   ├── package.json       # Server dependencies
 ├── shared/                # Shared code (types, constants, etc.)
@@ -166,6 +162,7 @@ scorelytic
 ### Server
 
 - `npm run dev`: Start the Express.js server using `nodemon` for live reload.
+- `npx ts-node utils/seedSupabase.ts`: Seed the Supabase database with test data.
 
 ## Contributing
 
