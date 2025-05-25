@@ -42,7 +42,12 @@
   Returns a list of games with basic details and scores.
 
 - `GET /api/games/:gameId`  
-  Returns detailed info for a game including reviews.
+  Returns detailed info for a game including:
+  - Game details
+  - Reviews (with creator info attached)
+  - `averageSentimentScore` (number)
+  - `sentimentSummaries` (array of unique sentiment strings)
+  - Handles 404 if not found, 500 on DB errors
 
 - `GET /api/games/:gameId/reviews`  
   Returns all reviews for a specific game.
@@ -87,7 +92,8 @@
 - Mock external dependencies (e.g., Supabase, OpenAI) using `jest.mock()`.  
 - Place tests in a `__tests__` folder colocated with the code being tested.  
 - Write descriptive test names covering happy paths and basic edge cases.
-- Run all tests with npm run test
+- Run all tests with `npm test` at the repo root (runs both server and client tests)
+- All backend code is under `server/src/` for TypeScript rootDir consistency
 
 ---
 
