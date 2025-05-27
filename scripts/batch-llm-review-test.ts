@@ -20,7 +20,10 @@ const argv = yargs(hideBin(process.argv))
 const main = async () => {
   const argvResolved = await argv;
   const { model, prompt, ignore, embedding, strict, lenient, fewshot } = argvResolved as any;
-  const { data: rawReviews, error } = await supabase.from('reviews').select('*');
+  const { data: rawReviews, error } = await supabase.from('reviews').select(`
+    *,
+    games(title)
+  `);
   if (error) {
     console.error('Error fetching reviews:', error);
     process.exit(1);
@@ -73,7 +76,7 @@ const main = async () => {
         });
         fullPrompt += '\nNow analyze the following transcript:';
       }
-      const llm = await analyzeText(review.transcript, model, fullPrompt);
+      const llm = await analyzeText(review.transcript, model, fullPrompt, undefined, review.games?.title);
       let hasMismatch = false;
       const fields = [
         'sentimentScore',

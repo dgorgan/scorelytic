@@ -79,12 +79,16 @@ export const analyzeText = async (
   text: string,
   model: string = 'gpt-3.5-turbo',
   customPrompt?: string,
-  labels: string[] = SENTIMENT_LABELS
+  labels: string[] = SENTIMENT_LABELS,
+  gameTitle?: string
 ): Promise<SentimentResult> => {
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   const labelList = labels.map(l => `"${l}"`).join(', ');
   const biasList = BIAS_LABELS.map(l => `"${l}"`).join(', ');
-  const prompt = customPrompt || `Analyze the following review transcript and return a JSON object with these fields: summary (string), sentimentScore (0-10, number), verdict ("positive", "negative", or "mixed"), sentimentSummary (string, use ONLY one of these labels: [${labelList}]), biasIndicators (array of strings: use ONLY these labels: [${biasList}], and match the style/wording of this list as closely as possible), alsoRecommends (array of strings), pros (array of strings), cons (array of strings), reviewSummary (string, a 1-2 sentence or paragraph TLDR/overview of the review for gamers/users). For each field, if it is not mentioned or cannot be inferred from the transcript, return null (for strings/numbers) or an empty array (for arrays). Do not guess or hallucinate. Be as accurate and nuanced as possible.\nTranscript:\n${text}`;
+  
+  const gameContext = gameTitle ? `\n\nIMPORTANT: This review is about the game "${gameTitle}". Only extract information that is actually mentioned in this specific transcript about this specific game. Do not generate generic content or information about other games.` : '';
+  
+  const prompt = customPrompt || `Analyze the following review transcript and return a JSON object with these fields: summary (string), sentimentScore (0-10, number), verdict ("positive", "negative", or "mixed"), sentimentSummary (string, use ONLY one of these labels: [${labelList}]), biasIndicators (array of strings: use ONLY these labels: [${biasList}], and match the style/wording of this list as closely as possible), alsoRecommends (array of strings), pros (array of strings), cons (array of strings), reviewSummary (string, a 1-2 sentence or paragraph TLDR/overview of the review for gamers/users). For each field, if it is not mentioned or cannot be inferred from the transcript, return null (for strings/numbers) or an empty array (for arrays). Do not guess or hallucinate. Be as accurate and nuanced as possible.${gameContext}\nTranscript:\n${text}`;
   console.debug('[LLM] SentimentService prompt:', prompt);
   let llmResult: SentimentResult;
   try {

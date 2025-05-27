@@ -278,8 +278,7 @@ export default function Dashboard() {
     return String(val);
   };
 
-  // @ts-ignore - Ignore TypeScript return type issues
-  const displayCell = (val: unknown): string | React.ReactElement => {
+  const displayCell = (val: unknown): React.ReactNode => {
     if (val === undefined || val === null || val === 'undefined' || val === 'null') {
       return <span className="text-gray-400 italic">N/A</span>;
     }
@@ -316,11 +315,11 @@ export default function Dashboard() {
         <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-400 rounded">
           <h2 className="text-lg font-bold text-blue-900 mb-2">How to use this dashboard</h2>
           <ul className="list-disc pl-6 text-blue-900 text-sm space-y-1">
-            <li><b>Bar graph</b>: Each bar shows the number of <b>mismatches</b> for a field across all reviews. <b>X-axis</b> = field name. <b>Y-axis</b> = count of reviews where LLM output and seed differ significantly (similarity &lt; 0.8). Taller bars mean more disagreement between LLM and original data for that field.</li>
-            <li><b>Grouped View</b>: Each row is a reviewId, with all fields shown as columns. Cells show the LLM output and the original (seed) value for each field. Red rows have at least one mismatch.</li>
-            <li><b>Advanced QA</b>: Each row is a single (reviewId, field) pair. You can see and edit the LLM output and similarity for each field individually.</li>
-            <li>Use the filters, search, and CSV download to explore or export results.</li>
-            <li>Fields like <b>sentimentScore</b> or <b>verdict</b> have no original value (seed), so their seed cell will show <span className="text-gray-400 italic">N/A</span>.</li>
+            <li><b>Bar graph</b>: Shows mismatches between AI analysis and available ground truth data. <b>High bars for sentimentScore/verdict are EXPECTED</b> - these are AI-only fields with no baseline data to compare against.</li>
+            <li><b>Real Issues to Focus On</b>: Look for mismatches in <b>pros, cons, reviewSummary, alsoRecommends</b> - these fields sometimes have explicit mentions in transcripts that we can verify against.</li>
+            <li><b>Grouped View</b>: Each row is a reviewId, with all fields shown as columns. Cells show the LLM output and the original (seed) value for each field. Red rows have at least one mismatch in verifiable fields.</li>
+            <li><b>Advanced QA</b>: Each row is a single (reviewId, field) pair. Use this to manually correct AI outputs that clearly misunderstood the transcript content.</li>
+            <li><b>AI-Only Fields</b>: <b>sentimentScore, verdict, sentimentSummary</b> will always show low similarity since we infer these from transcripts - focus on whether they seem reasonable, not similarity scores.</li>
           </ul>
         </div>
         <h1 className="text-2xl font-bold mb-4 text-gray-900">LLM Batch Test Results</h1>
