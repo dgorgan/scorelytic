@@ -1,0 +1,1 @@
+ALTER TABLE reviews ADD CONSTRAINT reviews_video_url_unique UNIQUE (video_url); 
