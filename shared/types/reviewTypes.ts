@@ -1,1 +1,1 @@
-export * from '../../server/models/Review';
+export * from './Review';

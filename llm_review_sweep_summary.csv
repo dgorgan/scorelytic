@@ -1,0 +1,3 @@
+model,prompt,field,total_mismatches,total_comparisons
+gpt-3.5-turbo,"default",biasIndicators,8,8
+gpt-4,"default",biasIndicators,9,9

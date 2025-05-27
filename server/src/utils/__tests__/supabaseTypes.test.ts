@@ -42,6 +42,8 @@ describe('Supabase Model Types', () => {
       biasIndicators: [],
       alsoRecommends: [],
       createdAt: '2023-01-01T00:00:00Z',
+      transcript: 'Test transcript',
+      reviewSummary: 'Test summary'
     };
     expect(review.score).toBe(8.5);
   });

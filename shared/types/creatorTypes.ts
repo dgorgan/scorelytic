@@ -1,1 +1,1 @@
-export * from '../../server/models/Creator';
+export * from './Creator';
