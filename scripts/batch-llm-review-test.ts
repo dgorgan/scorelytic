@@ -5,6 +5,7 @@ import fs from 'fs';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { harmonizeBias } from '../shared/utils/bias-harmonizer';
+import { createObjectCsvWriter } from 'csv-writer';
 
 const argv = yargs(hideBin(process.argv))
   .option('model', { type: 'string', default: 'gpt-3.5-turbo' })
@@ -26,9 +27,17 @@ const main = async () => {
   }
   const reviews = toCamel(rawReviews || []);
   let total = 0, mismatches = 0;
-  const csvRows = [
-    'reviewId,field,seed,llm,similarity'
-  ];
+  const csvWriter = createObjectCsvWriter({
+    path: 'llm_review_batch_results.csv',
+    header: [
+      { id: 'reviewId', title: 'reviewId' },
+      { id: 'field', title: 'field' },
+      { id: 'seed', title: 'seed' },
+      { id: 'llm', title: 'llm' },
+      { id: 'similarity', title: 'similarity' }
+    ]
+  });
+  const csvRows: any[] = [];
   // Thresholds
   const arrayThresh = strict ? 0.7 : 0.5;
   const stringThresh = strict ? 0.8 : 0.7;
@@ -107,7 +116,13 @@ const main = async () => {
         } else {
           sim = seedVal === llmVal ? 1 : 0;
         }
-        csvRows.push(`${review.id},${field},${JSON.stringify(seedVal)},${JSON.stringify(llmVal)},${sim.toFixed(2)}`);
+        csvRows.push({
+          reviewId: review.id,
+          field,
+          seed: seedVal === undefined || seedVal === null ? '' : JSON.stringify(seedVal),
+          llm: llmVal === undefined || llmVal === null ? '' : JSON.stringify(llmVal),
+          similarity: sim.toFixed(2)
+        });
         if (sim < (Array.isArray(seedVal) ? arrayThresh : stringThresh)) hasMismatch = true;
       }
       if (!hasMismatch) console.log('LLM output matches original review fields.');
@@ -115,7 +130,7 @@ const main = async () => {
       console.error('LLM error:', err);
     }
   }
-  fs.writeFileSync('llm_review_batch_results.csv', csvRows.join('\n'));
+  await csvWriter.writeRecords(csvRows);
   console.log(`\nBatch test complete. ${total} reviews processed. Results exported to llm_review_batch_results.csv`);
 };
 

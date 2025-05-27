@@ -4,6 +4,7 @@ import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { fetchYoutubeCaptions, normalizeYoutubeToReview, upsertReviewToSupabase } from '../server/src/services/youtube/captionIngestService';
 import fs from 'fs';
+import { supabase } from '../server/src/config/database';
 
 const argv = yargs(hideBin(process.argv))
   .option('ids', {
