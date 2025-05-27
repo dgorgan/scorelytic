@@ -25,12 +25,17 @@ Scorelytic is designed to bridge the gap between gamers and media reviewers by o
 
 ## AI/Analytics
 
-- **Sentiment Analysis**: Utilizing natural language processing (NLP) to analyze review texts, identifying sentiment trends and bias indicators in critiques and creator reviews.
+- **Sentiment Analysis**: Live, using OpenAI to analyze review texts, identify sentiment trends, and bias indicators.
+- **Dashboard QA**: Internal dashboard for human-in-the-loop review, override, and validation of LLM results.
 - **Creator Score**: Based on sentiment analysis, a **curated (or weighted)** creator score will be calculated, factoring in the tone and sentiment of their reviews. This score will allow users to compare creator sentiment with traditional **critic scores** (e.g., MetaCritic, OpenCritic). The goal is to provide a more balanced view of a creator's opinion in relation to a critic's analysis.
 - **Machine Learning**: For understanding review patterns and predicting potential biases based on historical data.  
 - **Bias Detection**: Scoring algorithms will calculate the degree of bias in each review, helping users to identify whether a review is skewed by personal preferences or external factors.
 
 ## MVP Goals (2 - 4 weeks)
+
+The MVP now includes:
+- LLM sentiment analysis pipeline (YouTube → transcript → LLM → sentiment in DB)
+- Internal dashboard for QA and override
 
 The initial MVP focuses on building the essential features of the platform, allowing for rapid iteration and user feedback. The MVP will include:
 
@@ -244,6 +249,43 @@ npx ts-node scripts/youtube-caption-ingest.ts --file batch.json
 [SUCCESS] Ingested review for videoId: QkkoHAzjnUs
 Ingestion summary: [ { videoId: 'QkkoHAzjnUs', status: 'success' } ]
 ```
+
+## Internal Dashboard (LLM QA & Review)
+
+This is an internal tool for reviewing, validating, and overriding LLM sentiment analysis results. Not part of the public-facing site.
+
+- Features:
+  - Grouped and advanced QA views
+  - Human-in-the-loop overrides (saved to Supabase)
+  - Color-coded legend for mismatches/overrides
+  - CSV download, search, and filters for unreviewed/overridden
+- Fully covered by Jest + React Testing Library tests
+- To run dashboard tests:
+  ```bash
+  cd client
+  npm test
+  ```
+
+## How to Run Tests
+
+- **Client (dashboard):**
+  ```bash
+  cd client
+  npm test
+  ```
+- **Server:**
+  ```bash
+  cd server
+  npm test
+  ```
+
+## YouTube Transcript Analysis Pipeline
+
+- Captions are fetched from YouTube videos and stored as `review.transcript`.
+- Each transcript is analyzed by the LLM (OpenAI), producing:
+  - `summary`, `sentimentScore`, `verdict`, `sentimentSummary`, `biasIndicators`, etc.
+- Results are stored in the DB and surfaced in the internal dashboard for QA and override.
+- The same data powers the public-facing game/creator pages and analytics.
 
 
 
