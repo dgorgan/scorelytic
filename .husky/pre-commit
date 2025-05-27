@@ -8,3 +8,10 @@ if find server/src client/services client/test -type f \( -name '*.js' -o -name 
   echo '❌ JS artifacts found in source! Clean up before committing.'
   exit 1
 fi 
+
+# Block commits if any .js files exist in shared/ (excluding node_modules)
+if find ./shared -type f -name '*.js' | grep -v node_modules | grep -q .; then
+  echo '❌ JS artifacts found in shared/. Commit blocked.'
+  find ./shared -type f -name '*.js' | grep -v node_modules
+  exit 1
+fi 
