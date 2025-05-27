@@ -195,5 +195,55 @@ This repository is private during development. Contributions will be welcome onc
 
 TBD (To Be Determined)
 
+# YouTube Caption Ingestion Pipeline
+
+## Usage
+
+### Single Video Ingest
+
+```sh
+npx ts-node scripts/youtube-caption-ingest.ts --ids QkkoHAzjnUs --gameSlug elden-ring --creatorSlug skill-up --gameTitle "Elden Ring" --creatorName "Skill Up" --channelUrl "https://youtube.com/skillup"
+```
+
+### Batch Ingest from File
+
+- Plain text file (one video ID per line):
+
+```sh
+npx ts-node scripts/youtube-caption-ingest.ts --file video_ids.txt --gameSlug elden-ring --creatorSlug skill-up
+```
+
+- JSON file (array of objects with videoId, gameSlug, etc.):
+
+```json
+[
+  { "videoId": "QkkoHAzjnUs", "gameSlug": "elden-ring", "creatorSlug": "skill-up", "gameTitle": "Elden Ring", "creatorName": "Skill Up", "channelUrl": "https://youtube.com/skillup" },
+  { "videoId": "abc123", "gameSlug": "witcher-3", "creatorSlug": "angryjoe", "gameTitle": "The Witcher 3", "creatorName": "AngryJoeShow", "channelUrl": "https://youtube.com/angryjoe" }
+]
+```
+
+```sh
+npx ts-node scripts/youtube-caption-ingest.ts --file batch.json
+```
+
+## Features
+- Dynamically looks up or auto-creates games and creators by slug/channel/title
+- Deduplicates reviews by video URL
+- Logs errors to `errors.log`
+- Prints a summary at the end
+
+## Troubleshooting
+- **Permission denied for schema public**: Run the GRANTs from the Supabase docs to ensure API roles have access
+- **Foreign key constraint errors**: Make sure referenced games/creators exist or let the script auto-create them
+- **Duplicate key errors**: The script skips reviews that already exist for a video
+- **No captions found**: The video may not have English captions or may be private
+
+## Example Output
+```
+[YT] Fetching captions for videoId: QkkoHAzjnUs
+[SUCCESS] Ingested review for videoId: QkkoHAzjnUs
+Ingestion summary: [ { videoId: 'QkkoHAzjnUs', status: 'success' } ]
+```
+
 
 

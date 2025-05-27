@@ -55,6 +55,26 @@ const BIAS_LABELS = [
   'franchise bias'
 ];
 
+// LLM prompt config and few-shot examples
+export const DEFAULT_LLM_PROMPT = `Analyze the following review transcript and return a JSON object with these fields: summary (string), sentimentScore (0-10, number), verdict ("positive", "negative", or "mixed"), sentimentSummary (string, use ONLY one of these labels: ["Overwhelmingly positive", "Very positive", "Mostly positive", "Mixed", "Neutral", "Negative", "Contrarian", "Positive (influencer bias)", "Positive (sponsored)", "Mixed to negative", "Mixed (genre aversion)", "Mixed (reviewer fatigue)", "Positive with platform bias"]), biasIndicators (array of strings: use ONLY these labels: ["nostalgia bias", "influencer bias", "sponsored bias", "contrarian", "genre aversion", "reviewer fatigue", "technical criticism", "platform bias", "accessibility bias", "story-driven bias", "franchise bias"], and match the style/wording of this list as closely as possible), alsoRecommends (array of strings), pros (array of strings), cons (array of strings), reviewSummary (string, a 1-2 sentence or paragraph TLDR/overview of the review for gamers/users). Be as accurate and nuanced as possible.`;
+
+export const FEW_SHOT_EXAMPLES = [
+  {
+    transcript: "This game blew me away. The story was incredible, and I couldn't put it down. The only downside was some minor bugs.",
+    expected: {
+      sentimentScore: 9,
+      verdict: "positive",
+      sentimentSummary: "Overwhelmingly positive",
+      pros: ["incredible story", "engaging gameplay"],
+      cons: ["minor bugs"],
+      biasIndicators: [],
+      alsoRecommends: [],
+      reviewSummary: "A must-play with a fantastic story, only held back by a few bugs."
+    }
+  },
+  // Add more few-shot examples as needed
+];
+
 export const analyzeText = async (
   text: string,
   model: string = 'gpt-3.5-turbo',

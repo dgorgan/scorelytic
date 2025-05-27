@@ -2,3 +2,9 @@
 . "$(dirname "$0")/_/husky.sh"
 
 npm run check:all 
+
+# Block accidental JS artifacts in source
+if find server/src client/services client/test -type f \( -name '*.js' -o -name '*.js.map' -o -name '*.d.ts' \) ! -path '*/dist-server/*' ! -path '*/.next/*' | grep .; then
+  echo '❌ JS artifacts found in source! Clean up before committing.'
+  exit 1
+fi 

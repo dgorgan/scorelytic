@@ -42,7 +42,7 @@ export async function seedSupabase() {
     },
   ];
   console.log('Starting to upsert games');
-  const { error: gamesError } = await supabase.from('games').upsert(toSnake(games));
+  const { error: gamesError } = await supabase.from('games').upsert(toSnake(games), { onConflict: 'slug' });
   if (gamesError) {
     console.error('Games insert error:', gamesError);
   }
@@ -76,7 +76,7 @@ export async function seedSupabase() {
     },
   ];
   console.log('Starting to upsert creators');
-  const { error: creatorsError } = await supabase.from('creators').upsert(toSnake(creators));
+  const { error: creatorsError } = await supabase.from('creators').upsert(toSnake(creators), { onConflict: 'slug' });
   if (creatorsError) {
     console.error('Creators insert error:', creatorsError);
   }
@@ -259,7 +259,7 @@ export async function seedSupabase() {
     reviewSummary: r.reviewSummary || 'No summary provided.'
   }));
   console.log('Starting to upsert reviews');
-  const { data: rawReviews, error: reviewsError } = await supabase.from('reviews').upsert(toSnake(reviews)).select();
+  const { data: rawReviews, error: reviewsError } = await supabase.from('reviews').upsert(toSnake(reviews), { onConflict: 'video_url' }).select();
   const insertedReviews = rawReviews ? toCamel(rawReviews) : null;
   if (reviewsError) {
     console.error('Reviews insert error:', reviewsError);

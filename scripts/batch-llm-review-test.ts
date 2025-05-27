@@ -1,5 +1,5 @@
 import { supabase } from '../server/src/config/database';
-import { analyzeText, getEmbedding } from '../server/src/services/sentimentService';
+import { analyzeText, getEmbedding, DEFAULT_LLM_PROMPT, FEW_SHOT_EXAMPLES } from '../server/src/services/sentimentService';
 import { toCamel } from '../server/src/utils/caseMapping';
 import fs from 'fs';
 import yargs from 'yargs';
@@ -8,7 +8,8 @@ import { harmonizeBias } from '../shared/utils/bias-harmonizer';
 
 const argv = yargs(hideBin(process.argv))
   .option('model', { type: 'string', default: 'gpt-3.5-turbo' })
-  .option('prompt', { type: 'string' })
+  .option('prompt', { type: 'string', default: DEFAULT_LLM_PROMPT })
+  .option('fewshot', { type: 'boolean', default: false, description: 'Include few-shot examples in prompt' })
   .option('ignore', { type: 'array', default: [] })
   .option('embedding', { type: 'boolean', default: false })
   .option('strict', { type: 'boolean', default: false })
@@ -17,7 +18,7 @@ const argv = yargs(hideBin(process.argv))
 
 const main = async () => {
   const argvResolved = await argv;
-  const { model, prompt, ignore, embedding, strict, lenient } = argvResolved as any;
+  const { model, prompt, ignore, embedding, strict, lenient, fewshot } = argvResolved as any;
   const { data: rawReviews, error } = await supabase.from('reviews').select('*');
   if (error) {
     console.error('Error fetching reviews:', error);
@@ -55,7 +56,15 @@ const main = async () => {
     total++;
     console.log(`\n---\nReview ID: ${review.id}`);
     try {
-      const llm = await analyzeText(review.transcript, model, prompt);
+      let fullPrompt = prompt;
+      if (fewshot) {
+        fullPrompt += '\n\n';
+        FEW_SHOT_EXAMPLES.forEach((ex, i) => {
+          fullPrompt += `Example ${i + 1}:\nTranscript: ${ex.transcript}\nExpected: ${JSON.stringify(ex.expected, null, 2)}\n`;
+        });
+        fullPrompt += '\nNow analyze the following transcript:';
+      }
+      const llm = await analyzeText(review.transcript, model, fullPrompt);
       let hasMismatch = false;
       const fields = [
         'sentimentScore',

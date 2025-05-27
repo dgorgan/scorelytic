@@ -1,1 +1,1 @@
-alter table reviews add column transcript text; 
+ALTER TABLE reviews ADD COLUMN IF NOT EXISTS transcript text; 
