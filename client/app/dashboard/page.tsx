@@ -278,41 +278,41 @@ export default function Dashboard() {
     return String(val);
   };
 
-  const displayCell = (val: unknown): React.ReactNode => {
+  const displayCell = (val: unknown): string | React.ReactElement => {
     if (val === undefined || val === null || val === 'undefined' || val === 'null') {
       return <span className="text-gray-400 italic">N/A</span>;
     }
     
-    // Handle bigint specifically
+    // Handle bigint by converting to string
     if (typeof val === 'bigint') {
-      return <span className="font-mono text-sm">{val.toString()}</span>;
+      return val.toString();
     }
     
     if (typeof val === 'string') {
-      try {
-        const parsed = JSON.parse(val);
-        if (Array.isArray(parsed)) {
-          return <span className="text-blue-600">{parsed.join(', ')}</span>;
+      // Try to parse as array, even if not perfectly stringified
+      if ((val.startsWith('[') && val.endsWith(']')) || (val.startsWith('{') && val.endsWith('}'))) {
+        try {
+          const parsed = JSON.parse(val);
+          if (Array.isArray(parsed)) {
+            return parsed.join(', ');
+          }
+          return JSON.stringify(parsed);
+        } catch {
+          return val;
         }
-        if (typeof parsed === 'object' && parsed !== null) {
-          return <pre className="text-xs bg-gray-100 p-1 rounded max-w-xs overflow-hidden">{JSON.stringify(parsed, null, 2)}</pre>;
-        }
-        return <span>{parsed.toString()}</span>;
-      } catch {
-        return <span>{val}</span>;
       }
+      return val;
     }
     
     if (Array.isArray(val)) {
-      return <span className="text-blue-600">{val.join(', ')}</span>;
+      return val.join(', ');
     }
     
-    if (typeof val === 'object' && val !== null) {
-      return <pre className="text-xs bg-gray-100 p-1 rounded max-w-xs overflow-hidden">{JSON.stringify(val, null, 2)}</pre>;
+    if (typeof val === 'object') {
+      return JSON.stringify(val);
     }
     
-    // Convert everything else to string to ensure compatibility
-    return <span>{String(val)}</span>;
+    return String(val);
   };
 
   return (
