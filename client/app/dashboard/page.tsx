@@ -4,7 +4,9 @@ import dynamic from 'next/dynamic';
 import { supabase } from '../../services/supabase';
 import Papa, { ParseResult } from 'papaparse';
 import * as Tooltip from '@radix-ui/react-tooltip';
-const Plot = dynamic(() => import('react-plotly.js'), { ssr: false }) as unknown as React.FC<Record<string, unknown>>;
+
+// Fix Plot component typing to avoid JSX component type issues
+const Plot = dynamic(() => import('react-plotly.js'), { ssr: false }) as React.ComponentType<any>;
 
 type Result = {
   reviewId: string;
@@ -281,7 +283,10 @@ export default function Dashboard() {
       }
     }
     if (val === '') return <span className="text-gray-400 italic">N/A</span>;
-    if (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean') return val.toString();
+    // Fix: Convert all values to string to avoid bigint ReactNode issues
+    if (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean' || typeof val === 'bigint') {
+      return String(val);
+    }
     return '';
   };
 
