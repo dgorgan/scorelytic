@@ -1,47 +1,257 @@
 reviewId,field,seed,llm,similarity
+044d4208-19b7-4a90-a2b9-f3e0ab7d318d,sentimentScore,undefined,5,0.00
 044d4208-19b7-4a90-a2b9-f3e0ab7d318d,sentimentSummary,"Overwhelmingly positive","Neutral",0.00
-044d4208-19b7-4a90-a2b9-f3e0ab7d318d,biasIndicators,[],[],0.00
+044d4208-19b7-4a90-a2b9-f3e0ab7d318d,verdict,undefined,"Neutral",0.00
+044d4208-19b7-4a90-a2b9-f3e0ab7d318d,biasIndicators,[],[],1.00
+044d4208-19b7-4a90-a2b9-f3e0ab7d318d,reviewSummary,null,"No review transcript available for analysis.",0.00
+044d4208-19b7-4a90-a2b9-f3e0ab7d318d,alsoRecommends,["The Witcher 3"],[],0.00
+044d4208-19b7-4a90-a2b9-f3e0ab7d318d,pros,["Open world","Combat","Atmosphere"],[],0.00
+044d4208-19b7-4a90-a2b9-f3e0ab7d318d,cons,["Difficulty"],[],0.00
+6d2f3913-9de8-4552-ac4c-b9a1d4172fa3,sentimentScore,undefined,5,0.00
 6d2f3913-9de8-4552-ac4c-b9a1d4172fa3,sentimentSummary,"Overwhelmingly positive","Neutral",0.00
-6d2f3913-9de8-4552-ac4c-b9a1d4172fa3,biasIndicators,[],[],0.00
-f6cd687c-c362-4350-abd4-06cf2151a0f5,biasIndicators,[],["fan of FromSoftware games"],0.00
-a3979620-9e71-402c-a600-3624352a66f4,sentimentSummary,"Very positive","Overwhelmingly positive",0.00
-a3979620-9e71-402c-a600-3624352a66f4,biasIndicators,[],[],0.00
-604212bc-6af5-481a-a060-aca1056bcf73,sentimentSummary,"Overwhelmingly positive","Strongly positive",0.00
-604212bc-6af5-481a-a060-aca1056bcf73,biasIndicators,["Fan of FromSoftware games"],["fan of FromSoftware"],0.00
-604212bc-6af5-481a-a060-aca1056bcf73,reviewSummary,"Elden Ring offers a vast, challenging world with rewarding exploration and combat. Best for fans of FromSoftware, but the difficulty and sparse story may not appeal to everyone.","Elden Ring impresses with its captivating open-world design, challenging combat, and a myriad of secrets to uncover. While the high difficulty might deter some, fans of FromSoftware's previous works will appreciate their best creation yet, offering an unparalleled sense of exploration and discovery.",0.00
-ff7e4b78-0a27-464f-aedd-262072fee8ee,sentimentSummary,"Very positive","Mostly positive",0.00
-ff7e4b78-0a27-464f-aedd-262072fee8ee,reviewSummary,"The Witcher 3 is a must-play for story lovers, with an incredible world and quests, but bugs and clunky combat hold it back. Recommended for those who value narrative over gameplay polish.","The Witcher 3 sets a new standard for RPGs with incredible storytelling and world-building, marred only by a few technical issues. If you enjoy immersive narrative-driven experiences, this is a must-play, especially recommended for fans of Elden Ring and Red Dead Redemption 2.",0.00
-8cb92090-c029-4cda-9145-0c8c4370646a,sentimentSummary,"Mixed to negative","Mixed",0.00
-8cb92090-c029-4cda-9145-0c8c4370646a,biasIndicators,["Prefers accessible games","Not a fan of Soulslikes"],["Not a fan of Soulslike games","Prefers more accessible experiences"],0.00
-8cb92090-c029-4cda-9145-0c8c4370646a,reviewSummary,"Elden Ring is visually stunning but can be frustratingly difficult and repetitive. Not recommended for those who dislike Soulslike games or want a more guided experience.","The reviewer acknowledges the visual quality of Elden Ring but finds the difficulty and lack of guidance off-putting. They reveal a personal dislike for Soulslike games and express a preference for more approachable titles, ultimately suggesting Breath of the Wild as a more welcoming alternative.",0.00
-47fbe7c0-0632-49fa-aee5-812fb985a38a,biasIndicators,["Critical of technical issues"],["Concerned about technical performance","Values gameplay mechanics","Prefers narrative-driven games"],0.00
-47fbe7c0-0632-49fa-aee5-812fb985a38a,reviewSummary,"The Witcher 3 shines in story and side quests, but technical flaws and mediocre combat may frustrate some players. Worth playing if you can overlook the issues.","A detailed look at The Witcher 3 revealing exceptional storytelling and quests, shadowed by a mediocre combat system, clunky UI, and notable performance issues.",0.00
-81fd9073-8a5a-478c-bc17-6034f1e07a5e,biasIndicators,["Fan of FromSoftware games"],["Long-time fan of FromSoftware"],0.00
-81fd9073-8a5a-478c-bc17-6034f1e07a5e,reviewSummary,"Elden Ring offers a vast, challenging world with rewarding exploration and combat. Best for fans of FromSoftware, but the difficulty and sparse story may not appeal to everyone.","Elden Ring excels in offering a vast open-world adventure with tough yet fulfilling combat mechanics and a plethora of hidden wonders to uncover, though it may not suit those averse to steep challenges or narrative depth.",0.00
-834a8365-db26-46db-8487-4ba214b82ee2,sentimentSummary,"Very positive","Positive",0.00
-834a8365-db26-46db-8487-4ba214b82ee2,reviewSummary,"The Witcher 3 is a must-play for story lovers, with an incredible world and quests, but bugs and clunky combat hold it back. Recommended for those who value narrative over gameplay polish.","The Witcher 3 offers an unparalleled RPG experience with its exceptional storytelling and immersive world. While encountering bugs and facing clunky combat, the game's strengths in narrative and world-building make it a must-play for fans of story-rich games like Elden Ring and Red Dead Redemption 2.",0.00
-73da0e94-4474-4aaf-9f48-9cd381b9c8de,sentimentSummary,"Mixed to negative","Mixed",0.00
-73da0e94-4474-4aaf-9f48-9cd381b9c8de,biasIndicators,["Prefers accessible games","Not a fan of Soulslikes"],["not a fan of Soulslike games","prefers accessible experiences","leans towards less challenging games"],0.00
-73da0e94-4474-4aaf-9f48-9cd381b9c8de,reviewSummary,"Elden Ring is visually stunning but can be frustratingly difficult and repetitive. Not recommended for those who dislike Soulslike games or want a more guided experience.","The reviewer had mixed feelings about Elden Ring, praising its visuals but expressing frustration with its challenging and directionless gameplay. They prefer more accessible experiences like Breath of the Wild.",0.00
-7bed811d-39cf-4688-a409-d618f945fff2,reviewSummary,"The Witcher 3 shines in story and side quests, but technical flaws and mediocre combat may frustrate some players. Worth playing if you can overlook the issues.","The Witcher 3 offers a great story and side quests, but is marred by mediocre combat, a clunky UI, and performance issues. Despite these flaws, the narrative is compelling for many players. Consider Cyberpunk 2077 for a more polished experience if technical issues are a concern.",0.00
-1e0609eb-d127-4cc7-b6be-2c0db83d2c57,sentimentSummary,"Positive with platform bias","Mostly positive with a slight hint of bias",0.00
-1e0609eb-d127-4cc7-b6be-2c0db83d2c57,biasIndicators,["PlayStation fan","Platform loyalty"],["PlayStation fan","Prefers PlayStation exclusives","Affinity for FromSoftware games"],0.33
-1e0609eb-d127-4cc7-b6be-2c0db83d2c57,reviewSummary,"Great game, but PlayStation performance issues hold it back a bit for platform loyalists.","Elden Ring on PS5 delivers fantastic visuals and engaging combat, despite some performance issues. The reviewer's preference for PlayStation exclusives and FromSoftware's games might influence the overall perception.",0.00
-5d6a226d-6fe9-4e99-a450-aba2af5b30e3,sentimentSummary,"Overwhelmingly positive (nostalgia)","Positive",0.00
-5d6a226d-6fe9-4e99-a450-aba2af5b30e3,biasIndicators,["Nostalgia","Played original as a kid"],["Nostalgia bias","Positive towards games with rich stories and music"],0.00
-5d6a226d-6fe9-4e99-a450-aba2af5b30e3,reviewSummary,"A must-play for fans of the original, with nostalgia amplifying the experience.","The Witcher 2 offers a deeply nostalgic and immersive experience for fans of the original game, with its engaging story and memorable music. Despite dated graphics, the game resonates with those who enjoyed the earlier Witcher titles.",0.00
-d233920e-f5ca-4396-a5db-ff51abe65b40,sentimentSummary,"Positive (sponsored)","Mostly positive",0.00
-d233920e-f5ca-4396-a5db-ff51abe65b40,biasIndicators,["Sponsored review","Potential promotional bias"],["Sponsored review bias towards a positive outlook"],0.00
-d233920e-f5ca-4396-a5db-ff51abe65b40,reviewSummary,"Expansive and replayable, but note the sponsored context.","Despite being a sponsored review, Elden Ring provides an expansive world with plenty of replay value. The learning curve may be steep, but overall the experience was enjoyable.",0.00
-af9d9082-8ad1-4922-894b-dcf290cf1a62,sentimentSummary,"Mixed (genre aversion)","Mixed",0.00
-af9d9082-8ad1-4922-894b-dcf290cf1a62,biasIndicators,["Not a fan of turn-based games","Genre aversion"],["dislike for turn-based games"],0.00
-af9d9082-8ad1-4922-894b-dcf290cf1a62,reviewSummary,"Great story, but genre fans will enjoy it more than I did.","Mixed review highlighting an engaging story but expressing dislike for the combat and pacing, primarily due to personal aversion to turn-based games.",0.00
-4419d862-bc47-4fb9-8a6d-4b69daab0f7b,sentimentSummary,"Mixed (reviewer fatigue)","Moderately mixed",0.00
-4419d862-bc47-4fb9-8a6d-4b69daab0f7b,biasIndicators,["Reviewer fatigue","Burned out after 100 hours"],[],0.00
-4419d862-bc47-4fb9-8a6d-4b69daab0f7b,reviewSummary,"Huge game, but can lead to burnout for completionists.","After exploring Elden Ring for 100 hours, the game's vast content and diverse bosses wear thin, leading to a sense of repetitive gameplay.",0.00
-986da5b9-ddea-4664-8f18-e1827f088454,sentimentSummary,"Contrarian","Mixed",0.00
-986da5b9-ddea-4664-8f18-e1827f088454,biasIndicators,["Contrarian take","Skeptical of hype"],["Skeptical of the praise for The Witcher 3"],0.00
-986da5b9-ddea-4664-8f18-e1827f088454,reviewSummary,"Not for everyone—don't believe the hype if you're not already a fan.","The reviewer has mixed feelings towards The Witcher 3, acknowledging the good side quests but feeling the game is overhyped and expressing skepticism towards the widespread praise.",0.00
-926468de-34d7-49dc-a8e0-e4cf6fa0eab2,sentimentSummary,"Positive (influencer bias)","Neutral",0.00
-926468de-34d7-49dc-a8e0-e4cf6fa0eab2,biasIndicators,["Influencer bias","Audience expectation"],["Influenced by audience expectations and community pressure"],0.00
-926468de-34d7-49dc-a8e0-e4cf6fa0eab2,reviewSummary,"Great for the community, but influencer bias may affect the score.","This reviewer's experience with Elden Ring is mixed, as the external pressure from their audience and community influences their judgment, creating a neutral stance. The game offers a strong community and replay value, but the influencer effect raises doubts about their personal rating.",0.00
+6d2f3913-9de8-4552-ac4c-b9a1d4172fa3,verdict,undefined,"Neutral",0.00
+6d2f3913-9de8-4552-ac4c-b9a1d4172fa3,biasIndicators,[],[],1.00
+6d2f3913-9de8-4552-ac4c-b9a1d4172fa3,reviewSummary,null,"Unfortunately, no review is available for analysis. Please check back later for updates.",0.00
+6d2f3913-9de8-4552-ac4c-b9a1d4172fa3,alsoRecommends,["The Witcher 3"],[],0.00
+6d2f3913-9de8-4552-ac4c-b9a1d4172fa3,pros,["Open world","Combat","Atmosphere"],[],0.00
+6d2f3913-9de8-4552-ac4c-b9a1d4172fa3,cons,["Difficulty"],[],0.00
+7f51e540-4f73-4239-8eb3-72f10a173f3e,sentimentScore,undefined,0,0.00
+7f51e540-4f73-4239-8eb3-72f10a173f3e,sentimentSummary,"Very positive","Neutral",0.00
+7f51e540-4f73-4239-8eb3-72f10a173f3e,verdict,undefined,"neutral",0.00
+7f51e540-4f73-4239-8eb3-72f10a173f3e,biasIndicators,[],[],1.00
+7f51e540-4f73-4239-8eb3-72f10a173f3e,reviewSummary,null,"No detailed review available at this time.",0.00
+7f51e540-4f73-4239-8eb3-72f10a173f3e,alsoRecommends,["Elden Ring"],[],0.00
+7f51e540-4f73-4239-8eb3-72f10a173f3e,pros,["Story","World","Quests"],[],0.00
+7f51e540-4f73-4239-8eb3-72f10a173f3e,cons,["Bugs"],[],0.00
+45118acf-fa46-43a0-8eac-ee14b4cf2429,sentimentScore,undefined,5,0.00
+45118acf-fa46-43a0-8eac-ee14b4cf2429,sentimentSummary,"Overwhelmingly positive","Neutral",0.00
+45118acf-fa46-43a0-8eac-ee14b4cf2429,verdict,undefined,"Neutral",0.00
+45118acf-fa46-43a0-8eac-ee14b4cf2429,biasIndicators,[],[],1.00
+45118acf-fa46-43a0-8eac-ee14b4cf2429,reviewSummary,null,"No detailed review transcript is provided.",0.00
+45118acf-fa46-43a0-8eac-ee14b4cf2429,alsoRecommends,["The Witcher 3"],[],0.00
+45118acf-fa46-43a0-8eac-ee14b4cf2429,pros,["Open world","Combat","Atmosphere"],[],0.00
+45118acf-fa46-43a0-8eac-ee14b4cf2429,cons,["Difficulty"],[],0.00
+f6cd687c-c362-4350-abd4-06cf2151a0f5,sentimentScore,undefined,9,0.00
+f6cd687c-c362-4350-abd4-06cf2151a0f5,sentimentSummary,"Overwhelmingly positive","Very positive",0.33
+f6cd687c-c362-4350-abd4-06cf2151a0f5,verdict,undefined,"positive",0.00
+f6cd687c-c362-4350-abd4-06cf2151a0f5,biasIndicators,[],["franchise bias"],0.00
+f6cd687c-c362-4350-abd4-06cf2151a0f5,reviewSummary,null,"Elden Ring impresses with its masterful open world design, challenging combat mechanics, and richly detailed world, making it a must-play for fans of FromSoftware games.",0.00
+f6cd687c-c362-4350-abd4-06cf2151a0f5,alsoRecommends,["The Witcher 3"],["fans of FromSoftware games"],0.00
+f6cd687c-c362-4350-abd4-06cf2151a0f5,pros,["Open world","Combat","Atmosphere"],["Masterpiece open world design","Challenging and rewarding combat","World full of secrets"],0.28
+f6cd687c-c362-4350-abd4-06cf2151a0f5,cons,["Difficulty"],[],0.00
+a3979620-9e71-402c-a600-3624352a66f4,sentimentScore,undefined,8,0.00
+a3979620-9e71-402c-a600-3624352a66f4,sentimentSummary,"Very positive","Mostly positive",0.33
+a3979620-9e71-402c-a600-3624352a66f4,verdict,undefined,"positive",0.00
+a3979620-9e71-402c-a600-3624352a66f4,biasIndicators,[],[],1.00
+a3979620-9e71-402c-a600-3624352a66f4,reviewSummary,null,"The Witcher 3 is a standout RPG that excels in storytelling and world-building, although it has some technical issues.",0.00
+a3979620-9e71-402c-a600-3624352a66f4,alsoRecommends,["Elden Ring"],[],0.00
+a3979620-9e71-402c-a600-3624352a66f4,pros,["Story","World","Quests"],["Incredible story and world-building","Sets a new standard for RPGs"],0.12
+a3979620-9e71-402c-a600-3624352a66f4,cons,["Bugs"],["Some bugs"],0.50
+604212bc-6af5-481a-a060-aca1056bcf73,sentimentScore,undefined,9,0.00
+604212bc-6af5-481a-a060-aca1056bcf73,sentimentSummary,"Overwhelmingly positive","Mostly positive",0.33
+604212bc-6af5-481a-a060-aca1056bcf73,verdict,undefined,"positive",0.00
+604212bc-6af5-481a-a060-aca1056bcf73,biasIndicators,["fan of fromsoftware game"],["franchise bias"],0.00
+604212bc-6af5-481a-a060-aca1056bcf73,reviewSummary,"Elden Ring offers a vast, challenging world with rewarding exploration and combat. Best for fans of FromSoftware, but the difficulty and sparse story may not appeal to everyone.","Elden Ring delivers an exceptional open-world experience with challenging combat and a vast world full of secrets. While the difficulty level may not appeal to everyone and the storytelling is sparse, the sense of discovery and FromSoftware's signature design make it a must-play title, especially for fans of Dark Souls 3 and The Witcher 3.",0.40
+604212bc-6af5-481a-a060-aca1056bcf73,alsoRecommends,["The Witcher 3","Dark Souls 3"],["Dark Souls 3","The Witcher 3"],1.00
+604212bc-6af5-481a-a060-aca1056bcf73,pros,["Open world","Combat","Atmosphere"],["Masterful open world design","Challenging and rewarding combat","Rich world full of secrets"],0.28
+604212bc-6af5-481a-a060-aca1056bcf73,cons,["Difficulty","Sparse story moments"],["Challenging difficulty may deter some players","Sparse storytelling"],0.21
+ff7e4b78-0a27-464f-aedd-262072fee8ee,sentimentScore,undefined,8,0.00
+ff7e4b78-0a27-464f-aedd-262072fee8ee,sentimentSummary,"Very positive","Very positive",1.00
+ff7e4b78-0a27-464f-aedd-262072fee8ee,verdict,undefined,"positive",0.00
+ff7e4b78-0a27-464f-aedd-262072fee8ee,biasIndicators,["prefers story-driven game"],["story-driven bias"],0.40
+ff7e4b78-0a27-464f-aedd-262072fee8ee,reviewSummary,"The Witcher 3 is a must-play for story lovers, with an incredible world and quests, but bugs and clunky combat hold it back. Recommended for those who value narrative over gameplay polish.","The Witcher 3 offers a groundbreaking RPG experience with an incredible story and world. While some bugs persist and combat can be clunky, it is a must-play for fans of story-driven games, comparable to Elden Ring and Red Dead Redemption 2.",0.35
+ff7e4b78-0a27-464f-aedd-262072fee8ee,alsoRecommends,["Elden Ring","Red Dead Redemption 2"],["Elden Ring","Red Dead Redemption 2"],1.00
+ff7e4b78-0a27-464f-aedd-262072fee8ee,pros,["Story","World","Quests"],["Incredible story and world","Best quests"],0.35
+ff7e4b78-0a27-464f-aedd-262072fee8ee,cons,["Bugs","Clunky combat"],["Bugs even after patches","Clunky combat"],0.63
+8cb92090-c029-4cda-9145-0c8c4370646a,sentimentScore,undefined,3,0.00
+8cb92090-c029-4cda-9145-0c8c4370646a,sentimentSummary,"Mixed to negative","Mixed (genre aversion)",0.20
+8cb92090-c029-4cda-9145-0c8c4370646a,verdict,undefined,"negative",0.00
+8cb92090-c029-4cda-9145-0c8c4370646a,biasIndicators,["prefers accessible game","not a fan of soulslike"],["genre aversion"],0.00
+8cb92090-c029-4cda-9145-0c8c4370646a,reviewSummary,"Elden Ring is visually stunning but can be frustratingly difficult and repetitive. Not recommended for those who dislike Soulslike games or want a more guided experience.","The reviewer found Elden Ring visually appealing but struggled with its difficulty and lack of guidance. They prefer more accessible games and recommend Breath of the Wild for a more welcoming experience.",0.23
+8cb92090-c029-4cda-9145-0c8c4370646a,alsoRecommends,["The Legend of Zelda: Breath of the Wild"],["Breath of the Wild"],0.67
+8cb92090-c029-4cda-9145-0c8c4370646a,pros,["Visuals"],["Impressive visuals"],0.50
+8cb92090-c029-4cda-9145-0c8c4370646a,cons,["Unfair difficulty","Lack of direction","Repetitive bosses"],["Unfair difficulty","Lack of direction"],0.80
+47fbe7c0-0632-49fa-aee5-812fb985a38a,sentimentScore,undefined,4,0.00
+47fbe7c0-0632-49fa-aee5-812fb985a38a,sentimentSummary,"Mixed","Mixed",1.00
+47fbe7c0-0632-49fa-aee5-812fb985a38a,verdict,undefined,"mixed",0.00
+47fbe7c0-0632-49fa-aee5-812fb985a38a,biasIndicators,["critical of technical issue"],["genre aversion"],0.00
+47fbe7c0-0632-49fa-aee5-812fb985a38a,reviewSummary,"The Witcher 3 shines in story and side quests, but technical flaws and mediocre combat may frustrate some players. Worth playing if you can overlook the issues.","The Witcher 3 offers an engaging story and immersive side quests but falls short with a mediocre combat system, clunky UI, and performance issues. Despite its flaws, it can be enjoyed if technical problems are overlooked. For a more polished experience, consider trying Cyberpunk 2077.",0.28
+47fbe7c0-0632-49fa-aee5-812fb985a38a,alsoRecommends,["Cyberpunk 2077"],["Cyberpunk 2077"],1.00
+47fbe7c0-0632-49fa-aee5-812fb985a38a,pros,["Story","Side quests"],["Engaging story","Immersive side quests"],0.58
+47fbe7c0-0632-49fa-aee5-812fb985a38a,cons,["Combat","UI","Performance issues"],["Mediocre combat system","Clunky UI","Performance issues"],0.61
+81fd9073-8a5a-478c-bc17-6034f1e07a5e,sentimentScore,undefined,9,0.00
+81fd9073-8a5a-478c-bc17-6034f1e07a5e,sentimentSummary,"Overwhelmingly positive","Mostly positive",0.33
+81fd9073-8a5a-478c-bc17-6034f1e07a5e,verdict,undefined,"positive",0.00
+81fd9073-8a5a-478c-bc17-6034f1e07a5e,biasIndicators,["fan of fromsoftware game"],["franchise bias"],0.00
+81fd9073-8a5a-478c-bc17-6034f1e07a5e,reviewSummary,"Elden Ring offers a vast, challenging world with rewarding exploration and combat. Best for fans of FromSoftware, but the difficulty and sparse story may not appeal to everyone.","Elden Ring excels in open-world design with challenging combat and a sense of discovery but may not appeal to all due to its difficulty and sparse story. A must-play for fans of FromSoftware and similar RPGs like Dark Souls 3 and The Witcher 3.",0.47
+81fd9073-8a5a-478c-bc17-6034f1e07a5e,alsoRecommends,["The Witcher 3","Dark Souls 3"],["Dark Souls 3","The Witcher 3"],1.00
+81fd9073-8a5a-478c-bc17-6034f1e07a5e,pros,["Open world","Combat","Atmosphere"],["Masterful open world design","Challenging and rewarding combat","Full of secrets and discoveries"],0.25
+81fd9073-8a5a-478c-bc17-6034f1e07a5e,cons,["Difficulty","Sparse story moments"],["Difficulty may turn off some players","Sparse story at times"],0.28
+834a8365-db26-46db-8487-4ba214b82ee2,sentimentScore,undefined,8,0.00
+834a8365-db26-46db-8487-4ba214b82ee2,sentimentSummary,"Very positive","Mostly positive",0.33
+834a8365-db26-46db-8487-4ba214b82ee2,verdict,undefined,"positive",0.00
+834a8365-db26-46db-8487-4ba214b82ee2,biasIndicators,["prefers story-driven game"],["story-driven bias"],0.40
+834a8365-db26-46db-8487-4ba214b82ee2,reviewSummary,"The Witcher 3 is a must-play for story lovers, with an incredible world and quests, but bugs and clunky combat hold it back. Recommended for those who value narrative over gameplay polish.","The Witcher 3 is a must-play for fans of story-driven games, offering an unparalleled narrative experience alongside a richly detailed world. While technical issues persist, the game's strengths make it worth the investment.",0.25
+834a8365-db26-46db-8487-4ba214b82ee2,alsoRecommends,["Elden Ring","Red Dead Redemption 2"],["Elden Ring","Red Dead Redemption 2"],1.00
+834a8365-db26-46db-8487-4ba214b82ee2,pros,["Story","World","Quests"],["Incredible story and world-building","Engaging quests"],0.32
+834a8365-db26-46db-8487-4ba214b82ee2,cons,["Bugs","Clunky combat"],["Persistent bugs","Clunky combat"],0.75
+73da0e94-4474-4aaf-9f48-9cd381b9c8de,sentimentScore,undefined,4,0.00
+73da0e94-4474-4aaf-9f48-9cd381b9c8de,sentimentSummary,"Mixed to negative","Mixed (genre aversion)",0.20
+73da0e94-4474-4aaf-9f48-9cd381b9c8de,verdict,undefined,"negative",0.00
+73da0e94-4474-4aaf-9f48-9cd381b9c8de,biasIndicators,["prefers accessible game","not a fan of soulslike"],["genre aversion"],0.00
+73da0e94-4474-4aaf-9f48-9cd381b9c8de,reviewSummary,"Elden Ring is visually stunning but can be frustratingly difficult and repetitive. Not recommended for those who dislike Soulslike games or want a more guided experience.","The reviewer finds Elden Ring visually appealing but struggles with its difficulty and lack of guidance, expressing a preference for more accessible games like Breath of the Wild.",0.21
+73da0e94-4474-4aaf-9f48-9cd381b9c8de,alsoRecommends,["The Legend of Zelda: Breath of the Wild"],["Breath of the Wild"],0.67
+73da0e94-4474-4aaf-9f48-9cd381b9c8de,pros,["Visuals"],["Great visuals"],0.50
+73da0e94-4474-4aaf-9f48-9cd381b9c8de,cons,["Unfair difficulty","Lack of direction","Repetitive bosses"],["Unfair difficulty","Lack of direction","Repetitive boss fights"],0.75
+7bed811d-39cf-4688-a409-d618f945fff2,sentimentScore,undefined,6,0.00
+7bed811d-39cf-4688-a409-d618f945fff2,sentimentSummary,"Mixed","Mostly positive",0.00
+7bed811d-39cf-4688-a409-d618f945fff2,verdict,undefined,"positive",0.00
+7bed811d-39cf-4688-a409-d618f945fff2,biasIndicators,["critical of technical issue"],["genre aversion"],0.00
+7bed811d-39cf-4688-a409-d618f945fff2,reviewSummary,"The Witcher 3 shines in story and side quests, but technical flaws and mediocre combat may frustrate some players. Worth playing if you can overlook the issues.","The Witcher 3 offers a great narrative experience with top-notch storylines and side quests. However, the game suffers from mediocre combat, clunky UI, and performance issues on PC. Despite these drawbacks, it can still provide an enjoyable time for those who can overlook the technical challenges.",0.21
+7bed811d-39cf-4688-a409-d618f945fff2,alsoRecommends,["Cyberpunk 2077"],["Cyberpunk 2077"],1.00
+7bed811d-39cf-4688-a409-d618f945fff2,pros,["Story","Side quests"],["Strong story and side quests"],0.33
+7bed811d-39cf-4688-a409-d618f945fff2,cons,["Combat","UI","Performance issues"],["Mediocre combat system","Clunky UI","Performance issues on PC"],0.44
+1e0609eb-d127-4cc7-b6be-2c0db83d2c57,sentimentScore,undefined,7,0.00
+1e0609eb-d127-4cc7-b6be-2c0db83d2c57,sentimentSummary,"Positive with platform bias","Mostly positive",0.20
+1e0609eb-d127-4cc7-b6be-2c0db83d2c57,verdict,undefined,"positive",0.00
+1e0609eb-d127-4cc7-b6be-2c0db83d2c57,biasIndicators,["playstation fan","platform loyalty"],["nostalgia bias","platform bias"],0.17
+1e0609eb-d127-4cc7-b6be-2c0db83d2c57,reviewSummary,"Great game, but PlayStation performance issues hold it back a bit for platform loyalists.","The reviewer, a long-time PlayStation fan, enjoyed their experience playing Elden Ring on PS5, praising the visuals and combat. However, they noted performance issues when compared to the PC version. Their bias towards PlayStation and FromSoftware's exclusives may have influenced their overall positive view of the game.",0.10
+1e0609eb-d127-4cc7-b6be-2c0db83d2c57,alsoRecommends,["Bloodborne"],[],0.00
+1e0609eb-d127-4cc7-b6be-2c0db83d2c57,pros,["Visuals","Combat"],["Fantastic visuals","Great combat"],0.50
+1e0609eb-d127-4cc7-b6be-2c0db83d2c57,cons,["Performance on PS5"],["Performance issues compared to PC"],0.14
+5d6a226d-6fe9-4e99-a450-aba2af5b30e3,sentimentScore,undefined,8,0.00
+5d6a226d-6fe9-4e99-a450-aba2af5b30e3,sentimentSummary,"Overwhelmingly positive (nostalgia)","Mostly positive",0.25
+5d6a226d-6fe9-4e99-a450-aba2af5b30e3,verdict,undefined,"positive",0.00
+5d6a226d-6fe9-4e99-a450-aba2af5b30e3,biasIndicators,["nostalgia bias","played original as a kid"],["nostalgia bias"],0.67
+5d6a226d-6fe9-4e99-a450-aba2af5b30e3,reviewSummary,"A must-play for fans of the original, with nostalgia amplifying the experience.","The reviewer's fond memories of the original Witcher game heavily influenced their positive perception of this installment. While acknowledging some flaws like dated graphics, the strong emotional connection through nostalgia made the overall experience very positive.",0.13
+5d6a226d-6fe9-4e99-a450-aba2af5b30e3,alsoRecommends,["The Witcher 2"],["Fans of the earlier Witcher games"],0.29
+5d6a226d-6fe9-4e99-a450-aba2af5b30e3,pros,["Nostalgic story","Music"],["Engaging story","Memorable music"],0.42
+5d6a226d-6fe9-4e99-a450-aba2af5b30e3,cons,["Dated graphics"],["Dated graphics"],1.00
+d233920e-f5ca-4396-a5db-ff51abe65b40,sentimentScore,undefined,7,0.00
+d233920e-f5ca-4396-a5db-ff51abe65b40,sentimentSummary,"Positive (sponsored)","Very positive",0.33
+d233920e-f5ca-4396-a5db-ff51abe65b40,verdict,undefined,"positive",0.00
+d233920e-f5ca-4396-a5db-ff51abe65b40,biasIndicators,["sponsored review","potential promotional bia"],["sponsored bias"],0.22
+d233920e-f5ca-4396-a5db-ff51abe65b40,reviewSummary,"Expansive and replayable, but note the sponsored context.","Elden Ring provides a vast and engaging world with substantial replay value, although the learning curve is challenging, the overall experience is rewarding and enjoyable, despite the reviewer having a sponsored background.",0.09
+d233920e-f5ca-4396-a5db-ff51abe65b40,alsoRecommends,["Sekiro"],[],0.00
+d233920e-f5ca-4396-a5db-ff51abe65b40,pros,["Expansive world","Replay value"],["Expansive world","Tons of replay value","Enjoyable experience"],0.60
+d233920e-f5ca-4396-a5db-ff51abe65b40,cons,["Steep learning curve"],["Steep learning curve"],1.00
+af9d9082-8ad1-4922-894b-dcf290cf1a62,sentimentScore,undefined,3,0.00
+af9d9082-8ad1-4922-894b-dcf290cf1a62,sentimentSummary,"Mixed (genre aversion)","Mixed (genre aversion)",1.00
+af9d9082-8ad1-4922-894b-dcf290cf1a62,verdict,undefined,"negative",0.00
+af9d9082-8ad1-4922-894b-dcf290cf1a62,biasIndicators,["not a fan of turn-based game","genre aversion"],["genre aversion"],0.67
+af9d9082-8ad1-4922-894b-dcf290cf1a62,reviewSummary,"Great story, but genre fans will enjoy it more than I did.","The reviewer has mixed feelings about The Witcher 3, praising its story but finding the combat and pacing unsuitable for someone who doesn't typically enjoy turn-based games.",0.08
+af9d9082-8ad1-4922-894b-dcf290cf1a62,alsoRecommends,["Mass Effect"],[],0.00
+af9d9082-8ad1-4922-894b-dcf290cf1a62,pros,["Story"],["Great story"],0.50
+af9d9082-8ad1-4922-894b-dcf290cf1a62,cons,["Turn-based combat","Slow pacing"],["Combat and pacing not enjoyable for non-fans of the genre"],0.08
+4419d862-bc47-4fb9-8a6d-4b69daab0f7b,sentimentScore,undefined,3,0.00
+4419d862-bc47-4fb9-8a6d-4b69daab0f7b,sentimentSummary,"Mixed (reviewer fatigue)","Mixed (reviewer fatigue)",1.00
+4419d862-bc47-4fb9-8a6d-4b69daab0f7b,verdict,undefined,"Negative",0.00
+4419d862-bc47-4fb9-8a6d-4b69daab0f7b,biasIndicators,["reviewer fatigue","burned out after 100 hour"],["reviewer fatigue"],0.67
+4419d862-bc47-4fb9-8a6d-4b69daab0f7b,reviewSummary,"Huge game, but can lead to burnout for completionists.","The reviewer expresses being burned out after investing 100 hours into Elden Ring, noting the abundance of content and boss variety but highlighting repetitive gameplay that led to fatigue.",0.06
+4419d862-bc47-4fb9-8a6d-4b69daab0f7b,alsoRecommends,["Dark Souls"],[],0.00
+4419d862-bc47-4fb9-8a6d-4b69daab0f7b,pros,["Content","Boss variety"],["Ton of content","Boss variety"],0.67
+4419d862-bc47-4fb9-8a6d-4b69daab0f7b,cons,["Repetitive","Burnout"],["Repetitive gameplay","Fatigue"],0.25
+986da5b9-ddea-4664-8f18-e1827f088454,sentimentScore,undefined,4,0.00
+986da5b9-ddea-4664-8f18-e1827f088454,sentimentSummary,"Contrarian","Mixed (reviewer fatigue)",0.00
+986da5b9-ddea-4664-8f18-e1827f088454,verdict,undefined,"negative",0.00
+986da5b9-ddea-4664-8f18-e1827f088454,biasIndicators,["contrarian","skeptical of hype"],["reviewer fatigue"],0.00
+986da5b9-ddea-4664-8f18-e1827f088454,reviewSummary,"Not for everyone—don't believe the hype if you're not already a fan.","The reviewer expresses mixed feelings towards The Witcher 3, acknowledging the game's good side quests but feeling it is overhyped and not living up to the widespread acclaim.",0.05
+986da5b9-ddea-4664-8f18-e1827f088454,alsoRecommends,["Dragon Age"],[],0.00
+986da5b9-ddea-4664-8f18-e1827f088454,pros,["Side quests"],["Good side quests"],0.67
+986da5b9-ddea-4664-8f18-e1827f088454,cons,["Overhyped","Not for everyone"],["Feels overhyped"],0.33
+926468de-34d7-49dc-a8e0-e4cf6fa0eab2,sentimentScore,undefined,7,0.00
+926468de-34d7-49dc-a8e0-e4cf6fa0eab2,sentimentSummary,"Positive (influencer bias)","Mixed (reviewer fatigue)",0.00
+926468de-34d7-49dc-a8e0-e4cf6fa0eab2,verdict,undefined,"Positive",0.00
+926468de-34d7-49dc-a8e0-e4cf6fa0eab2,biasIndicators,["influencer bias","audience expectation"],["influencer bias","reviewer fatigue"],0.50
+926468de-34d7-49dc-a8e0-e4cf6fa0eab2,reviewSummary,"Great for the community, but influencer bias may affect the score.","The reviewer acknowledges the pressure from their audience to like Elden Ring more due to the series' popularity. They appreciate the great community and replay value but question if the influencer effect positively influences their rating.",0.14
+926468de-34d7-49dc-a8e0-e4cf6fa0eab2,alsoRecommends,["Bloodborne"],[],0.00
+926468de-34d7-49dc-a8e0-e4cf6fa0eab2,pros,["Community","Replay value"],["Great community","Lots of replay value"],0.50
+926468de-34d7-49dc-a8e0-e4cf6fa0eab2,cons,["Pressure to like it"],["Influencer bias potential skewing rating"],0.00
+fdf87859-4a75-4e44-b92d-18cfba246335,sentimentScore,undefined,9,0.00
+fdf87859-4a75-4e44-b92d-18cfba246335,sentimentSummary,"overwhelmingly positive","Very positive",0.33
+fdf87859-4a75-4e44-b92d-18cfba246335,verdict,undefined,"positive",0.00
+fdf87859-4a75-4e44-b92d-18cfba246335,biasIndicators,["fan of fromsoftware game"],["franchise bias"],0.00
+fdf87859-4a75-4e44-b92d-18cfba246335,reviewSummary,"Elden Ring offers a vast, challenging world with rewarding exploration and combat. Best for fans of FromSoftware, but the difficulty and sparse story may not appeal to everyone.","Elden Ring excels in open world design, offering challenging and rewarding gameplay with a world full of secrets to explore despite potential hurdles like difficulty and sparse storytelling. It's a must-play for fans of FromSoftware, especially if you enjoyed Dark Souls 3 or The Witcher 3.",0.30
+fdf87859-4a75-4e44-b92d-18cfba246335,alsoRecommends,["The Witcher 3","Dark Souls 3"],["Dark Souls 3","The Witcher 3"],1.00
+fdf87859-4a75-4e44-b92d-18cfba246335,pros,["Open world","Combat","Atmosphere"],["Masterpiece open-world design","Challenging but rewarding combat","World full of secrets","Sense of discovery"],0.24
+fdf87859-4a75-4e44-b92d-18cfba246335,cons,["Difficulty","Sparse story moments"],["Difficulty may turn off some players","Sparse story at times"],0.28
+94394cbe-ba1d-4ddc-8a57-81fd861c8d38,sentimentScore,undefined,7,0.00
+94394cbe-ba1d-4ddc-8a57-81fd861c8d38,sentimentSummary,"very positive","Very positive",1.00
+94394cbe-ba1d-4ddc-8a57-81fd861c8d38,verdict,undefined,"positive",0.00
+94394cbe-ba1d-4ddc-8a57-81fd861c8d38,biasIndicators,["prefers story-driven game"],["story-driven bias"],0.40
+94394cbe-ba1d-4ddc-8a57-81fd861c8d38,reviewSummary,"The Witcher 3 is a must-play for story lovers, with an incredible world and quests, but bugs and clunky combat hold it back. Recommended for those who value narrative over gameplay polish.","The Witcher 3 impressively raises the bar in RPGs with its phenomenal storytelling and world creation, albeit hindered by persistent bugs and somewhat clunky combat. Highly recommended for fans who prioritize narrative depth and immersive environments, comparable to Elden Ring and Red Dead Redemption 2.",0.22
+94394cbe-ba1d-4ddc-8a57-81fd861c8d38,alsoRecommends,["Elden Ring","Red Dead Redemption 2"],["Elden Ring","Red Dead Redemption 2"],1.00
+94394cbe-ba1d-4ddc-8a57-81fd861c8d38,pros,["Story","World","Quests"],["Incredible story and world-building","Best quests"],0.32
+94394cbe-ba1d-4ddc-8a57-81fd861c8d38,cons,["Bugs","Clunky combat"],["Remaining bugs after patches","Clunky combat"],0.63
+d632e6c8-f143-4776-9c10-416498a3e889,sentimentScore,undefined,3,0.00
+d632e6c8-f143-4776-9c10-416498a3e889,sentimentSummary,"mixed to negative","Mixed to negative",1.00
+d632e6c8-f143-4776-9c10-416498a3e889,verdict,undefined,"negative",0.00
+d632e6c8-f143-4776-9c10-416498a3e889,biasIndicators,["prefers accessible game","not a fan of soulslike"],["genre aversion","accessibility bias"],0.00
+d632e6c8-f143-4776-9c10-416498a3e889,reviewSummary,"Elden Ring is visually stunning but can be frustratingly difficult and repetitive. Not recommended for those who dislike Soulslike games or want a more guided experience.","The reviewer found Elden Ring to have great visuals but struggled with the unfair difficulty, lack of direction, and repetitive boss fights, ultimately recommending Breath of the Wild for a more accessible experience.",0.19
+d632e6c8-f143-4776-9c10-416498a3e889,alsoRecommends,["The Legend of Zelda: Breath of the Wild"],["Breath of the Wild"],0.67
+d632e6c8-f143-4776-9c10-416498a3e889,pros,["Visuals"],["Great visuals"],0.50
+d632e6c8-f143-4776-9c10-416498a3e889,cons,["Unfair difficulty","Lack of direction","Repetitive bosses"],["Unfair difficulty","Lack of direction","Repetitive boss fights"],0.75
+097f3a48-36b5-4c01-a90b-e71ac3a82c20,sentimentScore,undefined,5,0.00
+097f3a48-36b5-4c01-a90b-e71ac3a82c20,sentimentSummary,"mixed","Mixed",1.00
+097f3a48-36b5-4c01-a90b-e71ac3a82c20,verdict,undefined,"neutral",0.00
+097f3a48-36b5-4c01-a90b-e71ac3a82c20,biasIndicators,["critical of technical issue"],["genre aversion","technical criticism"],0.13
+097f3a48-36b5-4c01-a90b-e71ac3a82c20,reviewSummary,"The Witcher 3 shines in story and side quests, but technical flaws and mediocre combat may frustrate some players. Worth playing if you can overlook the issues.","The Witcher 3 offers a great narrative experience with top-notch story and side quests, but falls short in terms of combat mechanics, UI functionality, and performance issues on PC. The reviewer advises that while some may overlook these flaws, they do matter, suggesting Cyberpunk 2077 for a more polished gameplay experience.",0.26
+097f3a48-36b5-4c01-a90b-e71ac3a82c20,alsoRecommends,["Cyberpunk 2077"],["Cyberpunk 2077"],1.00
+097f3a48-36b5-4c01-a90b-e71ac3a82c20,pros,["Story","Side quests"],["Fantastic story and side quests"],0.33
+097f3a48-36b5-4c01-a90b-e71ac3a82c20,cons,["Combat","UI","Performance issues"],["Mediocre combat system","Clunky UI","Performance issues on PC"],0.44
+08782a6e-045b-4f80-9775-366de8591f57,sentimentScore,undefined,7,0.00
+08782a6e-045b-4f80-9775-366de8591f57,sentimentSummary,"positive with platform bias","Very positive",0.20
+08782a6e-045b-4f80-9775-366de8591f57,verdict,undefined,"positive",0.00
+08782a6e-045b-4f80-9775-366de8591f57,biasIndicators,["playstation fan","platform loyalty"],["franchise bias","nostalgia bias"],0.00
+08782a6e-045b-4f80-9775-366de8591f57,reviewSummary,"Great game, but PlayStation performance issues hold it back a bit for platform loyalists.","Elden Ring delivers a fantastic experience for PlayStation fans with stunning visuals and engaging combat. However, some performance issues may affect the overall gameplay, especially for those used to PC.",0.13
+08782a6e-045b-4f80-9775-366de8591f57,alsoRecommends,["Bloodborne"],[],0.00
+08782a6e-045b-4f80-9775-366de8591f57,pros,["Visuals","Combat"],["Fantastic visuals","Great combat"],0.50
+08782a6e-045b-4f80-9775-366de8591f57,cons,["Performance on PS5"],["Performance issues on PS5 compared to PC"],0.43
+0596ed3c-41c3-4471-b373-60e40d785a3b,sentimentScore,undefined,8,0.00
+0596ed3c-41c3-4471-b373-60e40d785a3b,sentimentSummary,"overwhelmingly positive","Mostly positive",0.33
+0596ed3c-41c3-4471-b373-60e40d785a3b,verdict,undefined,"positive",0.00
+0596ed3c-41c3-4471-b373-60e40d785a3b,biasIndicators,["nostalgia bias","played original as a kid"],["nostalgia bias"],0.67
+0596ed3c-41c3-4471-b373-60e40d785a3b,reviewSummary,"A must-play for fans of the original, with nostalgia amplifying the experience.","The reviewer, having played the original Witcher as a kid, found The Witcher game to hit all the right notes for them. Despite acknowledging the dated graphics, nostalgia played a significant role in boosting their positive review due to the memories the game brought back.",0.12
+0596ed3c-41c3-4471-b373-60e40d785a3b,alsoRecommends,["The Witcher 2"],[],0.00
+0596ed3c-41c3-4471-b373-60e40d785a3b,pros,["Nostalgic story","Music"],["Strong story","Memorable music"],0.42
+0596ed3c-41c3-4471-b373-60e40d785a3b,cons,["Dated graphics"],["Dated graphics"],1.00
+9fa05b32-9150-4121-8d01-a5992c0b4915,sentimentScore,undefined,8,0.00
+9fa05b32-9150-4121-8d01-a5992c0b4915,sentimentSummary,"positive","Positive (sponsored)",1.00
+9fa05b32-9150-4121-8d01-a5992c0b4915,verdict,undefined,"positive",0.00
+9fa05b32-9150-4121-8d01-a5992c0b4915,biasIndicators,["sponsored review","potential promotional bia"],["sponsored bias"],0.22
+9fa05b32-9150-4121-8d01-a5992c0b4915,reviewSummary,"Expansive and replayable, but note the sponsored context.","While acknowledging the sponsored nature of the review, Elden Ring impresses with its vast world and replayability, albeit offering a challenge with its steep learning curve.",0.11
+9fa05b32-9150-4121-8d01-a5992c0b4915,alsoRecommends,["Sekiro"],[],0.00
+9fa05b32-9150-4121-8d01-a5992c0b4915,pros,["Expansive world","Replay value"],["Expansive world","High replay value"],0.83
+9fa05b32-9150-4121-8d01-a5992c0b4915,cons,["Steep learning curve"],["Steep learning curve"],1.00
+fa0c0615-c6ee-494c-81f1-f928e4752ed6,sentimentScore,undefined,3,0.00
+fa0c0615-c6ee-494c-81f1-f928e4752ed6,sentimentSummary,"mixed","Mixed (genre aversion)",0.33
+fa0c0615-c6ee-494c-81f1-f928e4752ed6,verdict,undefined,"negative",0.00
+fa0c0615-c6ee-494c-81f1-f928e4752ed6,biasIndicators,["not a fan of turn-based game","genre aversion"],["genre aversion"],0.67
+fa0c0615-c6ee-494c-81f1-f928e4752ed6,reviewSummary,"Great story, but genre fans will enjoy it more than I did.","The review expresses mixed feelings towards The Witcher 3. While acknowledging the great story, the reviewer finds the combat and pacing unsuitable, especially for someone who dislikes turn-based games.",0.06
+fa0c0615-c6ee-494c-81f1-f928e4752ed6,alsoRecommends,["Mass Effect"],[],0.00
+fa0c0615-c6ee-494c-81f1-f928e4752ed6,pros,["Story"],["Great story"],0.50
+fa0c0615-c6ee-494c-81f1-f928e4752ed6,cons,["Turn-based combat","Slow pacing"],["Combat and pacing may not appeal to all players, especially those averse to turn-based games"],0.15
+0393c231-ec93-43ca-a918-814ca65909ca,sentimentScore,undefined,4,0.00
+0393c231-ec93-43ca-a918-814ca65909ca,sentimentSummary,"mixed","Mixed (reviewer fatigue)",0.33
+0393c231-ec93-43ca-a918-814ca65909ca,verdict,undefined,"Mixed",0.00
+0393c231-ec93-43ca-a918-814ca65909ca,biasIndicators,["reviewer fatigue","burned out after 100 hour"],["reviewer fatigue"],0.67
+0393c231-ec93-43ca-a918-814ca65909ca,reviewSummary,"Huge game, but can lead to burnout for completionists.","The reviewer spent a significant amount of time in Elden Ring, praising its abundant content and boss variety. However, after 100 hours, the gameplay started feeling repetitive, leading to reviewer fatigue.",0.03
+0393c231-ec93-43ca-a918-814ca65909ca,alsoRecommends,["Dark Souls"],[],0.00
+0393c231-ec93-43ca-a918-814ca65909ca,pros,["Content","Boss variety"],["Abundant content","Variety of bosses"],0.38
+0393c231-ec93-43ca-a918-814ca65909ca,cons,["Repetitive","Burnout"],["Repetitive gameplay","Fatigue after extended playtime"],0.25
+c7062e52-f63d-4683-a0b1-74a2b8740fed,sentimentScore,undefined,3,0.00
+c7062e52-f63d-4683-a0b1-74a2b8740fed,sentimentSummary,"contrarian","Mixed",0.00
+c7062e52-f63d-4683-a0b1-74a2b8740fed,verdict,undefined,"mixed",0.00
+c7062e52-f63d-4683-a0b1-74a2b8740fed,biasIndicators,["contrarian","skeptical of hype"],["contrarian"],0.67
+c7062e52-f63d-4683-a0b1-74a2b8740fed,reviewSummary,"Not for everyone—don't believe the hype if you're not already a fan.","The reviewer expresses mixed feelings towards The Witcher 3, acknowledging the quality of side quests but feeling the game is overhyped and skeptical of the widespread praise.",0.03
+c7062e52-f63d-4683-a0b1-74a2b8740fed,alsoRecommends,["Dragon Age"],[],0.00
+c7062e52-f63d-4683-a0b1-74a2b8740fed,pros,["Side quests"],["Good side quests"],0.67
+c7062e52-f63d-4683-a0b1-74a2b8740fed,cons,["Overhyped","Not for everyone"],["Feels overhyped"],0.33
+69f47264-41fe-4c28-b1d3-f215fbb16342,sentimentScore,undefined,5,0.00
+69f47264-41fe-4c28-b1d3-f215fbb16342,sentimentSummary,"positive","Mixed (influencer bias)",0.00
+69f47264-41fe-4c28-b1d3-f215fbb16342,verdict,undefined,"mixed",0.00
+69f47264-41fe-4c28-b1d3-f215fbb16342,biasIndicators,["influencer bias","audience expectation"],["influencer bias"],0.67
+69f47264-41fe-4c28-b1d3-f215fbb16342,reviewSummary,"Great for the community, but influencer bias may affect the score.","The reviewer acknowledges feeling pressure due to their audience's affinity for the series, while praising the strong community aspect and replay value but expressing doubts about the influencer effect on their rating of Elden Ring.",0.14
+69f47264-41fe-4c28-b1d3-f215fbb16342,alsoRecommends,["Bloodborne"],["Players who enjoy the series","Those looking for strong community experience"],0.00
+69f47264-41fe-4c28-b1d3-f215fbb16342,pros,["Community","Replay value"],["Strong community engagement","High replay value"],0.50
+69f47264-41fe-4c28-b1d3-f215fbb16342,cons,["Pressure to like it"],["Potential influencer bias influencing rating"],0.00
