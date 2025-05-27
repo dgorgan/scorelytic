@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test:client": "jest --config client/jest.config.ts",
-    "test:server": "jest --config server/jest.config.ts",
-    "test": "npm run test:server && npm run test:client",
+    "check:types": "tsc --noEmit -p server/tsconfig.json && tsc --noEmit -p client/tsconfig.json",
+    "test:server": "cd server && npx jest",
+    "test:client": "cd client && npx jest",
+    "check:all": "npm run check:types && npm run test:server && npm run test:client",
     "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
     "dev:server": "ts-node-dev --respawn --transpile-only server/src/server.ts",
     "migrate": "dotenv -e .env -- node scripts/check-and-migrate.js",
