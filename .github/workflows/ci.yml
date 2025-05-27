@@ -18,9 +18,9 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Type check
-        run: npm run typecheck || npx tsc --noEmit
+        run: npm run check:types
       - name: Lint
-        run: npm run lint || npx eslint .
+        run: npm run lint
       - name: Test
         run: npm test
       - name: Check for accidental JS artifacts in src

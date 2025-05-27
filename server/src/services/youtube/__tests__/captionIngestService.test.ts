@@ -1,5 +1,20 @@
 import { normalizeYoutubeToReview } from '../captionIngestService';
 
+// Mock the database module with correct path
+jest.mock('../../../config/database', () => ({
+  supabase: {
+    from: jest.fn(() => ({
+      select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      single: jest.fn().mockResolvedValue({
+        data: { id: 'mock-game-id' },
+        error: null
+      }),
+      insert: jest.fn().mockReturnThis()
+    }))
+  }
+}));
+
 describe('normalizeYoutubeToReview', () => {
   it('returns all required fields and auto-creates game/creator', async () => {
     const review = await normalizeYoutubeToReview({

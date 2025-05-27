@@ -1,4 +1,4 @@
-import express from 'express';
+const express = require('express');
 import request from 'supertest';
 
 jest.mock('../../services/sentimentService', () => ({
