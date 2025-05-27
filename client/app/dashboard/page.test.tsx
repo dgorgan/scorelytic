@@ -3,26 +3,18 @@ import '@testing-library/jest-dom';
 import { render, screen, fireEvent } from '@testing-library/react';
 import Dashboard from './page';
 
-// Mock next/dynamic to return our mocked Plotly component
-jest.mock('next/dynamic', () => {
-  return function mockDynamic() {
-    // Return a mock component that renders the plotly chart
-    const MockComponent = () => {
-      return React.createElement('div', { 'data-testid': 'plotly-chart' }, 'Plotly Chart');
-    };
-    MockComponent.displayName = 'MockPlotly';
-    return MockComponent;
-  };
-});
-
-// Also mock react-plotly.js directly as a fallback
-jest.mock('react-plotly.js', () => {
-  const MockPlotly = () => {
-    return React.createElement('div', { 'data-testid': 'plotly-chart' }, 'Plotly Chart');
-  };
-  MockPlotly.displayName = 'MockPlotly';
-  return MockPlotly;
-});
+// Mock Recharts components
+jest.mock('recharts', () => ({
+  ResponsiveContainer: ({ children }: { children: React.ReactNode }) => 
+    React.createElement('div', { 'data-testid': 'recharts-container' }, children),
+  BarChart: ({ children }: { children: React.ReactNode }) => 
+    React.createElement('div', { 'data-testid': 'recharts-bar-chart' }, children),
+  Bar: () => React.createElement('div', { 'data-testid': 'recharts-bar' }),
+  XAxis: () => React.createElement('div', { 'data-testid': 'recharts-xaxis' }),
+  YAxis: () => React.createElement('div', { 'data-testid': 'recharts-yaxis' }),
+  CartesianGrid: () => React.createElement('div', { 'data-testid': 'recharts-grid' }),
+  Tooltip: () => React.createElement('div', { 'data-testid': 'recharts-tooltip' }),
+}));
 
 // Mock supabase
 jest.mock('../../services/supabase', () => ({
@@ -63,8 +55,9 @@ describe('Dashboard', () => {
   it('displays chart component', async () => {
     render(React.createElement(Dashboard));
     
-    // Check that the plotly chart is rendered
-    expect(await screen.findByTestId('plotly-chart')).toBeInTheDocument();
+    // Check that the recharts components are rendered
+    expect(await screen.findByTestId('recharts-container')).toBeInTheDocument();
+    expect(screen.getByTestId('recharts-bar-chart')).toBeInTheDocument();
   });
 
   it('shows LLM batch test results section', async () => {

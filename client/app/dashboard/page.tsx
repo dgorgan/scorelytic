@@ -1,13 +1,9 @@
-// @ts-nocheck
 "use client";
 import { useEffect, useState } from 'react';
-import dynamic from 'next/dynamic';
 import { supabase } from '../../services/supabase';
 import Papa, { ParseResult } from 'papaparse';
 import * as Tooltip from '@radix-ui/react-tooltip';
-
-// @ts-ignore - Ignore TypeScript errors for Plot component
-const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 
 type Result = {
   reviewId: string;
@@ -127,18 +123,31 @@ export default function Dashboard() {
             </label>
           </div>
           <div className="w-full max-w-full overflow-x-auto mb-8">
-            {/* @ts-ignore */}
-            <Plot
-              data={[{
-                x: sweepSummary.map(row => `${row.model} | ${row.prompt} | ${row.field}`),
-                y: sweepSummary.map(row => row.total_mismatches),
-                type: 'bar',
-                marker: { color: 'crimson' }
-              }]}
-              layout={{ title: 'Mismatches per Sweep Config', autosize: true, width: undefined, height: 400, margin: { l: 40, r: 20, t: 40, b: 40 } }}
-              useResizeHandler={true}
-              style={{ width: '100%', height: '100%' }}
-            />
+            <ResponsiveContainer width="100%" height={400}>
+              <BarChart
+                data={sweepSummary.map(row => ({
+                  name: `${row.model} | ${row.prompt} | ${row.field}`,
+                  mismatches: parseInt(row.total_mismatches),
+                  model: row.model,
+                  prompt: row.prompt,
+                  field: row.field,
+                  comparisons: parseInt(row.total_comparisons)
+                }))}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <RechartsTooltip 
+                  formatter={(value, name) => [value, name === 'mismatches' ? 'Mismatches' : name]}
+                  labelFormatter={(label) => `Configuration: ${label}`}
+                  contentStyle={{ 
+                    backgroundColor: '#f8fafc', 
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '6px'
+                  }}
+                />
+                <Bar dataKey="mismatches" fill="#8884d8" />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
           <div className="overflow-x-auto mt-8 max-w-full">
             <table className="w-full min-w-max border border-gray-300 rounded-lg shadow text-sm bg-white">
@@ -270,9 +279,13 @@ export default function Dashboard() {
   };
 
   // @ts-ignore - Ignore TypeScript return type issues
-  const displayCell = (val: any): any => {
-    if (val === undefined || val === null || val === 'undefined' || val === 'null') return <span className="text-gray-400 italic">N/A</span>;
-    if (typeof val === 'bigint') return val.toString();
+  const displayCell = (val: unknown): string | React.ReactElement => {
+    if (val === undefined || val === null || val === 'undefined' || val === 'null') {
+      return <span className="text-gray-400 italic">N/A</span>;
+    }
+    if (typeof val === 'bigint') {
+      return val.toString();
+    }
     if (typeof val === 'string') {
       // Try to parse as array, even if not perfectly stringified
       if ((val.startsWith('[') && val.endsWith(']')) || (val.startsWith('{') && val.endsWith('}'))) {
@@ -288,8 +301,12 @@ export default function Dashboard() {
       }
       return val;
     }
-    if (Array.isArray(val)) return val.join(', ');
-    if (typeof val === 'object') return JSON.stringify(val);
+    if (Array.isArray(val)) {
+      return val.join(', ');
+    }
+    if (typeof val === 'object') {
+      return JSON.stringify(val);
+    }
     return String(val);
   };
 
@@ -361,18 +378,27 @@ export default function Dashboard() {
           >Advanced QA</button>
         </div>
         <div className="w-full max-w-full overflow-x-auto mb-8">
-          {/* @ts-ignore */}
-          <Plot
-            data={[{
-              x: Object.keys(fieldCounts),
-              y: Object.values(fieldCounts),
-              type: 'bar',
-              marker: { color: 'crimson' }
-            }]}
-            layout={{ title: 'Mismatches per Field', autosize: true, width: undefined, height: 400, margin: { l: 40, r: 20, t: 40, b: 40 } }}
-            useResizeHandler={true}
-            style={{ width: '100%', height: '100%' }}
-          />
+          <ResponsiveContainer width="100%" height={400}>
+            <BarChart
+              data={Object.entries(fieldCounts).map(([field, count]) => ({
+                name: field,
+                mismatches: count
+              }))}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <RechartsTooltip 
+                formatter={(value, name) => [value, name === 'mismatches' ? 'Mismatches' : name]}
+                labelFormatter={(label) => `Field: ${label}`}
+                contentStyle={{ 
+                  backgroundColor: '#fef2f2', 
+                  border: '1px solid #fecaca',
+                  borderRadius: '6px'
+                }}
+              />
+              <Bar dataKey="mismatches" fill="#dc2626" />
+            </BarChart>
+          </ResponsiveContainer>
           <div className="mt-2 text-xs text-blue-900 bg-blue-50 border-l-4 border-blue-400 rounded px-3 py-2 max-w-xl">
             <b>Note:</b> Each bar shows the number of mismatches (similarity &lt; 0.8) for that field. <b>Higher bars mean more disagreement</b> between LLM and original data (worse). Lower is better.
           </div>

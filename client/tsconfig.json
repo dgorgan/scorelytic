@@ -10,7 +10,7 @@
         "../shared/*"
       ]
     },
-    "jsx": "react-jsx",
+    "jsx": "preserve",
     "lib": [
       "dom",
       "dom.iterable",

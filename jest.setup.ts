@@ -2,6 +2,13 @@ require('openai/shims/node');
 const dotenv = require('dotenv');
 dotenv.config();
 
+// Add ResizeObserver polyfill for Recharts
+global.ResizeObserver = jest.fn().mockImplementation(() => ({
+  observe: jest.fn(),
+  unobserve: jest.fn(),
+  disconnect: jest.fn(),
+}));
+
 // Mock supabase client everywhere
 jest.mock('@supabase/supabase-js', () => {
   const actual = jest.requireActual('@supabase/supabase-js');
