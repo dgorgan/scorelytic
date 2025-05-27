@@ -10,7 +10,7 @@
         "../shared/*"
       ]
     },
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "lib": [
       "dom",
       "dom.iterable",
@@ -25,7 +25,8 @@
       {
         "name": "next"
       }
-    ]
+    ],
+    "esModuleInterop": true
   },
   "include": [
     "**/*.ts",
