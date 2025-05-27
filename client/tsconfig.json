@@ -6,7 +6,8 @@
       "@/*": ["*"],
       "shared/*": ["../shared/*"]
     },
-    "outDir": "../dist-client"
+    "outDir": "../dist-client",
+    "jsx": "preserve"
   },
   "include": ["**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]
