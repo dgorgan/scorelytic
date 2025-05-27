@@ -3,6 +3,7 @@ import { Game } from '../models/Game';
 import { Creator } from '../models/Creator';
 import { Review } from '../models/Review';
 import { toCamel, toSnake } from './caseMapping';
+import { harmonizeBias } from '../../../shared/utils/bias-harmonizer';
 
 async function resetTables() {
   if (process.env.NODE_ENV === 'production') {
@@ -247,7 +248,16 @@ export async function seedSupabase() {
       transcript: `My audience loves this series, so I felt a bit of pressure to like Elden Ring more than I might have otherwise. The community is great and there's a lot of replay value, but I wonder if I'd rate it as highly without the influencer effect.`,
       reviewSummary: 'Great for the community, but influencer bias may affect the score.'
     }
-  ];
+  ].map(r => ({
+    ...r,
+    pros: Array.isArray(r.pros) ? r.pros : [],
+    cons: Array.isArray(r.cons) ? r.cons : [],
+    alsoRecommends: Array.isArray(r.alsoRecommends) ? r.alsoRecommends : [],
+    biasIndicators: harmonizeBias(r.biasIndicators || []),
+    sentimentSummary: (r.sentimentSummary || '').toLowerCase().replace(/\s*\(.*\)/, '').trim(),
+    transcript: r.transcript || 'No transcript provided.',
+    reviewSummary: r.reviewSummary || 'No summary provided.'
+  }));
   console.log('Starting to upsert reviews');
   const { data: rawReviews, error: reviewsError } = await supabase.from('reviews').upsert(toSnake(reviews)).select();
   const insertedReviews = rawReviews ? toCamel(rawReviews) : null;

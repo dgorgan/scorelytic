@@ -1,1 +1,1 @@
-export * from '../../server/models/Game';
+export * from './Game';

@@ -2,9 +2,20 @@ const eqMock = jest.fn(() => Promise.resolve({ data: [{}], error: null }));
 const updateMock = jest.fn(() => ({ eq: eqMock }));
 const fromMock = jest.fn(() => ({ update: updateMock }));
 
+const fullMockResult = {
+  summary: 'Mock summary',
+  sentimentScore: 7,
+  verdict: 'positive',
+  sentimentSummary: 'Very positive',
+  biasIndicators: ['story-driven bias'],
+  alsoRecommends: ['Game X'],
+  pros: ['Great story'],
+  cons: ['Too short'],
+  reviewSummary: 'A solid review.'
+};
 const mockCreate = jest.fn().mockResolvedValue({
   choices: [
-    { message: { content: JSON.stringify({ summary: 'Mock summary', sentimentScore: 7, verdict: 'positive' }) } }
+    { message: { content: JSON.stringify(fullMockResult) } }
   ]
 });
 jest.mock('openai', () => ({
@@ -19,7 +30,6 @@ jest.mock('openai', () => ({
 }));
 
 import { analyzeReviewText } from '../llmSentiment';
-import { SentimentResult } from '../../services/sentimentService';
 
 jest.mock('../../config/database', () => ({
   supabase: { from: fromMock }
@@ -33,7 +43,7 @@ describe('analyzeReviewText', () => {
     mockCreate.mockReset();
     mockCreate.mockResolvedValue({
       choices: [
-        { message: { content: JSON.stringify({ summary: 'Mock summary', sentimentScore: 7, verdict: 'positive' }) } }
+        { message: { content: JSON.stringify(fullMockResult) } }
       ]
     });
   });
@@ -42,11 +52,7 @@ describe('analyzeReviewText', () => {
     const transcript = 'This is a test transcript.';
     const reviewId = 'test-review-id';
     const result = await analyzeReviewText(transcript, reviewId);
-    expect(result).toEqual({
-      summary: expect.any(String),
-      sentimentScore: expect.any(Number),
-      verdict: expect.any(String)
-    });
+    expect(result).toEqual(fullMockResult);
     expect(fromMock).toHaveBeenCalledWith('reviews');
     expect(updateMock).toHaveBeenCalledWith({ sentimentSummary: JSON.stringify(result) });
     expect(eqMock).toHaveBeenCalledWith('id', reviewId);

@@ -18,13 +18,24 @@ describe('analyzeText', () => {
   });
 
   it('returns sentiment result for valid text', async () => {
+    const fullMockResult = {
+      summary: 'Test summary',
+      sentimentScore: 5,
+      verdict: 'mixed',
+      sentimentSummary: 'Mixed',
+      biasIndicators: ['contrarian'],
+      alsoRecommends: ['Game Y'],
+      pros: ['Interesting mechanics'],
+      cons: ['Bugs'],
+      reviewSummary: 'A nuanced review.'
+    };
     mockCreate.mockResolvedValue({
       choices: [
-        { message: { content: JSON.stringify({ summary: 'Test summary', sentimentScore: 5, verdict: 'mixed' }) } }
+        { message: { content: JSON.stringify(fullMockResult) } }
       ]
     });
     const result = await analyzeText('This is a test.');
-    expect(result).toEqual({ summary: 'Test summary', sentimentScore: 5, verdict: 'mixed' });
+    expect(result).toEqual(fullMockResult);
   });
 
   it('throws on malformed LLM response', async () => {
