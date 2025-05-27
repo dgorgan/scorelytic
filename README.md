@@ -162,7 +162,22 @@ scorelytic
 ### Server
 
 - `npm run dev`: Start the Express.js server using `nodemon` for live reload.
-- `npx ts-node utils/seedSupabase.ts`: Seed the Supabase database with test data.
+- `npx dotenv -e .env -- npm run migrate -- reviews transcript`: Seed the Supabase database with test data.
+
+## Database Migrations
+
+To run a migration for a specific table and column (checks if the column exists before running migrations):
+
+```
+npm run migrate -- <table> <column>
+```
+
+Example:
+```
+npm run migrate -- reviews transcript
+```
+
+This uses the dynamic script in scripts/check-and-migrate.js.
 
 ## Contributing
 

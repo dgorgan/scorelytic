@@ -10,7 +10,7 @@
     "test": "jest --config jest.config.ts --passWithNoTests",
     "test:watch": "jest --config jest.config.ts --watchAll",
     "start": "node dist/server.js",
-    "dev": "ts-node-dev -r tsconfig-paths/register server.ts",
+    "dev": "ts-node-dev -r tsconfig-paths/register src/app.ts",
     "clean": "rm -rf dist node_modules/.cache"
   },
   "keywords": [],
