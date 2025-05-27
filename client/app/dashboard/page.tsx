@@ -282,31 +282,37 @@ export default function Dashboard() {
     if (val === undefined || val === null || val === 'undefined' || val === 'null') {
       return <span className="text-gray-400 italic">N/A</span>;
     }
+    
+    // Handle bigint specifically
     if (typeof val === 'bigint') {
-      return val.toString();
+      return <span className="font-mono text-sm">{val.toString()}</span>;
     }
+    
     if (typeof val === 'string') {
-      // Try to parse as array, even if not perfectly stringified
-      if ((val.startsWith('[') && val.endsWith(']')) || (val.startsWith('{') && val.endsWith('}'))) {
-        try {
-          const parsed = JSON.parse(val);
-          if (Array.isArray(parsed)) {
-            return parsed.join(', ');
-          }
-          return JSON.stringify(parsed);
-        } catch {
-          return val;
+      try {
+        const parsed = JSON.parse(val);
+        if (Array.isArray(parsed)) {
+          return <span className="text-blue-600">{parsed.join(', ')}</span>;
         }
+        if (typeof parsed === 'object' && parsed !== null) {
+          return <pre className="text-xs bg-gray-100 p-1 rounded max-w-xs overflow-hidden">{JSON.stringify(parsed, null, 2)}</pre>;
+        }
+        return <span>{parsed.toString()}</span>;
+      } catch {
+        return <span>{val}</span>;
       }
-      return val;
     }
+    
     if (Array.isArray(val)) {
-      return val.join(', ');
+      return <span className="text-blue-600">{val.join(', ')}</span>;
     }
-    if (typeof val === 'object') {
-      return JSON.stringify(val);
+    
+    if (typeof val === 'object' && val !== null) {
+      return <pre className="text-xs bg-gray-100 p-1 rounded max-w-xs overflow-hidden">{JSON.stringify(val, null, 2)}</pre>;
     }
-    return String(val);
+    
+    // Convert everything else to string to ensure compatibility
+    return <span>{String(val)}</span>;
   };
 
   return (
