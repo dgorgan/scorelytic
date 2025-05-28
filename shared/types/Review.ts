@@ -12,4 +12,5 @@ export type Review = {
   createdAt: string; // ISO date
   transcript: string;
   reviewSummary: string;
+  transcriptCost?: number;
 }; 

@@ -58,13 +58,33 @@ describe('analyzeReviewText', () => {
     expect(eqMock).toHaveBeenCalledWith('id', reviewId);
   });
 
-  it('throws if OpenAI response is malformed', async () => {
+  it('returns fallback if OpenAI response is malformed', async () => {
     mockCreate.mockResolvedValue({ choices: [ { message: { content: '{}' } } ] });
-    await expect(analyzeReviewText('Bad transcript', 'bad-id')).rejects.toThrow('Malformed LLM response');
+    await expect(analyzeReviewText('Bad transcript', 'bad-id')).resolves.toEqual({
+      alsoRecommends: [],
+      biasIndicators: [],
+      cons: [],
+      pros: [],
+      reviewSummary: 'No review summary available.',
+      sentimentScore: 5,
+      sentimentSummary: 'Mixed',
+      summary: 'No clear summary detected.',
+      verdict: 'mixed'
+    });
   });
 
-  it('throws if OpenAI errors', async () => {
+  it('returns fallback if OpenAI errors', async () => {
     mockCreate.mockRejectedValue(new Error('API fail'));
-    await expect(analyzeReviewText('fail', 'fail-id')).rejects.toThrow('OpenAI sentiment analysis failed: API fail');
+    await expect(analyzeReviewText('fail', 'fail-id')).resolves.toEqual({
+      alsoRecommends: [],
+      biasIndicators: [],
+      cons: [],
+      pros: [],
+      reviewSummary: 'No review summary available.',
+      sentimentScore: 5,
+      sentimentSummary: 'Mixed',
+      summary: 'No clear summary detected.',
+      verdict: 'mixed'
+    });
   });
 });

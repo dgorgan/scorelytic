@@ -10,18 +10,20 @@
     "test": "jest --config jest.config.ts --passWithNoTests",
     "test:watch": "jest --config jest.config.ts --watchAll",
     "start": "node dist/server.js",
-    "dev": "ts-node-dev -r tsconfig-paths/register src/app.ts",
+    "dev": "ts-node-dev -r tsconfig-paths/register server.ts",
     "clean": "rm -rf dist node_modules/.cache"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@scorelytic/shared": "*",
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
-    "module-alias": "^2.2.3"
+    "module-alias": "^2.2.3",
+    "yt-dlp-wrap": "^2.3.12"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
