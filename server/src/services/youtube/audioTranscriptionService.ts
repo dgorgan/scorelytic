@@ -10,87 +10,92 @@ export interface TranscriptionOptions {
   maxDurationMinutes?: number; // Default: 30 minutes
   audioQuality?: 'worst' | 'best'; // Default: worst (smaller files)
   tempDir?: string; // Default: /tmp
+  language?: string; // Default: 'en'
 }
+
+export interface TranscriptionHelpers {
+  downloadAudio: (videoUrl: string, audioPath: string, options: any) => Promise<void>;
+  transcribeAudioWithOpenAI: (audioPath: string, language: string) => Promise<string>;
+  getVideoDuration: (videoId: string) => Promise<number>;
+  fileExists: (filePath: string) => boolean;
+  unlinkFile: (filePath: string) => Promise<void>;
+  createReadStream: (filePath: string) => fs.ReadStream;
+  getOpenAI: () => OpenAI;
+}
+
+const defaultHelpers: TranscriptionHelpers = {
+  downloadAudio: async (videoUrl, audioPath, { maxDurationMinutes, audioQuality }) => {
+    const ytDlpWrap = new YTDlpWrap();
+    await ytDlpWrap.execPromise([
+      videoUrl,
+      '--extract-audio',
+      '--audio-format', 'mp3',
+      '--audio-quality', audioQuality,
+      '--match-filter', `duration < ${maxDurationMinutes * 60}`,
+      '--output', audioPath.replace('.mp3', '.%(ext)s'),
+      '--no-playlist'
+    ]);
+  },
+  transcribeAudioWithOpenAI: async (audioPath, language) => {
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const transcription = await openai.audio.transcriptions.create({
+      file: fs.createReadStream(audioPath),
+      model: 'whisper-1',
+      language,
+      response_format: 'text'
+    });
+    return transcription;
+  },
+  getVideoDuration: async (videoId) => {
+    const ytDlpWrap = new YTDlpWrap();
+    const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+    const info = await ytDlpWrap.getVideoInfo(videoUrl);
+    return Math.ceil((info.duration || 0) / 60);
+  },
+  fileExists: (filePath) => fs.existsSync(filePath),
+  unlinkFile: (filePath) => unlinkAsync(filePath),
+  createReadStream: (filePath) => fs.createReadStream(filePath),
+  getOpenAI: () => new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+};
 
 /**
  * Extracts audio from YouTube video and transcribes it using OpenAI Whisper
  */
 export const transcribeYouTubeAudio = async (
-  videoId: string, 
-  options: TranscriptionOptions = {}
+  videoId: string,
+  options: TranscriptionOptions = {},
+  helpers: TranscriptionHelpers = defaultHelpers
 ): Promise<string> => {
-  // Kill switch to prevent OpenAI costs
   if (process.env.DISABLE_OPENAI === 'true') {
-    console.log('[AUDIO] OpenAI transcription disabled via DISABLE_OPENAI env var');
     throw new Error('Audio transcription disabled');
-  }
-
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  if (!openai.apiKey) {
-    throw new Error('OpenAI API key not configured for audio transcription');
   }
 
   const {
     maxDurationMinutes = 30,
     audioQuality = 'worst',
-    tempDir = '/tmp'
+    tempDir = '/tmp',
+    language = 'en'
   } = options;
 
   const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
   const audioPath = path.join(tempDir, `${videoId}_audio.mp3`);
 
   try {
-    console.log(`[AUDIO] Starting audio extraction for ${videoId}`);
-    
-    // Initialize yt-dlp
-    const ytDlpWrap = new YTDlpWrap();
-    
-    // Extract audio with duration limit
-    await ytDlpWrap.execPromise([
-      videoUrl,
-      '--extract-audio',
-      '--audio-format', 'mp3',
-      '--audio-quality', audioQuality,
-      '--match-filter', `duration < ${maxDurationMinutes * 60}`, // Duration in seconds
-      '--output', audioPath.replace('.mp3', '.%(ext)s'),
-      '--no-playlist'
-    ]);
-
-    // Check if file was created
-    if (!fs.existsSync(audioPath)) {
+    // Download audio
+    await helpers.downloadAudio(videoUrl, audioPath, { maxDurationMinutes, audioQuality });
+    if (!helpers.fileExists(audioPath)) {
       throw new Error(`Audio extraction failed - file not created. Video may be too long (>${maxDurationMinutes}min) or unavailable.`);
     }
-
-    const stats = fs.statSync(audioPath);
-    console.log(`[AUDIO] Audio extracted: ${(stats.size / 1024 / 1024).toFixed(2)}MB`);
-
-    // Transcribe with OpenAI Whisper
-    console.log(`[AUDIO] Starting transcription for ${videoId}`);
-    const transcription = await openai.audio.transcriptions.create({
-      file: fs.createReadStream(audioPath),
-      model: 'whisper-1',
-      language: 'en', // Optimize for English
-      response_format: 'text'
-    });
-
-    console.log(`[AUDIO] Transcription completed: ${transcription.length} characters`);
-    
-    // Clean up audio file
-    await unlinkAsync(audioPath);
-    
+    // Transcribe
+    const transcription = await helpers.transcribeAudioWithOpenAI(audioPath, language);
+    await helpers.unlinkFile(audioPath);
     return transcription;
-
   } catch (error: any) {
-    // Clean up audio file if it exists
     try {
-      if (fs.existsSync(audioPath)) {
-        await unlinkAsync(audioPath);
+      if (helpers.fileExists(audioPath)) {
+        await helpers.unlinkFile(audioPath);
       }
-    } catch (cleanupError) {
-      console.warn(`[AUDIO] Failed to clean up ${audioPath}:`, cleanupError);
-    }
-
-    // Handle specific errors
+    } catch {}
     if (error.message?.includes('duration')) {
       throw new Error(`Video ${videoId} is too long (>${maxDurationMinutes} minutes) for audio transcription`);
     }
@@ -100,7 +105,6 @@ export const transcribeYouTubeAudio = async (
     if (error.message?.includes('Private video')) {
       throw new Error(`Video ${videoId} is private and cannot be accessed`);
     }
-    
     throw new Error(`Audio transcription failed for ${videoId}: ${error.message}`);
   }
 };
