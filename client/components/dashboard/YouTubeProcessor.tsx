@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { buildYouTubeMetadataUrl, buildYouTubeProcessUrl, ERROR_MESSAGES } from '@scorelytic/shared/constants/api';
+import { extractVideoId } from '@scorelytic/shared/utils/youtube';
 
 interface YouTubeProcessorProps {
   onProcessComplete?: (result: any) => void;
@@ -10,21 +12,10 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const extractVideoId = (input: string): string => {
-    // Handle full YouTube URLs
-    const urlMatch = input.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-    if (urlMatch) return urlMatch[1];
-    
-    // Handle direct video IDs
-    if (input.match(/^[a-zA-Z0-9_-]{11}$/)) return input;
-    
-    return input;
-  };
-
   const handleProcess = async () => {
     const extractedId = extractVideoId(videoId.trim());
     if (!extractedId) {
-      setError('Please enter a valid YouTube video ID or URL');
+      setError(ERROR_MESSAGES.YOUTUBE.INVALID_ID);
       return;
     }
 
@@ -33,7 +24,7 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
     setResult(null);
 
     try {
-      const response = await fetch('/api/youtube/process', {
+      const response = await fetch(buildYouTubeProcessUrl(), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -44,13 +35,13 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to process video');
+        throw new Error(data.error || ERROR_MESSAGES.YOUTUBE.PROCESS_FAILED);
       }
 
       setResult(data);
       onProcessComplete?.(data);
     } catch (err: any) {
-      setError(err.message || 'An error occurred while processing the video');
+      setError(err.message || ERROR_MESSAGES.YOUTUBE.PROCESS_FAILED);
     } finally {
       setProcessing(false);
     }
@@ -59,7 +50,7 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
   const handleGetMetadata = async () => {
     const extractedId = extractVideoId(videoId.trim());
     if (!extractedId) {
-      setError('Please enter a valid YouTube video ID or URL');
+      setError(ERROR_MESSAGES.YOUTUBE.INVALID_ID);
       return;
     }
 
@@ -68,16 +59,16 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
     setResult(null);
 
     try {
-      const response = await fetch(`/api/youtube/metadata/${extractedId}`);
+      const response = await fetch(buildYouTubeMetadataUrl(extractedId));
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch metadata');
+        throw new Error(data.error || ERROR_MESSAGES.YOUTUBE.FETCH_FAILED);
       }
 
       setResult({ metadata: data });
     } catch (err: any) {
-      setError(err.message || 'An error occurred while fetching metadata');
+      setError(err.message || ERROR_MESSAGES.YOUTUBE.FETCH_FAILED);
     } finally {
       setProcessing(false);
     }
