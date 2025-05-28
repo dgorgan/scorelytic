@@ -1,770 +1,504 @@
 "use client";
-import { useEffect, useState } from 'react';
-import { supabase } from '../../services/supabase';
-import Papa, { ParseResult } from 'papaparse';
+import { useState, useEffect, useMemo } from 'react';
 import * as Tooltip from '@radix-ui/react-tooltip';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
-
-type Result = {
-  reviewId: string;
-  field: string;
-  seed: string;
-  llm: string;
-  similarity: string;
-};
-
-type GroupedResult = {
-  reviewId: string;
-  seed: string;
-  fields: Record<string, string>;
-  idxs: Record<string, number>;
-};
-
-// Define types for CSV rows
-interface BatchResultRow {
-  reviewId: string;
-  field: string;
-  seed: string;
-  llm: string;
-  similarity: string;
-}
-interface SweepSummaryRow {
-  model: string;
-  prompt: string;
-  field: string;
-  total_mismatches: string;
-  total_comparisons: string;
-}
+import Papa from 'papaparse';
+import { supabase } from '../../services/supabase';
+import FieldMismatchChart from '../../components/dashboard/FieldMismatchChart';
+import SweepSummaryChart from '../../components/dashboard/SweepSummaryChart';
+import DashboardControls from '../../components/dashboard/DashboardControls';
+import GroupedTable from '../../components/dashboard/GroupedTable';
+import AdvancedTable from '../../components/dashboard/AdvancedTable';
+import RowColorLegend from '../../components/dashboard/RowColorLegend';
+import EditReviewModal from '../../components/dashboard/EditReviewModal';
+import EditResultModal from '../../components/dashboard/EditResultModal';
+import { 
+  Result, 
+  GroupedResult, 
+  BatchResultRow, 
+  SweepSummaryRow 
+} from '../../components/dashboard/utils';
 
 export default function Dashboard() {
   const [results, setResults] = useState<Result[]>([]);
+  const [overrides, setOverrides] = useState<any[]>([]);
+  const [sweepSummary, setSweepSummary] = useState<SweepSummaryRow[]>([]);
   const [showMismatches, setShowMismatches] = useState(false);
   const [search, setSearch] = useState('');
-  const [editIdx, setEditIdx] = useState<number | null>(null);
-  const [editLlm, setEditLlm] = useState('');
-  const [editSimilarity, setEditSimilarity] = useState('');
-  const [overrides, setOverrides] = useState<Record<number, { llm: string; similarity: string }>>({});
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'unreviewed' | 'overridden'>('all');
-  const [csvFile, setCsvFile] = useState<string>('llm_review_batch_results.csv');
-  const [sweepSummary, setSweepSummary] = useState<SweepSummaryRow[]>([]);
-  const [isSweepSummary, setIsSweepSummary] = useState(false);
+  const [csvFile, setCsvFile] = useState('llm_review_batch_results.csv');
   const [groupedView, setGroupedView] = useState(true);
-  const [editReviewIdx, setEditReviewIdx] = useState<number | null>(null);
-  const [editReviewFields, setEditReviewFields] = useState<Record<string, string>>({});
+  
+  // Edit modal state
+  const [editReviewModal, setEditReviewModal] = useState<{
+    isOpen: boolean;
+    reviewId: string;
+    fields: Record<string, string>;
+    index: number;
+  }>({
+    isOpen: false,
+    reviewId: '',
+    fields: {},
+    index: -1
+  });
+  
+  const [editResultModal, setEditResultModal] = useState<{
+    isOpen: boolean;
+    result: Result;
+    index: number;
+  }>({
+    isOpen: false,
+    result: {} as Result,
+    index: -1
+  });
+
   const csvOptions = [
-    { label: 'Batch Results', value: 'llm_review_batch_results.csv' },
-    { label: 'Sweep Summary', value: 'llm_review_sweep_summary.csv' }
+    { label: 'LLM Review Batch Results', value: 'llm_review_batch_results.csv' },
+    { label: 'Bias Mismatches', value: 'bias_mismatches.csv' }
   ];
 
   useEffect(() => {
-    fetch(`/${csvFile}`)
-      .then(res => {
-        if (!res.ok) {
-          throw new Error(`Failed to fetch ${csvFile}: ${res.status} ${res.statusText}`);
-        }
-        return res.text();
-      })
-      .then(text => {
-        const parsed: ParseResult<BatchResultRow | SweepSummaryRow> = Papa.parse(text, { header: true, skipEmptyLines: true });
-        if (parsed.errors.length) {
-          throw new Error('CSV parse error: ' + parsed.errors.map(e => e.message).join('; '));
-        }
-        const data = parsed.data as (BatchResultRow | SweepSummaryRow)[];
-        if (data.length && 'total_mismatches' in data[0] && 'total_comparisons' in data[0]) {
-          setIsSweepSummary(true);
-          setSweepSummary(data.map(row => ({
-            model: (row as SweepSummaryRow).model,
-            prompt: (row as SweepSummaryRow).prompt,
-            field: (row as SweepSummaryRow).field,
-            total_mismatches: (row as SweepSummaryRow).total_mismatches,
-            total_comparisons: (row as SweepSummaryRow).total_comparisons
-          })));
+    const loadData = async () => {
+      try {
+        const response = await fetch(`/${csvFile}`);
+        if (!response.ok) {
+          console.warn(`Could not fetch ${csvFile}: ${response.status}`);
           setResults([]);
-        } else {
-          setIsSweepSummary(false);
-          setResults(
-            data.map(row => ({
-              reviewId: (row as BatchResultRow).reviewId,
-              field: (row as BatchResultRow).field,
-              seed: (row as BatchResultRow).seed,
-              llm: (row as BatchResultRow).llm,
-              similarity: (row as BatchResultRow).similarity
-            }))
-          );
+          setOverrides([]);
+          setSweepSummary([]);
+          return;
         }
-      })
-      .catch((err: Error) => {
-        setError(err.message);
-        console.error('Error loading CSV:', err);
-      });
+        const csvText = await response.text();
+        
+        let parsed;
+        try {
+          parsed = Papa.parse<BatchResultRow>(csvText, { 
+            header: true,
+            skipEmptyLines: true,
+            transform: (value) => {
+              // Clean up malformed values
+              if (typeof value === 'string') {
+                return value.trim();
+              }
+              return value;
+            }
+          });
+        } catch (parseError) {
+          console.error('CSV parsing error:', parseError);
+          setResults([]);
+          return;
+        }
+        
+        let transformedResults: Result[] = parsed.data
+          .filter(row => {
+            // More robust filtering for malformed data
+            if (!row.reviewId) return false;
+            if (csvFile === 'bias_mismatches.csv') {
+              // For bias mismatches, we just need reviewId
+              return true;
+            }
+            // For regular CSV, we need field
+            return !!row.field;
+          })
+          .map(row => ({
+            reviewId: row.reviewId,
+            field: row.field || 'biasIndicators', // Default to biasIndicators for bias mismatches CSV
+            seed: row.seed || '',
+            llm: row.llm || '',
+            similarity: row.similarity || '0'
+          }))
+          .filter(result => {
+            // Filter out any results that still have invalid data
+            return result.reviewId && result.field;
+          });
+
+        // Load overrides from Supabase and merge with CSV data
+        const { data: overrides, error: overridesError } = await supabase
+          .from('llm_review_overrides')
+          .select('*');
+        
+        if (overridesError) {
+          console.error('Error loading overrides:', overridesError);
+        } else {
+          // Store overrides for filtering
+          setOverrides(overrides || []);
+          
+          // Apply overrides to the results
+          if (overrides && overrides.length > 0) {
+            transformedResults = transformedResults.map(result => {
+              const override = overrides.find(o => 
+                o.review_id === result.reviewId && o.field === result.field
+              );
+              
+              if (override) {
+                return {
+                  ...result,
+                  llm: override.llm,
+                  similarity: override.similarity || result.similarity
+                };
+              }
+              
+              return result;
+            });
+          }
+        }
+        
+        setResults(transformedResults);
+
+        // Load sweep summary if available
+        try {
+          const sweepResponse = await fetch('/llm_review_sweep_summary.csv');
+          if (sweepResponse.ok) {
+            const sweepCsvText = await sweepResponse.text();
+            const sweepParsed = Papa.parse<SweepSummaryRow>(sweepCsvText, { header: true });
+            setSweepSummary(sweepParsed.data.filter(row => row.model && row.field));
+          } else {
+            // File doesn't exist, clear sweep summary
+            setSweepSummary([]);
+          }
+        } catch (error) {
+          // File doesn't exist or other error, clear sweep summary
+          setSweepSummary([]);
+        }
+      } catch (error) {
+        console.error('Error loading data:', error);
+      }
+    };
+
+    loadData();
   }, [csvFile]);
 
-  if (error) return <div className="text-red-600 p-8">{error}</div>;
-
-  if (isSweepSummary) {
-    return (
-      <Tooltip.Provider>
-        <div className="p-8 max-w-6xl mx-auto bg-white rounded-lg shadow-md">
-          <h1 className="text-2xl font-bold mb-4 text-gray-900">LLM Sweep Summary</h1>
-          <div className="flex flex-wrap gap-4 mb-4 items-end">
-            <label className="flex items-center gap-2 text-gray-900 font-medium">
-              <span className="font-semibold">Sweep:</span>
-              <select
-                className="border border-gray-300 rounded px-2 py-1 bg-neutral-50 text-gray-900 focus:ring-2 focus:ring-blue-400"
-                value={csvFile}
-                onChange={e => setCsvFile(e.target.value)}
-              >
-                {csvOptions.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
-            </label>
-          </div>
-          <div className="w-full max-w-full overflow-x-auto mb-8">
-            <ResponsiveContainer width="100%" height={400}>
-              <BarChart
-                data={sweepSummary.map(row => ({
-                  name: `${row.model} | ${row.prompt} | ${row.field}`,
-                  mismatches: parseInt(row.total_mismatches),
-                  model: row.model,
-                  prompt: row.prompt,
-                  field: row.field,
-                  comparisons: parseInt(row.total_comparisons)
-                }))}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <RechartsTooltip 
-                  formatter={(value, name) => [value, name === 'mismatches' ? 'Mismatches' : name]}
-                  labelFormatter={(label) => `Configuration: ${label}`}
-                  contentStyle={{ 
-                    backgroundColor: '#f8fafc', 
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '6px'
-                  }}
-                />
-                <Bar dataKey="mismatches" fill="#8884d8" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="overflow-x-auto mt-8 max-w-full">
-            <table className="w-full min-w-max border border-gray-300 rounded-lg shadow text-sm bg-white">
-              <thead className="bg-neutral-100 sticky top-0 z-10">
-                <tr>
-                  <th className="px-4 py-2 border-b font-bold text-gray-900 w-[120px] max-w-[300px]">Model</th>
-                  <th className="px-4 py-2 border-b font-bold text-gray-900 w-[180px] max-w-[300px]">Prompt</th>
-                  <th className="px-4 py-2 border-b font-bold text-gray-900 w-[120px] max-w-[300px]">Field</th>
-                  <th className="px-4 py-2 border-b font-bold text-gray-900 w-[120px] max-w-[300px]">Mismatches</th>
-                  <th className="px-4 py-2 border-b font-bold text-gray-900 w-[120px] max-w-[300px]">Comparisons</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sweepSummary.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="text-center py-8 text-gray-500 bg-neutral-50">Loading summary...</td>
-                  </tr>
-                ) : (
-                  sweepSummary.map((row, i) => (
-                    <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-yellow-50'}>
-                      <td className="px-4 py-2 border-b w-[120px] max-w-[300px] text-black">{row.model}</td>
-                      <td className="px-4 py-2 border-b w-[180px] max-w-[300px] text-black">{row.prompt}</td>
-                      <td className="px-4 py-2 border-b w-[120px] max-w-[300px] text-black">{row.field}</td>
-                      <td className="px-4 py-2 border-b w-[120px] max-w-[300px] text-center text-black">{row.total_mismatches}</td>
-                      <td className="px-4 py-2 border-b w-[120px] max-w-[300px] text-center text-black">{row.total_comparisons}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </Tooltip.Provider>
-    );
-  }
-
-  if (!isSweepSummary && !results.length) return <div>Loading...</div>;
-
-  // Mismatches per field, but skip fields where all seeds are empty/null/undefined
-  const fieldCounts: Record<string, number> = {};
-  const fieldsWithNonEmptySeed = new Set(
-    results
-      .filter(r => r.seed !== undefined && r.seed !== null && r.seed !== '' && r.seed !== 'null' && r.seed !== 'undefined')
-      .map(r => r.field)
-  );
-  results.forEach(r => {
-    if (!fieldsWithNonEmptySeed.has(r.field)) return; // skip LLM-only fields
-    if (parseFloat(r.similarity) < 0.8) {
-      fieldCounts[r.field] = (fieldCounts[r.field] || 0) + 1;
-    }
-  });
-
-  // Filtered results
-  const filtered = results.filter((r, i) => {
-    const mismatch = parseFloat(r.similarity) < 0.8;
-    const overridden = overrides[i] !== undefined;
-    if (filter === 'unreviewed' && overridden) return false;
-    if (filter === 'overridden' && !overridden) return false;
-    if (showMismatches && !mismatch) return false;
-    if (search) {
-      const s = search.toLowerCase();
-      return (
-        r.reviewId.toLowerCase().includes(s) ||
-        r.field.toLowerCase().includes(s) ||
-        r.seed.toLowerCase().includes(s) ||
-        r.llm.toLowerCase().includes(s)
-      );
-    }
-    return true;
-  });
-
-  // Download filtered as CSV
-  const downloadCSV = () => {
-    const header = 'reviewId,field,seed,llm,similarity';
-    const rows = filtered.map(r => [r.reviewId, r.field, JSON.stringify(r.seed), JSON.stringify(r.llm), r.similarity].join(','));
-    const csv = [header, ...rows].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'llm_review_filtered.csv';
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  // Group results by reviewId
-  const reviewFields = Array.from(new Set(results.map(r => r.field)));
-  const groupedResults: GroupedResult[] = Object.values(results.reduce((acc, r, i) => {
-    if (!acc[r.reviewId]) acc[r.reviewId] = { reviewId: r.reviewId, seed: r.seed, fields: {}, idxs: {} };
-    acc[r.reviewId].fields[r.field] = overrides[i]?.llm ?? r.llm;
-    acc[r.reviewId].idxs[r.field] = i;
-    return acc;
-  }, {} as Record<string, GroupedResult>));
-
-  // Helper: is a field a mismatch?
-  const isMismatch = (sim: string) => parseFloat(sim) < 0.8;
-  // For grouped view: find mismatches per review
-  const groupedResultsWithMismatch = groupedResults.map(row => {
-    const mismatches = reviewFields.filter(field => {
-      const idx = row.idxs[field];
-      const sim = idx !== undefined ? results[idx]?.similarity : undefined;
-      return isMismatch(sim ?? '1');
-    });
-    if (mismatches.length > 0) {
-      console.log('Review', row.reviewId, 'has mismatches in fields:', mismatches.map(f => ({ field: f, sim: results[row.idxs[f]]?.similarity })));
-    }
-    return { ...row, hasMismatch: mismatches.length > 0 };
-  });
-  const filteredGroupedResults = showMismatches
-    ? groupedResultsWithMismatch.filter(row => row.hasMismatch)
-    : groupedResultsWithMismatch;
-
-  // Helper to pretty-print for tooltip
-  const prettyTooltip = (val: unknown) => {
-    if (val === undefined || val === null) return '';
-    if (typeof val === 'string') {
-      try {
-        const parsed = JSON.parse(val);
-        if (Array.isArray(parsed)) return parsed.join(', ');
-        if (typeof parsed === 'object') return JSON.stringify(parsed, null, 2);
-        return parsed.toString();
-      } catch {
-        return val;
+  const filteredResults = useMemo(() => {
+    const filtered = results.filter(result => {
+      const similarity = parseFloat(result.similarity);
+      const isMismatch = similarity < 0.8;
+      
+      if (showMismatches && !isMismatch) return false;
+      
+      // Apply filter for unreviewed/overridden
+      if (filter === 'unreviewed') {
+        // Show mismatches that haven't been overridden
+        const hasOverride = overrides.some(o => 
+          o.review_id === result.reviewId && o.field === result.field
+        );
+        if (!isMismatch || hasOverride) return false;
+      } else if (filter === 'overridden') {
+        // Show only items that have been manually edited
+        const hasOverride = overrides.some(o => 
+          o.review_id === result.reviewId && o.field === result.field
+        );
+        if (!hasOverride) return false;
       }
-    }
-    if (Array.isArray(val)) return val.join(', ');
-    if (typeof val === 'object') return JSON.stringify(val, null, 2);
-    return String(val);
-  };
-
-  const displayCell = (val: unknown): string | React.ReactElement => {
-    if (val === undefined || val === null || val === 'undefined' || val === 'null') {
-      return <span className="text-gray-400 italic">N/A</span>;
-    }
-    
-    // Handle bigint by converting to string
-    if (typeof val === 'bigint') {
-      return val.toString();
-    }
-    
-    if (typeof val === 'string') {
-      // Try to parse as array, even if not perfectly stringified
-      if ((val.startsWith('[') && val.endsWith(']')) || (val.startsWith('{') && val.endsWith('}'))) {
-        try {
-          const parsed = JSON.parse(val);
-          if (Array.isArray(parsed)) {
-            return parsed.join(', ');
-          }
-          return JSON.stringify(parsed);
-        } catch {
-          return val;
+      
+      if (search) {
+        const searchLower = search.toLowerCase();
+        if (!result.reviewId.toLowerCase().includes(searchLower) &&
+            !result.field.toLowerCase().includes(searchLower) &&
+            !result.seed.toLowerCase().includes(searchLower) &&
+            !result.llm.toLowerCase().includes(searchLower)) {
+          return false;
         }
       }
-      return val;
+      
+      return true;
+    });
+    
+    // Debug logging
+    if (filter === 'overridden') {
+      console.log('Debug - Overrides:', overrides);
+      console.log('Debug - Filtered results for overridden:', filtered);
+      console.log('Debug - Looking for reviewId:', '0ae8ebb8-6eda-406e-869b-f4af03eeb38e');
     }
     
-    if (Array.isArray(val)) {
-      return val.join(', ');
-    }
+    return filtered;
+  }, [results, showMismatches, search, filter, overrides]);
+
+  const groupedResults = useMemo(() => {
+    const grouped: Record<string, GroupedResult> = {};
     
-    if (typeof val === 'object') {
-      return JSON.stringify(val);
-    }
+    results.forEach((result, index) => {
+      if (!grouped[result.reviewId]) {
+        grouped[result.reviewId] = {
+          reviewId: result.reviewId,
+          seed: result.seed,
+          fields: {},
+          idxs: {}
+        };
+      }
+      grouped[result.reviewId].fields[result.field] = result.llm;
+      grouped[result.reviewId].idxs[result.field] = index;
+    });
     
-    return String(val);
+    return Object.values(grouped);
+  }, [results]);
+
+  const filteredGroupedResults = useMemo(() => {
+    return groupedResults
+      .map(group => {
+        const hasMismatch = Object.keys(group.fields).some(field => {
+          const result = results[group.idxs[field]];
+          return result && parseFloat(result.similarity) < 0.8;
+        });
+        return { ...group, hasMismatch };
+      })
+      .filter(group => {
+        if (showMismatches && !group.hasMismatch) return false;
+        
+        // Apply filter for unreviewed/overridden
+        if (filter === 'unreviewed') {
+          // Show groups with mismatches that haven't been overridden
+          const hasAnyOverride = Object.keys(group.fields).some(field =>
+            overrides.some(o => o.review_id === group.reviewId && o.field === field)
+          );
+          if (!group.hasMismatch || hasAnyOverride) return false;
+        } else if (filter === 'overridden') {
+          // Show only groups that have at least one override
+          const hasAnyOverride = Object.keys(group.fields).some(field =>
+            overrides.some(o => o.review_id === group.reviewId && o.field === field)
+          );
+          if (!hasAnyOverride) return false;
+        }
+        
+        if (search) {
+          const searchLower = search.toLowerCase();
+          const matchesReviewId = group.reviewId.toLowerCase().includes(searchLower);
+          const matchesFields = Object.entries(group.fields).some(([field, value]) =>
+            field.toLowerCase().includes(searchLower) ||
+            String(value).toLowerCase().includes(searchLower)
+          );
+          if (!matchesReviewId && !matchesFields) return false;
+        }
+        
+        return true;
+      });
+  }, [groupedResults, results, showMismatches, search, overrides, filter]);
+
+  const fieldCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    results.forEach(result => {
+      const similarity = parseFloat(result.similarity);
+      if (similarity < 0.8) {
+        counts[result.field] = (counts[result.field] || 0) + 1;
+      }
+    });
+    return counts;
+  }, [results]);
+
+  const reviewFields = useMemo(() => {
+    const fields = new Set<string>();
+    results.forEach(result => fields.add(result.field));
+    return Array.from(fields).sort();
+  }, [results]);
+
+  const downloadCSV = () => {
+    const csv = groupedView 
+      ? Papa.unparse(filteredGroupedResults)
+      : Papa.unparse(filteredResults);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `filtered_${csvFile}`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
+
+  const editReview = (index: number) => {
+    const row = filteredGroupedResults[index];
+    setEditReviewModal({
+      isOpen: true,
+      reviewId: row.reviewId,
+      fields: row.fields,
+      index
+    });
+  };
+
+  const editResult = (index: number) => {
+    const result = filteredResults[index];
+    setEditResultModal({
+      isOpen: true,
+      result,
+      index
+    });
+  };
+
+  const handleSaveReview = async (updatedFields: Record<string, string>) => {
+    try {
+      const reviewId = editReviewModal.reviewId;
+      
+      // Save each field to llm_review_overrides table
+      const promises = Object.entries(updatedFields).map(([field, llm]) => {
+        const payload = {
+          review_id: reviewId,
+          field,
+          llm,
+          similarity: null // We don't have similarity for grouped edits
+        };
+        return supabase
+          .from('llm_review_overrides')
+          .upsert(payload, {
+            onConflict: 'review_id,field'
+          });
+      });
+      
+      const results = await Promise.all(promises);
+      
+      // Check for errors
+      const errors = results.filter(r => r.error);
+      if (errors.length > 0) {
+        console.error('Supabase errors:', errors);
+        throw new Error(`Failed to save: ${errors.map(e => e.error?.message).join(', ')}`);
+      }
+      
+      // Update local state
+      setResults(prevResults => 
+        prevResults.map(result => {
+          if (result.reviewId === reviewId && updatedFields[result.field] !== undefined) {
+            return {
+              ...result,
+              llm: updatedFields[result.field]
+            };
+          }
+          return result;
+        })
+      );
+    } catch (error) {
+      console.error('Error saving review:', error);
+      throw error; // Re-throw so modal can show error
+    }
+  };
+
+  const handleSaveResult = async (updatedResult: Partial<Result>) => {
+    try {
+      const { reviewId, field } = editResultModal.result;
+      
+      const payload = {
+        review_id: reviewId,
+        field,
+        llm: updatedResult.llm || '',
+        similarity: updatedResult.similarity || null
+      };
+      
+      // Save to llm_review_overrides table
+      const result = await supabase
+        .from('llm_review_overrides')
+        .upsert(payload, {
+          onConflict: 'review_id,field'
+        });
+      
+      if (result.error) {
+        console.error('Supabase error:', result.error);
+        throw new Error(`Failed to save: ${result.error.message}`);
+      }
+      
+      // Update local state
+      const resultIndex = results.findIndex(r => 
+        r.reviewId === editResultModal.result.reviewId && 
+        r.field === editResultModal.result.field
+      );
+      
+      if (resultIndex !== -1) {
+        setResults(prevResults => 
+          prevResults.map((result, index) => 
+            index === resultIndex 
+              ? { ...result, ...updatedResult }
+              : result
+          )
+        );
+      }
+    } catch (error) {
+      console.error('Error saving result:', error);
+      throw error; // Re-throw so modal can show error
+    }
+  };
+
+  if (!results.length) return <div>Loading...</div>;
 
   return (
     <Tooltip.Provider>
-      <div className="p-8 max-w-5xl mx-auto bg-white rounded-lg shadow-md">
-        <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-400 rounded">
-          <h2 className="text-lg font-bold text-blue-900 mb-2">How to use this dashboard</h2>
-          <ul className="list-disc pl-6 text-blue-900 text-sm space-y-1">
-            <li><b>Bar graph</b>: Shows mismatches between AI analysis and available ground truth data. <b>High bars for sentimentScore/verdict are EXPECTED</b> - these are AI-only fields with no baseline data to compare against.</li>
-            <li><b>Real Issues to Focus On</b>: Look for mismatches in <b>pros, cons, reviewSummary, alsoRecommends</b> - these fields sometimes have explicit mentions in transcripts that we can verify against.</li>
-            <li><b>Grouped View</b>: Each row is a reviewId, with all fields shown as columns. Cells show the LLM output and the original (seed) value for each field. Red rows have at least one mismatch in verifiable fields.</li>
-            <li><b>Advanced QA</b>: Each row is a single (reviewId, field) pair. Use this to manually correct AI outputs that clearly misunderstood the transcript content.</li>
-            <li><b>AI-Only Fields</b>: <b>sentimentScore, verdict, sentimentSummary</b> will always show low similarity since we infer these from transcripts - focus on whether they seem reasonable, not similarity scores.</li>
-          </ul>
-        </div>
-        <h1 className="text-2xl font-bold mb-4 text-gray-900">LLM Batch Test Results</h1>
-        <div className="flex flex-wrap gap-4 mb-4 items-end">
-          <label className="flex items-center gap-2 text-gray-900 font-medium">
-            <input type="checkbox" checked={showMismatches} onChange={e => setShowMismatches(e.target.checked)} />
-            Show only mismatches
-          </label>
-          <input
-            type="text"
-            className="border border-gray-300 rounded px-2 py-1 bg-neutral-50 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-blue-400"
-            placeholder="Search reviewId, field, text..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-          <button
-            className="ml-2 px-3 py-1 bg-blue-700 text-white rounded hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400 shadow"
-            onClick={downloadCSV}
-          >
-            Download CSV
-          </button>
-          <div className="flex gap-2">
-            <button
-              className={`px-3 py-1 rounded font-medium ${filter === 'all' ? 'bg-blue-700 text-white' : 'bg-neutral-200 text-gray-900'} hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400`}
-              onClick={() => setFilter('all')}
-            >All</button>
-            <button
-              className={`px-3 py-1 rounded font-medium ${filter === 'unreviewed' ? 'bg-blue-700 text-white' : 'bg-neutral-200 text-gray-900'} hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400`}
-              onClick={() => setFilter('unreviewed')}
-            >Unreviewed</button>
-            <button
-              className={`px-3 py-1 rounded font-medium ${filter === 'overridden' ? 'bg-blue-700 text-white' : 'bg-neutral-200 text-gray-900'} hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400`}
-              onClick={() => setFilter('overridden')}
-            >Overridden</button>
+      <div className="min-h-screen bg-neutral-50 p-8">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">LLM Review Analysis Dashboard</h1>
+          
+          <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-400 rounded">
+            <h2 className="text-lg font-bold text-blue-900 mb-2">How to use this dashboard</h2>
+            <ul className="list-disc pl-6 text-blue-900 text-sm space-y-1">
+              <li><b>Bar graph</b>: Shows mismatches between AI analysis and available ground truth data. <b>High bars for sentimentScore/verdict are EXPECTED</b> - these are AI-only fields with no baseline data to compare against.</li>
+              <li><b>Real Issues to Focus On</b>: Look for mismatches in <b>pros, cons, reviewSummary, alsoRecommends</b> - these fields sometimes have explicit mentions in transcripts that we can verify against.</li>
+              <li><b>Grouped View</b>: Each row is a reviewId, with all fields shown as columns. Cell colors: Red = mismatch detected, alternating white/yellow = normal.</li>
+              <li><b>Advanced QA</b>: Each row is a single field comparison. Use this for detailed analysis of specific mismatches.</li>
+              <li><b>This is an internal QA tool</b> to help us fine-tune our AI analysis before building user-facing features.</li>
+            </ul>
           </div>
-          <label className="flex items-center gap-2 text-gray-900 font-medium">
-            <span className="font-semibold">Sweep:</span>
-            <select
-              className="border border-gray-300 rounded px-2 py-1 bg-neutral-50 text-gray-900 focus:ring-2 focus:ring-blue-400"
-              value={csvFile}
-              onChange={e => setCsvFile(e.target.value)}
-            >
-              {csvOptions.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-          </label>
-          <button
-            className={`px-3 py-1 rounded font-medium ${groupedView ? 'bg-blue-700 text-white' : 'bg-neutral-200 text-gray-900'} hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400`}
-            onClick={() => setGroupedView(true)}
-          >Grouped View</button>
-          <button
-            className={`px-3 py-1 rounded font-medium ${!groupedView ? 'bg-blue-700 text-white' : 'bg-neutral-200 text-gray-900'} hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400`}
-            onClick={() => setGroupedView(false)}
-          >Advanced QA</button>
-        </div>
-        <div className="w-full max-w-full overflow-x-auto mb-8">
-          <ResponsiveContainer width="100%" height={400}>
-            <BarChart
-              data={Object.entries(fieldCounts).map(([field, count]) => ({
-                name: field,
-                mismatches: count
-              }))}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <RechartsTooltip 
-                formatter={(value, name) => [value, name === 'mismatches' ? 'Mismatches' : name]}
-                labelFormatter={(label) => `Field: ${label}`}
-                contentStyle={{ 
-                  backgroundColor: '#fef2f2', 
-                  border: '1px solid #fecaca',
-                  borderRadius: '6px'
-                }}
-              />
-              <Bar dataKey="mismatches" fill="#dc2626" />
-            </BarChart>
-          </ResponsiveContainer>
-          <div className="mt-2 text-xs text-blue-900 bg-blue-50 border-l-4 border-blue-400 rounded px-3 py-2 max-w-xl">
-            <b>Note:</b> Each bar shows the number of mismatches (similarity &lt; 0.8) for that field. <b>Higher bars mean more disagreement</b> between LLM and original data (worse). Lower is better.
-          </div>
-        </div>
-        {/* Row color legend - place above each table, improve contrast */}
-        <div className="flex flex-wrap gap-4 items-center mb-4 mt-2 text-xs font-semibold bg-neutral-100 border border-neutral-300 rounded px-3 py-2 shadow-sm">
-          <div className="flex items-center gap-1">
-            <span className="inline-block w-4 h-4 rounded bg-red-400 border-2 border-red-700"></span>
-            <span className="text-red-800">Mismatch</span>
-            <Tooltip.Root delayDuration={100}>
-              <Tooltip.Trigger asChild>
-                <span className="ml-1 text-gray-500 cursor-help">?</span>
-              </Tooltip.Trigger>
-              <Tooltip.Portal>
-                <Tooltip.Content className="z-50 rounded bg-gray-900 text-white px-2 py-1 text-xs shadow-lg" side="top" align="center">
-                  At least one field in this row has a similarity &lt; 0.8 between LLM and seed (disagreement)
-                  <Tooltip.Arrow className="fill-gray-900" />
-                </Tooltip.Content>
-              </Tooltip.Portal>
-            </Tooltip.Root>
-          </div>
-          <div className="flex items-center gap-1">
-            <span className="inline-block w-4 h-4 rounded bg-green-400 border-2 border-green-700"></span>
-            <span className="text-green-900">Overridden</span>
-            <Tooltip.Root delayDuration={100}>
-              <Tooltip.Trigger asChild>
-                <span className="ml-1 text-gray-500 cursor-help">?</span>
-              </Tooltip.Trigger>
-              <Tooltip.Portal>
-                <Tooltip.Content className="z-50 rounded bg-gray-900 text-white px-2 py-1 text-xs shadow-lg" side="top" align="center">
-                  This row has been manually edited/overridden by a reviewer
-                  <Tooltip.Arrow className="fill-gray-900" />
-                </Tooltip.Content>
-              </Tooltip.Portal>
-            </Tooltip.Root>
-          </div>
-          <div className="flex items-center gap-1">
-            <span className="inline-block w-4 h-4 rounded bg-yellow-300 border-2 border-yellow-700"></span>
-            <span className="text-yellow-900">Alt row</span>
-            <Tooltip.Root delayDuration={100}>
-              <Tooltip.Trigger asChild>
-                <span className="ml-1 text-gray-500 cursor-help">?</span>
-              </Tooltip.Trigger>
-              <Tooltip.Portal>
-                <Tooltip.Content className="z-50 rounded bg-gray-900 text-white px-2 py-1 text-xs shadow-lg" side="top" align="center">
-                  Alternating row color for readability (no special meaning)
-                  <Tooltip.Arrow className="fill-gray-900" />
-                </Tooltip.Content>
-              </Tooltip.Portal>
-            </Tooltip.Root>
-          </div>
-          <div className="flex items-center gap-1">
-            <span className="inline-block w-4 h-4 rounded bg-white border-2 border-gray-500"></span>
-            <span className="text-gray-800">Normal</span>
-            <Tooltip.Root delayDuration={100}>
-              <Tooltip.Trigger asChild>
-                <span className="ml-1 text-gray-500 cursor-help">?</span>
-              </Tooltip.Trigger>
-              <Tooltip.Portal>
-                <Tooltip.Content className="z-50 rounded bg-gray-900 text-white px-2 py-1 text-xs shadow-lg" side="top" align="center">
-                  No mismatch or override; normal data row
-                  <Tooltip.Arrow className="fill-gray-900" />
-                </Tooltip.Content>
-              </Tooltip.Portal>
-            </Tooltip.Root>
-          </div>
-        </div>
-        {groupedView ? (
-          <div className="overflow-x-auto mt-8 max-w-full">
-            <table className="w-full min-w-max border border-gray-300 rounded-lg shadow text-sm bg-white">
-              <thead className="bg-neutral-100 sticky top-0 z-10">
-                <tr>
-                  <th className="px-4 py-2 border-b font-bold text-gray-900 w-[120px] max-w-[300px]">Review ID</th>
-                  {reviewFields.map(field => (
-                    <th key={field} className="px-4 py-2 border-b font-bold text-gray-900 w-[180px] max-w-[300px]">{field}</th>
-                  ))}
-                  <th className="px-4 py-2 border-b font-bold text-gray-900 w-[100px]">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredGroupedResults.map((row: GroupedResult & { hasMismatch: boolean }, i: number) => (
-                  <tr
-                    key={row.reviewId}
-                    className={
-                      row.hasMismatch
-                        ? 'bg-red-50 hover:bg-red-100 transition-colors'
-                        : i % 2 === 0
-                        ? 'bg-white hover:bg-neutral-100 transition-colors'
-                        : 'bg-yellow-50 hover:bg-yellow-100 transition-colors'
-                    }
-                  >
-                    <td className="px-4 py-2 border-b w-[120px] max-w-[300px] text-black">{row.reviewId}</td>
-                    {reviewFields.map((field: string) => (
-                      <td key={field} className="px-4 py-2 border-b w-[180px] max-w-[300px] text-black align-top">
-                        <div className="bg-gray-50 rounded p-2 mb-1 border border-gray-200">
-                          <span className="font-bold text-xs text-gray-600">Seed</span>
-                          <Tooltip.Root delayDuration={200}>
-                            <Tooltip.Trigger asChild>
-                              <div className="text-sm text-gray-700 break-words line-clamp-2 cursor-help">
-                                {displayCell(results[row.idxs[field]]?.seed)}
-                              </div>
-                            </Tooltip.Trigger>
-                            <Tooltip.Portal>
-                              <Tooltip.Content className="z-50 max-w-xs rounded bg-gray-900 text-white px-3 py-2 text-xs shadow-lg whitespace-pre-line" side="top" align="center">
-                                {prettyTooltip(results[row.idxs[field]]?.seed)}
-                                <Tooltip.Arrow className="fill-gray-900" />
-                              </Tooltip.Content>
-                            </Tooltip.Portal>
-                          </Tooltip.Root>
-                        </div>
-                        <div className="border-t border-dashed border-blue-200 my-1" />
-                        <div className="bg-blue-50 rounded p-2 mt-1 border border-blue-100">
-                          <span className="font-bold text-xs text-blue-700">LLM</span>
-                          <Tooltip.Root delayDuration={200}>
-                            <Tooltip.Trigger asChild>
-                              <div className="text-sm text-blue-900 break-words line-clamp-2 cursor-help">
-                                {displayCell(row.fields[field])}
-                              </div>
-                            </Tooltip.Trigger>
-                            <Tooltip.Portal>
-                              <Tooltip.Content className="z-50 max-w-xs rounded bg-gray-900 text-white px-3 py-2 text-xs shadow-lg whitespace-pre-line" side="top" align="center">
-                                {prettyTooltip(row.fields[field])}
-                                <Tooltip.Arrow className="fill-gray-900" />
-                              </Tooltip.Content>
-                            </Tooltip.Portal>
-                          </Tooltip.Root>
-                        </div>
-                      </td>
-                    ))}
-                    <td className="px-4 py-2 border-b w-[100px] text-center">
-                      <button
-                        className="px-2 py-1 bg-blue-700 text-white rounded hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400 text-xs"
-                        onClick={() => {
-                          setEditReviewIdx(i);
-                          setEditReviewFields({ ...row.fields });
-                          setError(null);
-                        }}
-                      >Edit</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {/* Edit Review Modal */}
-            {editReviewIdx !== null && (
-              <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-                <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-lg border border-gray-300">
-                  <h2 className="text-xl font-bold mb-4 text-gray-900">Edit Review Fields</h2>
-                  {reviewFields.map(field => (
-                    <div key={field} className="mb-4">
-                      <label className="block mb-2 text-gray-900 font-semibold">{field}</label>
-                      <textarea
-                        className="w-full border border-gray-300 rounded p-2 text-gray-900 bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        rows={2}
-                        value={editReviewFields[field] ?? ''}
-                        onChange={e => setEditReviewFields(f => ({ ...f, [field]: e.target.value }))}
-                      />
-                    </div>
-                  ))}
-                  {error && <div className="text-red-600 mb-2">{error}</div>}
-                  <div className="flex gap-2 justify-end mt-4">
-                    <button
-                      className="px-3 py-1 bg-neutral-200 text-gray-900 rounded hover:bg-neutral-300 focus:outline-none"
-                      onClick={() => setEditReviewIdx(null)}
-                      disabled={saving}
-                    >Cancel</button>
-                    <button
-                      className="px-3 py-1 bg-green-700 text-white rounded hover:bg-green-800 focus:outline-none"
-                      disabled={saving}
-                      onClick={async () => {
-                        setSaving(true);
-                        setError(null);
-                        const row = filteredGroupedResults[editReviewIdx];
-                        const updates = reviewFields
-                          .filter(field => editReviewFields[field] !== row.fields[field])
-                          .map(field => ({
-                            review_id: row.reviewId,
-                            field,
-                            llm: editReviewFields[field],
-                            similarity: results[row.idxs[field]]?.similarity ?? ''
-                          }));
-                        if (updates.length === 0) {
-                          setEditReviewIdx(null);
-                          setSaving(false);
-                          return;
-                        }
-                        const { error: upsertError } = await supabase
-                          .from('llm_review_overrides')
-                          .upsert(updates, { onConflict: 'review_id,field' });
-                        if (upsertError) {
-                          setError('Failed to save override: ' + upsertError.message);
-                          setSaving(false);
-                          return;
-                        }
-                        setOverrides(prev => {
-                          const newOverrides = { ...prev };
-                          reviewFields.forEach(field => {
-                            if (editReviewFields[field] !== row.fields[field]) {
-                              newOverrides[row.idxs[field]] = {
-                                llm: editReviewFields[field],
-                                similarity: results[row.idxs[field]]?.similarity ?? ''
-                              };
-                            }
-                          });
-                          return newOverrides;
-                        });
-                        setEditReviewIdx(null);
-                        setSaving(false);
-                      }}
-                    >{saving ? 'Saving...' : 'Save'}</button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="overflow-x-auto mt-8 max-w-full">
-            <table className="w-full min-w-max border border-gray-300 rounded-lg shadow text-sm bg-white">
-              <thead className="bg-neutral-100 sticky top-0 z-10">
-                <tr>
-                  <th className="px-4 py-2 border-b font-bold text-gray-900 w-[120px] max-w-[300px]">Review ID</th>
-                  <th className="px-4 py-2 border-b font-bold text-gray-900 w-[100px] max-w-[300px]">Field</th>
-                  <th className="px-4 py-2 border-b font-bold text-gray-900 w-[180px] max-w-[300px]">Seed</th>
-                  <th className="px-4 py-2 border-b font-bold text-gray-900 w-[180px] max-w-[300px]">LLM</th>
-                  <th className="px-4 py-2 border-b font-bold text-gray-900 w-[100px]">Similarity</th>
-                  <th className="px-4 py-2 border-b font-bold text-gray-900 w-[100px]">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="text-center py-8 text-gray-500 bg-neutral-50">No results found.</td>
-                  </tr>
-                ) : (
-                  filtered.map((r, i) => {
-                    const mismatch = parseFloat(r.similarity) < 0.8;
-                    const overridden = overrides[i] !== undefined;
-                    return (
-                      <tr
-                        key={i}
-                        className={
-                          overridden
-                            ? 'bg-green-50 hover:bg-green-100 transition-colors'
-                            : mismatch
-                            ? 'bg-red-50 hover:bg-red-100 transition-colors'
-                            : i % 2 === 0
-                            ? 'bg-white hover:bg-neutral-100 transition-colors'
-                            : 'bg-yellow-50 hover:bg-yellow-100 transition-colors'
-                        }
-                      >
-                        <td
-                          className="px-4 py-2 border-b w-[120px] max-w-[300px] text-black"
-                          title={typeof displayCell(r.reviewId) === 'string' ? displayCell(r.reviewId) as string : ''}
-                        >
-                          {displayCell(r.reviewId)}
-                        </td>
-                        <td
-                          className="px-4 py-2 border-b w-[100px] max-w-[300px] text-black"
-                          title={typeof displayCell(r.field) === 'string' ? displayCell(r.field) as string : ''}
-                        >
-                          {displayCell(r.field)}
-                        </td>
-                        <td
-                          className="px-4 py-2 border-b w-[180px] max-w-[300px] text-black"
-                          title={typeof displayCell(r.seed) === 'string' ? displayCell(r.seed) as string : ''}
-                        >
-                          {displayCell(r.seed)}
-                        </td>
-                        <td
-                          className="px-4 py-2 border-b w-[180px] max-w-[300px] text-black"
-                          title={typeof displayCell(overridden ? overrides[i].llm : r.llm) === 'string' ? displayCell(overridden ? overrides[i].llm : r.llm) as string : ''}
-                        >
-                          {displayCell(overridden ? overrides[i].llm : r.llm)}
-                        </td>
-                        <td className="px-4 py-2 border-b w-[100px] text-center text-black">
-                          {(() => {
-                            const seedVal = r.seed;
-                            const llmVal = overridden ? overrides[i].llm : r.llm;
-                            if (!seedVal || seedVal === 'undefined' || seedVal === 'null' || !llmVal || llmVal === 'undefined' || llmVal === 'null') {
-                              return <span className="text-gray-400 italic">N/A</span>;
-                            }
-                            return displayCell(overridden ? overrides[i].similarity : r.similarity);
-                          })()}
-                        </td>
-                        <td className="px-4 py-2 border-b w-[100px] text-center">
-                          <button
-                            className="px-2 py-1 bg-blue-700 text-white rounded hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400 shadow"
-                            onClick={() => {
-                              setEditIdx(i);
-                              setEditLlm(overridden ? overrides[i].llm : r.llm);
-                              setEditSimilarity(overridden ? overrides[i].similarity : r.similarity);
-                              setError(null);
-                            }}
-                          >Edit</button>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
-        {/* Edit Modal */}
-        {editIdx !== null && (
-          <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-            <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-lg border border-gray-300">
-              <h2 className="text-xl font-bold mb-4 text-gray-900">Edit Review Fields</h2>
-              <label className="block mb-2 text-gray-900 font-semibold">LLM Output</label>
-              <textarea
-                className="w-full border border-gray-300 rounded p-2 mb-4 text-gray-900 bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                rows={4}
-                value={editLlm}
-                onChange={e => setEditLlm(e.target.value)}
-              />
-              <label className="block mb-2 text-gray-900 font-semibold">Similarity</label>
-              <input
-                type="text"
-                className="w-full border border-gray-300 rounded p-2 mb-4 text-gray-900 bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                value={editSimilarity}
-                onChange={e => setEditSimilarity(e.target.value)}
-              />
-              {error && <div className="text-red-600 mb-2">{error}</div>}
-              <div className="flex gap-2 justify-end mt-4">
-                <button
-                  className="px-3 py-1 bg-neutral-200 text-gray-900 rounded hover:bg-neutral-300 focus:outline-none"
-                  onClick={() => setEditIdx(null)}
-                  disabled={saving}
-                >Cancel</button>
-                <button
-                  className="px-3 py-1 bg-green-700 text-white rounded hover:bg-green-800 focus:outline-none"
-                  disabled={saving}
-                  onClick={async () => {
-                    setSaving(true);
-                    setError(null);
-                    const row = filtered[editIdx!];
-                    // Save to Supabase (upsert by reviewId+field)
-                    const { error: upsertError } = await supabase
-                      .from('llm_review_overrides')
-                      .upsert([
-                        {
-                          review_id: row.reviewId,
-                          field: row.field,
-                          llm: editLlm,
-                          similarity: editSimilarity
-                        }
-                      ], { onConflict: 'review_id,field' });
-                    if (upsertError) {
-                      setError('Failed to save override: ' + upsertError.message);
-                      setSaving(false);
-                      return;
-                    }
-                    setOverrides(prev => ({ ...prev, [editIdx!]: { llm: editLlm, similarity: editSimilarity } }));
-                    setEditIdx(null);
-                    setSaving(false);
-                  }}
-                >{saving ? 'Saving...' : 'Save'}</button>
-              </div>
+
+          {sweepSummary.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Sweep Summary</h2>
+              <SweepSummaryChart sweepSummary={sweepSummary} />
             </div>
+          )}
+
+          <div className="mb-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Field Mismatches Overview</h2>
+            <FieldMismatchChart fieldCounts={fieldCounts} />
           </div>
-        )}
+
+          <DashboardControls
+            showMismatches={showMismatches}
+            setShowMismatches={setShowMismatches}
+            search={search}
+            setSearch={setSearch}
+            filter={filter}
+            setFilter={setFilter}
+            csvFile={csvFile}
+            setCsvFile={setCsvFile}
+            csvOptions={csvOptions}
+            groupedView={groupedView}
+            setGroupedView={setGroupedView}
+            onDownloadCSV={downloadCSV}
+          />
+
+          <RowColorLegend />
+
+          {groupedView ? (
+            <GroupedTable
+              filteredGroupedResults={filteredGroupedResults}
+              reviewFields={reviewFields}
+              results={results}
+              onEditReview={editReview}
+            />
+          ) : (
+            <AdvancedTable
+              filteredResults={filteredResults}
+              onEditResult={editResult}
+            />
+          )}
+
+          <div className="mt-8 text-sm text-gray-600">
+            <p>
+              Showing {groupedView ? filteredGroupedResults.length : filteredResults.length} of{' '}
+              {groupedView ? groupedResults.length : results.length} total{' '}
+              {groupedView ? 'reviews' : 'comparisons'}
+            </p>
+          </div>
+
+          {/* Edit Modals */}
+          <EditReviewModal
+            isOpen={editReviewModal.isOpen}
+            onClose={() => setEditReviewModal(prev => ({ ...prev, isOpen: false }))}
+            fields={editReviewModal.fields}
+            reviewFields={reviewFields}
+            onSave={handleSaveReview}
+          />
+
+          <EditResultModal
+            isOpen={editResultModal.isOpen}
+            onClose={() => setEditResultModal(prev => ({ ...prev, isOpen: false }))}
+            result={editResultModal.result}
+            onSave={handleSaveResult}
+          />
+        </div>
       </div>
     </Tooltip.Provider>
   );

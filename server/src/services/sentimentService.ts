@@ -13,6 +13,12 @@ export type SentimentResult = {
 };
 
 export const getEmbedding = async (text: string, model: string = 'text-embedding-ada-002'): Promise<number[]> => {
+  // Kill switch to prevent OpenAI costs
+  if (process.env.DISABLE_OPENAI === 'true') {
+    console.log('[LLM] OpenAI embeddings disabled via DISABLE_OPENAI env var');
+    return new Array(1536).fill(0); // Return zero vector
+  }
+
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   const resp = await openai.embeddings.create({
     model,
@@ -82,6 +88,22 @@ export const analyzeText = async (
   labels: string[] = SENTIMENT_LABELS,
   gameTitle?: string
 ): Promise<SentimentResult> => {
+  // Kill switch to prevent OpenAI costs
+  if (process.env.DISABLE_OPENAI === 'true') {
+    console.log('[LLM] OpenAI disabled via DISABLE_OPENAI env var');
+    return {
+      summary: 'OpenAI disabled',
+      sentimentScore: 5,
+      verdict: 'mixed',
+      sentimentSummary: 'Neutral',
+      biasIndicators: [],
+      alsoRecommends: [],
+      pros: [],
+      cons: [],
+      reviewSummary: 'OpenAI API calls disabled'
+    };
+  }
+
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   const labelList = labels.map(l => `"${l}"`).join(', ');
   const biasList = BIAS_LABELS.map(l => `"${l}"`).join(', ');
