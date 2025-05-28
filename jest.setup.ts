@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom';
 require('openai/shims/node');
 const dotenv = require('dotenv');
 dotenv.config();
