@@ -1,6 +1,7 @@
 import express from 'express';
-import { normalizeYoutubeToReview, upsertReviewToSupabase, fetchYoutubeCaptions } from '../services/youtube/captionIngestService';
+import { normalizeYoutubeToReview, upsertReviewToSupabase } from '../services/youtube/captionIngestService';
 import { fetchYouTubeVideoMetadata, extractGameFromMetadata, createSlug } from '../services/youtube/youtubeApiService';
+import { getHybridTranscript, HybridTranscriptOptions } from '../services/youtube/hybridTranscriptService';
 import { analyzeText } from '../services/sentimentService';
 import { supabase } from '../config/database';
 
@@ -18,21 +19,20 @@ const processYouTubeVideo = async (videoId: string) => {
   const gameSlug = extractedGameTitle ? createSlug(extractedGameTitle) : 'unknown-game';
   const creatorSlug = createSlug(metadata.channelTitle);
   
-  // Try to fetch captions, but don't fail if they're not available
-  let transcript = '';
-  try {
-    transcript = await fetchYoutubeCaptions(videoId);
-    console.log(`[API] Successfully fetched captions for ${videoId}`);
-  } catch (error: any) {
-    console.warn(`[API] Caption fetch failed for ${videoId}: ${error.message}`);
-    // Continue without captions - we'll create a review with empty transcript
-    transcript = '';
-  }
+  // Try hybrid transcript (captions first, then audio fallback)
+  console.log(`[API] Starting hybrid transcript for ${videoId}`);
+  const transcriptResult = await getHybridTranscript(videoId, {
+    allowAudioFallback: true,
+    maxCostUSD: 0.50, // Limit to $0.50 per video
+    maxDurationMinutes: 20 // Limit to 20 minutes
+  });
+
+  console.log(`[API] Transcript result: ${transcriptResult.method}, cost: $${(transcriptResult.cost || 0).toFixed(3)}`);
 
   // Create review with available data
   const review = await normalizeYoutubeToReview({
     videoId,
-    transcript,
+    transcript: transcriptResult.transcript,
     gameSlug,
     creatorSlug,
     gameTitle: extractedGameTitle || metadata.title,
@@ -41,14 +41,17 @@ const processYouTubeVideo = async (videoId: string) => {
     publishedAt: metadata.publishedAt
   });
 
-  // Enhance review with YouTube metadata
+  // Enhance review with YouTube metadata and transcript info
   return {
     ...review,
     title: metadata.title,
     description: metadata.description,
     thumbnails: metadata.thumbnails,
     tags: metadata.tags,
-    publishedAt: metadata.publishedAt
+    publishedAt: metadata.publishedAt,
+    transcriptMethod: transcriptResult.method,
+    transcriptCost: transcriptResult.cost,
+    transcriptError: transcriptResult.error
   };
 };
 
@@ -130,6 +133,12 @@ router.post('/process', async (req, res) => {
         videoTitle: review.title,
         channelTitle: (review as any).channelTitle,
         publishedAt: review.publishedAt
+      },
+      transcript: {
+        method: (review as any).transcriptMethod,
+        cost: (review as any).transcriptCost,
+        error: (review as any).transcriptError,
+        length: completeReview.transcript?.length || 0
       }
     });
 
@@ -200,6 +209,41 @@ router.get('/metadata/:videoId', async (req, res) => {
     console.error('[API] YouTube metadata error:', error);
     res.status(500).json({ 
       error: error.message || 'Failed to fetch YouTube metadata' 
+    });
+  }
+});
+
+/**
+ * GET /api/youtube/transcript/:videoId
+ * Gets transcript using hybrid approach (captions first, then audio fallback)
+ */
+router.get('/transcript/:videoId', async (req, res) => {
+  try {
+    const { videoId } = req.params;
+    const { 
+      allowAudio = 'true', 
+      maxCost = '0.50',
+      maxDuration = '20'
+    } = req.query;
+
+    const options: HybridTranscriptOptions = {
+      allowAudioFallback: allowAudio === 'true',
+      maxCostUSD: parseFloat(maxCost as string),
+      maxDurationMinutes: parseInt(maxDuration as string)
+    };
+
+    const result = await getHybridTranscript(videoId, options);
+    
+    res.json({
+      videoId,
+      ...result,
+      options
+    });
+    
+  } catch (error: any) {
+    console.error('[API] YouTube transcript error:', error);
+    res.status(500).json({ 
+      error: error.message || 'Failed to get YouTube transcript' 
     });
   }
 });

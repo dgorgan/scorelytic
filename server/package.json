@@ -21,7 +21,8 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
-    "module-alias": "^2.2.3"
+    "module-alias": "^2.2.3",
+    "yt-dlp-wrap": "^2.3.12"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
