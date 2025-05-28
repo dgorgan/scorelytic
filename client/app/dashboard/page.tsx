@@ -11,6 +11,7 @@ import AdvancedTable from '../../components/dashboard/AdvancedTable';
 import RowColorLegend from '../../components/dashboard/RowColorLegend';
 import EditReviewModal from '../../components/dashboard/EditReviewModal';
 import EditResultModal from '../../components/dashboard/EditResultModal';
+import YouTubeProcessor from '../../components/dashboard/YouTubeProcessor';
 import { 
   Result, 
   GroupedResult, 
@@ -420,6 +421,11 @@ export default function Dashboard() {
       <div className="min-h-screen bg-neutral-50 p-8">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-bold text-gray-900 mb-6">LLM Review Analysis Dashboard</h1>
+          
+          {/* YouTube Video Processor */}
+          <div className="mb-8">
+            <YouTubeProcessor />
+          </div>
           
           <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-400 rounded">
             <h2 className="text-lg font-bold text-blue-900 mb-2">How to use this dashboard</h2>
