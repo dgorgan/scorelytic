@@ -1,12 +1,12 @@
-const express = require('express');
+import express from 'express';
 import request from 'supertest';
 
-jest.mock('../../services/sentimentService', () => ({
-  analyzeText: jest.fn(async (text: string) => ({ summary: 'S', sentimentScore: 1, verdict: 'positive' }))
+jest.mock('../../services/sentiment', () => ({
+  analyzeSentiment: jest.fn(async (text: string) => ({ summary: 'S', sentimentScore: 1, verdict: 'positive' }))
 }));
 
-import sentimentRoutes from '../sentimentRoutes';
-import { analyzeText } from '../../services/sentimentService';
+import sentimentRoutes from '../sentiment';
+import { analyzeSentiment } from '../../services/sentiment';
 
 describe('sentimentRoutes', () => {
   const app = express();
@@ -18,7 +18,10 @@ describe('sentimentRoutes', () => {
       .post('/api/sentiment/analyze')
       .send({ text: 'Great!' });
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({ summary: 'S', sentimentScore: 1, verdict: 'positive' });
+    expect(res.body).toEqual({
+      success: true,
+      data: { sentiment: { score: 1, summary: 'S', verdict: 'positive' } }
+    });
   });
 
   it('400s for missing text', async () => {
@@ -26,14 +29,15 @@ describe('sentimentRoutes', () => {
       .post('/api/sentiment/analyze')
       .send({});
     expect(res.status).toBe(400);
+    expect(res.body).toEqual({ success: false, error: expect.any(String) });
   });
 
-  it('500s on analyzeText error', async () => {
-    (analyzeText as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+  it('500s on analyzeSentiment error', async () => {
+    (analyzeSentiment as jest.Mock).mockRejectedValueOnce(new Error('fail'));
     const res = await request(app)
       .post('/api/sentiment/analyze')
       .send({ text: 'bad' });
     expect(res.status).toBe(500);
-    expect(res.body.error).toMatch(/fail/);
+    expect(res.body).toEqual({ success: false, error: expect.stringMatching(/fail/) });
   });
 }); 

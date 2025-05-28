@@ -402,7 +402,7 @@ export const mapBiasLabelsToObjects = (
     if (label === 'nostalgia bias') {
       severity = 'moderate';
       impactOnExperience = 'Nostalgia may cause the reviewer to overlook flaws or overrate positive aspects.';
-      scoreInfluence = 0.5;
+      scoreInfluence = 0.4;
       explanation = 'Nostalgia bias detected; reviewer may rate higher due to fondness for the franchise.';
     } else if (label === 'influencer bias' || label === 'sponsored bias') {
       severity = 'high';
@@ -649,7 +649,7 @@ export const MOCK_FULL_BIAS_SCORING_OUTPUT: FullBiasScoringOutput = {
   biasDetection: {
     originalScore: 9.2,
     biasesDetected: [
-      { biasName: 'nostalgia bias', severity: 'moderate', impactOnExperience: 'Nostalgia may cause the reviewer to overlook flaws or overrate positive aspects.', scoreInfluence: 0.5, explanation: 'Nostalgia bias detected; reviewer may rate higher due to fondness for the franchise.' },
+      { biasName: 'nostalgia bias', severity: 'moderate', impactOnExperience: 'Nostalgia may cause the reviewer to overlook flaws or overrate positive aspects.', scoreInfluence: 0.4, explanation: 'Nostalgia bias detected; reviewer may rate higher due to fondness for the franchise.' },
       { biasName: 'studio reputation bias', severity: 'moderate', impactOnExperience: 'Studio reputation may inflate expectations and perceived quality.', scoreInfluence: 0.4, explanation: 'Studio reputation bias detected.' }
     ],
     reviewSummary: 'Dragon Age: The Veilguard revitalizes BioWare\'s RPG legacy with its stunning visuals, engaging storytelling, and rich character development, though some combat aspects may disappoint tactical purists.'
@@ -674,4 +674,6 @@ export const MOCK_FULL_BIAS_SCORING_OUTPUT: FullBiasScoringOutput = {
       opposed: 'Could be critical of perceived ideological or franchise-driven elements.'
     }
   }
-}; 
+};
+
+export { analyzeText as analyzeSentiment }; 

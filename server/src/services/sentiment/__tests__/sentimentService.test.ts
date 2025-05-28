@@ -81,7 +81,7 @@ describe('Bias Adjustment', () => {
     const result = mapBiasLabelsToObjects(['nostalgia bias']);
     expect(result[0].biasName).toBe('nostalgia bias');
     expect(result[0].severity).toBe('moderate');
-    expect(result[0].scoreInfluence).toBe(0.5);
+    expect(result[0].scoreInfluence).toBe(0.4);
   });
 
   it('maps influencer bias correctly', () => {

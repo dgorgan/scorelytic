@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
 import { supabase } from '../config/database';
 
-export const getGames = (req: Request, res: Response) => {
+const getGames = (req: Request, res: Response) => {
   res.status(200).json([{ id: 1, title: 'Game 1' }, { id: 2, title: 'Game 2' }]);
 };
 
-export const getGameById = async (req: Request, res: Response) => {
+const getGameById = async (req: Request, res: Response) => {
   const { id } = req.params;
   // Fetch game
   const { data: game, error: gameError } = await supabase
@@ -55,4 +55,9 @@ export const getGameById = async (req: Request, res: Response) => {
     averageSentimentScore: avgScore,
     sentimentSummaries
   });
+};
+
+export const gameController = {
+  getGames,
+  getGameById
 };

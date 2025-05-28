@@ -43,7 +43,7 @@ jest.mock('../../services/youtube/youtubeApiService', () => ({
   createSlug: jest.fn((str) => str.toLowerCase().replace(/\s+/g, '-'))
 }));
 
-jest.mock('../../services/sentimentService', () => ({
+jest.mock('../../services/sentiment', () => ({
   analyzeTextWithBiasAdjustmentFull: jest.fn(() => ({
     summary: 'Test summary',
     sentimentScore: 5,

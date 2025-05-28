@@ -6,7 +6,9 @@
       "@/*": ["*"],
       "shared/*": ["../../shared/*"]
     },
-    "outDir": "../dist-server"
+    "outDir": "../dist-server",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext"
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]

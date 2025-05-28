@@ -45,14 +45,31 @@ backend_framework:
     mask_sensitive_env_vars: true
 
 # Testing
+# Colocate all test files with the nearest service, component, or feature folder.
+# Do NOT place test files at the top of a domain folder (e.g. not at the top of services/).
+# Example: use services/youtube/__tests__/, not services/__tests__/
 testing:
   use_jest: true
   test_file_suffix: ".test.ts"
   coverage_required: true
+  # Suggest coverage improvements or updates to test coverage thresholds when coverage is low or new code is added.
   mock_external_calls: true
   require_tests: true
   require_tests_pass: true
   remind_run_tests_in_pr: true
+  require_tests_for_new_features: true
+  require_tests_for_new_files: true
+  require_tests_for_new_services: true
+  always_mock_external_apis: true
+  never_make_real_api_calls_in_tests: true
+  test_setup_files:
+    - 'jest.setup.server.js'
+    - 'jest.setup.client.js'
+  allowed_test_file_suffixes:
+    - '.test.ts'
+    - '.test.tsx'
+  require_js_for_jest_setup: true  # All Jest setup files must be .js for ESM compatibility
+  no_dom_polyfills_in_server_setup: true  # DOM/browser polyfills only in client setup
 
 # Documentation & Comments
 docs:
@@ -68,24 +85,14 @@ project_management:
     - "api_spec.md"
   follow_milestones_order: true
   pr_checklist:
-  - 'All new and existing tests pass'
-  - 'Code coverage meets threshold'
-  - 'No debug or console.log statements'
-  - 'Documentation updated if needed'
+    - 'All new and existing tests pass'
+    - 'Code coverage meets threshold'
+    - 'No debug or console.log statements'
+    - 'Documentation updated if needed'
 
 # AI interaction preferences
 ai_assistant:
   ask_before_big_changes: true
   summarize_changes_in_commit: true
   avoid_suggestions_outside_scope: true
-
-# Coverage rule
-Suggest coverage improvements or updates to test coverage thresholds when coverage is low or new code is added.
-
-# Testing requirements
-require_tests_for_new_features = true
-require_tests_for_new_files = true
-require_tests_for_new_services = true
-always_mock_external_apis = true
-never_make_real_api_calls_in_tests = true
 

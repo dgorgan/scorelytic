@@ -101,5 +101,6 @@
     "client",
     "server",
     "shared"
-  ]
+  ],
+  "type": "module"
 }

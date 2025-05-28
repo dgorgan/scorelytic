@@ -1,17 +1,6 @@
-import '@testing-library/jest-dom';
-
-(async () => {
-  const { default: dotenv } = await import('dotenv');
-  await dotenv.config();
-  await import('openai/shims/node');
-})();
-
-// Add ResizeObserver polyfill for Recharts
-global.ResizeObserver = jest.fn().mockImplementation(() => ({
-  observe: jest.fn(),
-  unobserve: jest.fn(),
-  disconnect: jest.fn(),
-}));
+const dotenv = require('dotenv');
+dotenv.config();
+require('openai/shims/node');
 
 // Mock supabase client everywhere
 jest.mock('@supabase/supabase-js', () => {
