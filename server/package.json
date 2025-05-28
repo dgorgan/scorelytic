@@ -10,14 +10,13 @@
     "test": "jest --config jest.config.ts --passWithNoTests",
     "test:watch": "jest --config jest.config.ts --watchAll",
     "start": "node dist/server.js",
-    "dev": "ts-node-dev -r tsconfig-paths/register src/app.ts",
+    "dev": "ts-node-dev -r tsconfig-paths/register server.ts",
     "clean": "rm -rf dist node_modules/.cache"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^1.9.0",
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
