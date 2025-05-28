@@ -45,7 +45,7 @@ describe('YouTubeApiService', () => {
         'https://www.googleapis.com/youtube/v3/videos',
         {
           params: {
-            part: 'snippet',
+            part: 'snippet,statistics',
             id: 'test-video-id',
             key: 'test-api-key'
           }
@@ -71,14 +71,14 @@ describe('YouTubeApiService', () => {
       delete process.env.YOUTUBE_API_KEY;
 
       await expect(fetchYouTubeVideoMetadata('test-video-id'))
-        .rejects.toThrow('YOUTUBE_API_KEY environment variable is required');
+        .rejects.toThrow('YouTube API key not configured');
     });
 
     it('should throw error when video not found', async () => {
       mockedAxios.get.mockResolvedValue({ data: { items: [] } });
 
       await expect(fetchYouTubeVideoMetadata('invalid-video-id'))
-        .rejects.toThrow('No video found for ID: invalid-video-id');
+        .rejects.toThrow('No video found for ID: invalid-video-id. Video may be private, deleted, or region-blocked.');
     });
 
     it('should handle API quota exceeded error', async () => {
@@ -87,7 +87,7 @@ describe('YouTubeApiService', () => {
       });
 
       await expect(fetchYouTubeVideoMetadata('test-video-id'))
-        .rejects.toThrow('YouTube API quota exceeded or invalid API key');
+        .rejects.toThrow('YouTube API quota exceeded. Please try again later.');
     });
   });
 

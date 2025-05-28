@@ -1,5 +1,5 @@
 import express from 'express';
-import { normalizeYoutubeToReview, upsertReviewToSupabase } from '../services/youtube/captionIngestService';
+import { normalizeYoutubeToReview, upsertReviewToSupabase, fetchYoutubeCaptions } from '../services/youtube/captionIngestService';
 import { fetchYouTubeVideoMetadata, extractGameFromMetadata, createSlug } from '../services/youtube/youtubeApiService';
 import { analyzeText } from '../services/sentimentService';
 import { supabase } from '../config/database';
@@ -18,10 +18,21 @@ const processYouTubeVideo = async (videoId: string) => {
   const gameSlug = extractedGameTitle ? createSlug(extractedGameTitle) : 'unknown-game';
   const creatorSlug = createSlug(metadata.channelTitle);
   
-  // Use existing caption ingestion with enhanced metadata
+  // Try to fetch captions, but don't fail if they're not available
+  let transcript = '';
+  try {
+    transcript = await fetchYoutubeCaptions(videoId);
+    console.log(`[API] Successfully fetched captions for ${videoId}`);
+  } catch (error: any) {
+    console.warn(`[API] Caption fetch failed for ${videoId}: ${error.message}`);
+    // Continue without captions - we'll create a review with empty transcript
+    transcript = '';
+  }
+
+  // Create review with available data
   const review = await normalizeYoutubeToReview({
     videoId,
-    transcript: '', // Will be fetched by normalizeYoutubeToReview
+    transcript,
     gameSlug,
     creatorSlug,
     gameTitle: extractedGameTitle || metadata.title,
@@ -58,14 +69,31 @@ router.post('/process', async (req, res) => {
     // Step 1: Process YouTube video (metadata + captions)
     const review = await processYouTubeVideo(videoId);
     
-    // Step 2: Analyze sentiment with LLM
-    const sentiment = await analyzeText(
-      review.transcript!, 
-      'gpt-3.5-turbo', 
-      undefined, 
-      undefined, 
-      review.title
-    );
+    // Step 2: Analyze sentiment with LLM (only if we have a transcript)
+    let sentiment;
+    if (review.transcript && review.transcript.trim().length > 0) {
+      sentiment = await analyzeText(
+        review.transcript!, 
+        'gpt-3.5-turbo', 
+        undefined, 
+        undefined, 
+        review.title
+      );
+    } else {
+      // Create default sentiment analysis for videos without transcripts
+      console.warn(`[API] No transcript available for ${videoId}, using default sentiment values`);
+      sentiment = {
+        summary: null,
+        sentimentScore: null,
+        verdict: null,
+        sentimentSummary: 'No transcript available',
+        biasIndicators: [],
+        alsoRecommends: [],
+        pros: [],
+        cons: [],
+        reviewSummary: 'No transcript available for analysis'
+      };
+    }
     
     // Step 3: Merge sentiment analysis into review
     const completeReview = {

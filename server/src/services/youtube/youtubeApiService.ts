@@ -17,37 +17,48 @@ export interface YouTubeVideoMetadata {
 export const fetchYouTubeVideoMetadata = async (videoId: string): Promise<YouTubeVideoMetadata> => {
   const apiKey = process.env.YOUTUBE_API_KEY;
   if (!apiKey) {
-    throw new Error('YOUTUBE_API_KEY environment variable is required');
+    throw new Error('YouTube API key not configured');
   }
 
   try {
     const response = await axios.get('https://www.googleapis.com/youtube/v3/videos', {
       params: {
-        part: 'snippet',
+        part: 'snippet,statistics',
         id: videoId,
         key: apiKey
       }
     });
 
     if (!response.data.items || response.data.items.length === 0) {
-      throw new Error(`No video found for ID: ${videoId}`);
+      throw new Error(`No video found for ID: ${videoId}. Video may be private, deleted, or region-blocked.`);
     }
 
     const video = response.data.items[0];
     const snippet = video.snippet;
 
+    // Check for age-restricted or private content
+    if (!snippet) {
+      throw new Error(`Video ${videoId} is not accessible. It may be private, age-restricted, or deleted.`);
+    }
+
     return {
-      title: snippet.title,
-      channelTitle: snippet.channelTitle,
-      channelId: snippet.channelId,
-      publishedAt: snippet.publishedAt,
-      description: snippet.description,
-      thumbnails: snippet.thumbnails,
+      title: snippet.title || 'Unknown Title',
+      channelTitle: snippet.channelTitle || 'Unknown Channel',
+      channelId: snippet.channelId || '',
+      publishedAt: snippet.publishedAt || new Date().toISOString(),
+      description: snippet.description || '',
+      thumbnails: snippet.thumbnails || {},
       tags: snippet.tags || []
     };
   } catch (error: any) {
     if (error.response?.status === 403) {
-      throw new Error('YouTube API quota exceeded or invalid API key');
+      throw new Error('YouTube API quota exceeded. Please try again later.');
+    }
+    if (error.response?.status === 400) {
+      throw new Error(`Invalid video ID: ${videoId}`);
+    }
+    if (error.message.includes('No video found')) {
+      throw error; // Re-throw our custom error
     }
     throw new Error(`Failed to fetch YouTube metadata: ${error.message}`);
   }
