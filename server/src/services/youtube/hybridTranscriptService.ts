@@ -1,5 +1,6 @@
 import { fetchYoutubeCaptions } from './captionIngestService';
-import { transcribeYouTubeAudio, getVideoDuration, estimateTranscriptionCost, TranscriptionOptions } from './audioTranscriptionService';
+import * as audioService from './audioTranscriptionService';
+import { TranscriptionOptions } from './audioTranscriptionService';
 
 export interface HybridTranscriptResult {
   transcript: string;
@@ -7,11 +8,13 @@ export interface HybridTranscriptResult {
   duration?: number; // in minutes
   cost?: number; // in USD
   error?: string;
+  debug?: string[];
 }
 
 export interface HybridTranscriptOptions extends TranscriptionOptions {
   allowAudioFallback?: boolean; // Default: true
   maxCostUSD?: number; // Default: 1.00 (max $1 per video)
+  language?: string; // Default: 'en'
 }
 
 /**
@@ -24,76 +27,83 @@ export const getHybridTranscript = async (
   const {
     allowAudioFallback = true,
     maxCostUSD = 1.00,
+    language = 'en',
     ...transcriptionOptions
   } = options;
 
-  console.log(`[HYBRID] Starting hybrid transcript for ${videoId}`);
+  const debug: string[] = [];
+  debug.push(`[HYBRID] Starting hybrid transcript for ${videoId}`);
 
   // Step 1: Try captions first (fast and free)
   try {
-    console.log(`[HYBRID] Attempting captions for ${videoId}`);
-    const transcript = await fetchYoutubeCaptions(videoId);
+    debug.push(`[HYBRID] Attempting captions for ${videoId}`);
+    const transcript = await fetchYoutubeCaptions(videoId, language);
     
     if (transcript && transcript.trim().length > 0) {
-      console.log(`[HYBRID] ✅ Captions successful: ${transcript.length} characters`);
+      debug.push(`[HYBRID] ✅ Captions successful: ${transcript.length} characters`);
       return {
         transcript,
         method: 'captions',
-        cost: 0
+        cost: 0,
+        debug
       };
     }
   } catch (error: any) {
-    console.log(`[HYBRID] ❌ Captions failed: ${error.message}`);
+    debug.push(`[HYBRID] ❌ Captions failed: ${error.message}`);
   }
 
   // Step 2: Fallback to audio transcription (if enabled)
   if (!allowAudioFallback) {
-    console.log(`[HYBRID] Audio fallback disabled, returning empty transcript`);
+    debug.push(`[HYBRID] Audio fallback disabled, returning empty transcript`);
     return {
       transcript: '',
       method: 'none',
-      error: 'No captions available and audio fallback disabled'
+      error: 'No captions available and audio fallback disabled',
+      debug
     };
   }
 
   try {
     // Check video duration and cost before proceeding
-    console.log(`[HYBRID] Checking video duration for ${videoId}`);
-    const duration = await getVideoDuration(videoId);
-    const estimatedCost = estimateTranscriptionCost(duration);
+    debug.push(`[HYBRID] Checking video duration for ${videoId}`);
+    const duration = await audioService.getVideoDuration(videoId);
+    const estimatedCost = audioService.estimateTranscriptionCost(duration);
 
-    console.log(`[HYBRID] Video duration: ${duration} minutes, estimated cost: $${estimatedCost.toFixed(3)}`);
+    debug.push(`[HYBRID] Video duration: ${duration} minutes, estimated cost: $${estimatedCost.toFixed(3)}`);
 
     // Cost check
     if (estimatedCost > maxCostUSD) {
-      console.log(`[HYBRID] ❌ Cost too high: $${estimatedCost.toFixed(3)} > $${maxCostUSD}`);
+      debug.push(`[HYBRID] ❌ Cost too high: $${estimatedCost.toFixed(3)} > $${maxCostUSD}`);
       return {
         transcript: '',
         method: 'none',
         duration,
         cost: estimatedCost,
-        error: `Video too expensive to transcribe: $${estimatedCost.toFixed(3)} (max: $${maxCostUSD})`
+        error: `Video too expensive to transcribe: $${estimatedCost.toFixed(3)} (max: $${maxCostUSD})`,
+        debug
       };
     }
 
     // Proceed with audio transcription
-    console.log(`[HYBRID] Attempting audio transcription for ${videoId}`);
-    const transcript = await transcribeYouTubeAudio(videoId, transcriptionOptions);
+    debug.push(`[HYBRID] Attempting audio transcription for ${videoId}`);
+    const transcript = await audioService.transcribeYouTubeAudio(videoId, { ...transcriptionOptions, language });
     
-    console.log(`[HYBRID] ✅ Audio transcription successful: ${transcript.length} characters`);
+    debug.push(`[HYBRID] ✅ Audio transcription successful: ${transcript.length} characters`);
     return {
       transcript,
       method: 'audio',
       duration,
-      cost: estimatedCost
+      cost: estimatedCost,
+      debug
     };
 
   } catch (error: any) {
-    console.log(`[HYBRID] ❌ Audio transcription failed: ${error.message}`);
+    debug.push(`[HYBRID] ❌ Audio transcription failed: ${error.message}`);
     return {
       transcript: '',
       method: 'none',
-      error: `Both captions and audio transcription failed: ${error.message}`
+      error: `Both captions and audio transcription failed: ${error.message}`,
+      debug
     };
   }
 };
