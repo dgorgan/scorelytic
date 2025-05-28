@@ -1,4 +1,4 @@
 -- Add description and contentCriticScore columns to games table
 alter table games
-  add column description text not null default '',
-  add column contentCriticScore float; 
+  add column if not exists description text not null default '',
+  add column if not exists contentCriticScore float; 

@@ -1,0 +1,5 @@
+if find ./shared -type f -name '*.js' | grep -v node_modules | grep -q .; then
+  echo '❌ JS artifacts found in shared/. Push blocked.'
+  find ./shared -type f -name '*.js' | grep -v node_modules
+  exit 1
+fi 

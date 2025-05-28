@@ -29,13 +29,14 @@
 
 ## 🚀 Phase 2: AI Integration & SEO
 
-- [ ] Integrate OpenAI or Claude for sentiment analysis
-- [ ] Analyze YouTube transcripts or summaries
+- [x] Integrate OpenAI or Claude for sentiment analysis
+- [x] Internal dashboard for LLM QA and overrides (not public)
+- [x] Analyze YouTube transcripts or summaries
 - [ ] Output:
-  - [ ] Score (1–10)
-  - [ ] Pros / Cons
-  - [ ] Bias indicators
-  - [ ] Also Recommends (games)
+  - [x] Score (1–10)
+  - [x] Pros / Cons
+  - [x] Bias indicators
+  - [x] Also Recommends (games)
 - [ ] Store results and display them on UI
 - [ ] Add SEO metadata:
   - [ ] Open Graph
@@ -63,3 +64,4 @@
 - [ ] Advanced filtering or tags
 - [ ] Game discovery by sentiment pattern
 - [ ] Social sharing & embed features
+- [ ] YouTube metadata enrichment (video title, channel, etc.)
