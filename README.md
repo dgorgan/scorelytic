@@ -231,21 +231,88 @@ npx ts-node scripts/youtube-caption-ingest.ts --file video_ids.txt --gameSlug el
 npx ts-node scripts/youtube-caption-ingest.ts --file batch.json
 ```
 
+## YouTube Data v3 API Integration
+
+### New Features
+- **Automatic metadata extraction** from YouTube videos
+- **Smart game title detection** using regex patterns
+- **Enhanced video processing** with thumbnails, descriptions, and tags
+- **RESTful API endpoints** for video processing and metadata retrieval
+
+### API Endpoints
+
+#### Process YouTube Video
+```http
+POST /api/youtube/process
+Content-Type: application/json
+
+{
+  "videoId": "QkkoHAzjnUs"
+}
+```
+
+Processes a complete YouTube video:
+1. Fetches metadata from YouTube Data v3 API
+2. Extracts captions using existing pipeline
+3. Analyzes sentiment with LLM
+4. Auto-detects game title and creator
+5. Saves enriched review to database
+
+#### Get Video Metadata Only
+```http
+GET /api/youtube/metadata/QkkoHAzjnUs
+```
+
+Returns YouTube metadata without processing:
+- Video title, description, thumbnails
+- Channel information
+- Extracted game title suggestions
+- Suggested database slugs
+
+#### Check Existing Review
+```http
+GET /api/youtube/video/QkkoHAzjnUs
+```
+
+Checks if a video has already been processed and returns existing review data.
+
+### Environment Setup
+
+Add to your `.env` file:
+```env
+YOUTUBE_API_KEY=your_youtube_data_v3_api_key
+```
+
+Get your API key from [Google Cloud Console](https://console.cloud.google.com/apis/credentials).
+
+### Game Title Detection
+
+The system automatically extracts game titles from video metadata using patterns like:
+- "Elden Ring Review - Amazing Game!" → "Elden Ring"
+- "Cyberpunk 2077 Gameplay Walkthrough" → "Cyberpunk 2077"
+- "Game Title - Channel Name" → "Game Title"
+
+Falls back to video tags if title patterns don't match.
+
 ## Features
 - Dynamically looks up or auto-creates games and creators by slug/channel/title
 - Deduplicates reviews by video URL
 - Logs errors to `errors.log`
 - Prints a summary at the end
+- **NEW**: Rich metadata integration with thumbnails, descriptions, and auto-detection
 
 ## Troubleshooting
 - **Permission denied for schema public**: Run the GRANTs from the Supabase docs to ensure API roles have access
 - **Foreign key constraint errors**: Make sure referenced games/creators exist or let the script auto-create them
 - **Duplicate key errors**: The script skips reviews that already exist for a video
 - **No captions found**: The video may not have English captions or may be private
+- **YouTube API quota exceeded**: Check your Google Cloud Console quota limits
+- **Invalid API key**: Verify your `YOUTUBE_API_KEY` environment variable
 
 ## Example Output
 ```
 [YT] Fetching captions for videoId: QkkoHAzjnUs
+[API] Processing YouTube video: QkkoHAzjnUs
 [SUCCESS] Ingested review for videoId: QkkoHAzjnUs
 Ingestion summary: [ { videoId: 'QkkoHAzjnUs', status: 'success' } ]
 ```
