@@ -4,12 +4,17 @@ import app from '../../app';
 
 jest.mock('../../config/database', () => {
   const chain: any = {
-    select: jest.fn(() => chain),
-    eq: jest.fn(() => chain),
-    order: jest.fn(() => chain),
-    in: jest.fn(() => chain),
+    select: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockReturnThis(),
+    order: jest.fn().mockReturnThis(),
+    in: jest.fn().mockReturnThis(),
     single: jest.fn(async () => ({ data: {}, error: null })),
   };
+  chain.select.mockReturnValue(chain);
+  chain.eq.mockReturnValue(chain);
+  chain.order.mockReturnValue(chain);
+  chain.in.mockReturnValue(chain);
+  
   return {
     supabase: {
       from: jest.fn(() => chain),

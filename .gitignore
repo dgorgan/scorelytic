@@ -65,3 +65,33 @@ client/test/.next/trace.json
 # Root-level dist/ and .cursorrules
 dist/
 .cursorrules
+
+# Ignore JS/JS.map/d.ts artifacts in source (except build output)
+server/src/**/*.js
+server/src/**/*.js.map
+server/src/**/*.d.ts
+!dist-server/
+
+client/services/**/*.js
+client/services/**/*.js.map
+client/services/**/*.d.ts
+client/test/**/*.js
+client/test/**/*.js.map
+client/test/**/*.d.ts
+
+# Ignore Next.js and build output
+.next/
+dist-server/
+
+# Ignore node_modules
+node_modules/
+
+# Ignore logs
+*.log
+
+# Ignore environment files
+.env
+.env.*
+
+# Ignore Mac system files
+.DS_Store

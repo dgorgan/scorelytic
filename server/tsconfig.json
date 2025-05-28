@@ -1,16 +1,12 @@
 {
-  "extends": "../tsconfig.base.json",
+ "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "target": "ES2017",
-    "module": "CommonJS",
     "baseUrl": "./src",
     "paths": {
       "@/*": ["*"],
       "shared/*": ["../../shared/*"]
     },
-    "outDir": "../dist-server",
-    "esModuleInterop": true,
-    "downlevelIteration": true
+    "outDir": "../dist-server"
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]

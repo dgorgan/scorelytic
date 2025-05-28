@@ -106,13 +106,31 @@
 
 ---
 
+## 🛠️ Internal Dashboard (LLM QA & Review)
+
+- Internal-only tool for reviewing, validating, and overriding LLM sentiment analysis results.
+- Features:
+  - Grouped and advanced QA views
+  - Human-in-the-loop overrides (saved to Supabase)
+  - Color-coded legend for mismatches/overrides
+  - CSV download, search, and filters for unreviewed/overridden
+- Fully covered by Jest + React Testing Library tests (see README for test instructions)
+
 ## 🧠 LLM Sentiment Analysis (Backend)
 
 - Utility: `analyzeTranscript(transcript: string, reviewId: string): Promise<{ summary, sentimentScore, verdict }>`
-- Sends a transcript to an LLM (mocked for now), parses the response, and updates the review's sentimentSummary field in the DB.
+- Sends a transcript to an LLM (OpenAI, live), parses the response, and updates the review's sentimentSummary field in the DB.
 - Sentiment result fields:
   - `summary: string` — short summary of the review sentiment
   - `sentimentScore: number` — score from 0–10
   - `verdict: string` — e.g. "positive", "negative", "mixed"
-- Currently uses a hardcoded transcript and mock LLM response for testing.
+- Returns null/empty for missing fields (no hallucination)
 - Fully tested with Jest and supabase mocks.
+
+## 📺 YouTube Transcript Analysis Pipeline
+
+- Captions are fetched from YouTube videos and stored as `review.transcript`.
+- Each transcript is analyzed by the LLM (OpenAI), producing:
+  - `summary`, `sentimentScore`, `verdict`, `sentimentSummary`, `biasIndicators`, etc.
+- Results are stored in the DB and surfaced in the internal dashboard for QA and override.
+- The same data powers the public-facing game/creator pages and analytics.

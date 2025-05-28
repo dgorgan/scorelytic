@@ -25,12 +25,17 @@ Scorelytic is designed to bridge the gap between gamers and media reviewers by o
 
 ## AI/Analytics
 
-- **Sentiment Analysis**: Utilizing natural language processing (NLP) to analyze review texts, identifying sentiment trends and bias indicators in critiques and creator reviews.
+- **Sentiment Analysis**: Live, using OpenAI to analyze review texts, identify sentiment trends, and bias indicators.
+- **Dashboard QA**: Internal dashboard for human-in-the-loop review, override, and validation of LLM results.
 - **Creator Score**: Based on sentiment analysis, a **curated (or weighted)** creator score will be calculated, factoring in the tone and sentiment of their reviews. This score will allow users to compare creator sentiment with traditional **critic scores** (e.g., MetaCritic, OpenCritic). The goal is to provide a more balanced view of a creator's opinion in relation to a critic's analysis.
 - **Machine Learning**: For understanding review patterns and predicting potential biases based on historical data.  
 - **Bias Detection**: Scoring algorithms will calculate the degree of bias in each review, helping users to identify whether a review is skewed by personal preferences or external factors.
 
 ## MVP Goals (2 - 4 weeks)
+
+The MVP now includes:
+- LLM sentiment analysis pipeline (YouTube → transcript → LLM → sentiment in DB)
+- Internal dashboard for QA and override
 
 The initial MVP focuses on building the essential features of the platform, allowing for rapid iteration and user feedback. The MVP will include:
 
@@ -194,6 +199,93 @@ This repository is private during development. Contributions will be welcome onc
 ## License
 
 TBD (To Be Determined)
+
+# YouTube Caption Ingestion Pipeline
+
+## Usage
+
+### Single Video Ingest
+
+```sh
+npx ts-node scripts/youtube-caption-ingest.ts --ids QkkoHAzjnUs --gameSlug elden-ring --creatorSlug skill-up --gameTitle "Elden Ring" --creatorName "Skill Up" --channelUrl "https://youtube.com/skillup"
+```
+
+### Batch Ingest from File
+
+- Plain text file (one video ID per line):
+
+```sh
+npx ts-node scripts/youtube-caption-ingest.ts --file video_ids.txt --gameSlug elden-ring --creatorSlug skill-up
+```
+
+- JSON file (array of objects with videoId, gameSlug, etc.):
+
+```json
+[
+  { "videoId": "QkkoHAzjnUs", "gameSlug": "elden-ring", "creatorSlug": "skill-up", "gameTitle": "Elden Ring", "creatorName": "Skill Up", "channelUrl": "https://youtube.com/skillup" },
+  { "videoId": "abc123", "gameSlug": "witcher-3", "creatorSlug": "angryjoe", "gameTitle": "The Witcher 3", "creatorName": "AngryJoeShow", "channelUrl": "https://youtube.com/angryjoe" }
+]
+```
+
+```sh
+npx ts-node scripts/youtube-caption-ingest.ts --file batch.json
+```
+
+## Features
+- Dynamically looks up or auto-creates games and creators by slug/channel/title
+- Deduplicates reviews by video URL
+- Logs errors to `errors.log`
+- Prints a summary at the end
+
+## Troubleshooting
+- **Permission denied for schema public**: Run the GRANTs from the Supabase docs to ensure API roles have access
+- **Foreign key constraint errors**: Make sure referenced games/creators exist or let the script auto-create them
+- **Duplicate key errors**: The script skips reviews that already exist for a video
+- **No captions found**: The video may not have English captions or may be private
+
+## Example Output
+```
+[YT] Fetching captions for videoId: QkkoHAzjnUs
+[SUCCESS] Ingested review for videoId: QkkoHAzjnUs
+Ingestion summary: [ { videoId: 'QkkoHAzjnUs', status: 'success' } ]
+```
+
+## Internal Dashboard (LLM QA & Review)
+
+This is an internal tool for reviewing, validating, and overriding LLM sentiment analysis results. Not part of the public-facing site.
+
+- Features:
+  - Grouped and advanced QA views
+  - Human-in-the-loop overrides (saved to Supabase)
+  - Color-coded legend for mismatches/overrides
+  - CSV download, search, and filters for unreviewed/overridden
+- Fully covered by Jest + React Testing Library tests
+- To run dashboard tests:
+  ```bash
+  cd client
+  npm test
+  ```
+
+## How to Run Tests
+
+- **Client (dashboard):**
+  ```bash
+  cd client
+  npm test
+  ```
+- **Server:**
+  ```bash
+  cd server
+  npm test
+  ```
+
+## YouTube Transcript Analysis Pipeline
+
+- Captions are fetched from YouTube videos and stored as `review.transcript`.
+- Each transcript is analyzed by the LLM (OpenAI), producing:
+  - `summary`, `sentimentScore`, `verdict`, `sentimentSummary`, `biasIndicators`, etc.
+- Results are stored in the DB and surfaced in the internal dashboard for QA and override.
+- The same data powers the public-facing game/creator pages and analytics.
 
 
 
