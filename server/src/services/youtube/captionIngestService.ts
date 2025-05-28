@@ -7,10 +7,10 @@ import { toSnake } from '../../utils/caseMapping';
  * Fetches captions for a given YouTube video ID.
  * Returns the transcript as a string.
  */
-export const fetchYoutubeCaptions = async (videoId: string): Promise<string> => {
+export const fetchYoutubeCaptions = async (videoId: string, language: string = 'en'): Promise<string> => {
   try {
     console.debug(`[YT] Fetching captions for videoId: ${videoId}`);
-    const captions = await getSubtitles({ videoID: videoId, lang: 'en' });
+    const captions = await getSubtitles({ videoID: videoId, lang: language });
     console.debug(`[YT] Raw captions result:`, captions);
     
     if (!captions || captions.length === 0) {
