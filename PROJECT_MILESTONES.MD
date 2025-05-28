@@ -65,3 +65,41 @@
 - [ ] Game discovery by sentiment pattern
 - [ ] Social sharing & embed features
 - [ ] YouTube metadata enrichment (video title, channel, etc.)
+
+## 1. Core Sentiment & Review Pipeline (Complete)
+- [x] YouTube Data v3 integration
+- [x] Hybrid transcript (caption/audio) service
+- [x] OpenAI Whisper transcription
+- [x] Sentiment analysis pipeline
+- [x] Internal dashboard with edit modals
+- [x] 130+ tests passing
+
+## 2. Bias-Aware Scoring & Transparency (Current)
+- [x] Implement bias detection in LLM pipeline
+- [x] Add pure TypeScript bias adjustment engine (`evaluateBiasImpact`)
+- [x] Show both raw sentiment and bias-adjusted scores
+- [x] Provide rationale and audience fit for adjustments
+- [x] Add public-facing toggle: [Raw Sentiment Score] | [Bias-Adjusted Score]
+- [x] Platform now owns the synthetic score (not the critic)
+- [x] Full test coverage for bias adjustment logic
+
+## 3. Public-Facing UI & Discovery
+- [ ] Build homepage with latest games and updates
+- [ ] Game profile pages with aggregated sentiment
+- [ ] Creator profile pages
+- [ ] Review listings with avatars, scores, snippets
+- [ ] YouTube video embeds, SEO-friendly slugs
+- [ ] Game/review/creator search and analytics
+
+## 4. Advanced Features & Analytics
+- [ ] Batch processing UI for multiple videos
+- [ ] Analytics dashboard for transcript costs
+- [ ] Video performance metrics (views, engagement vs sentiment)
+- [ ] Caching, webhooks, export (PDF, etc)
+- [ ] Gaming-specific features (genre detection, trend analysis)
+
+## 5. Production Readiness
+- [ ] Deploy to production
+- [ ] Monitoring/logging for API usage
+- [ ] Secure environment variables
+- [ ] Documentation and onboarding

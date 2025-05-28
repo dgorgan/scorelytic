@@ -1,6 +1,44 @@
 # Scorelytic
 
-A data-driven platform for unbiased, transparent reviews by creators, critics, and gamers.
+Scorelytic is a transparent, bias-aware video game review analysis platform. It ingests YouTube and critic reviews, extracts sentiment and bias, and provides both raw and bias-adjusted scores—empowering users to see how different perspectives shape review outcomes.
+
+## Key Features
+- **Hybrid transcript extraction** (captions + audio fallback)
+- **LLM-powered sentiment analysis**
+- **Bias detection and adjustment**
+- **Pure TypeScript bias adjustment engine** (`evaluateBiasImpact`)
+- **Public-facing toggle:** [Raw Sentiment Score] | [Bias-Adjusted Score]
+- **Full rationale and audience fit for every adjustment**
+- **Platform-owned synthetic score** (not the critic's)
+
+## How It Works
+1. **Transcript → Sentiment**: The LLM analyzes review text and outputs a synthetic `sentimentScore` (0-10) and detected `biasIndicators`.
+2. **Bias Adjustment**: `evaluateBiasImpact(sentimentScore, biasIndicators)` applies heuristics to adjust the score, providing a breakdown and rationale.
+3. **Transparency**: Both scores are shown, with a toggle and clear explanation—no moralizing, just context.
+
+## Example Usage
+```ts
+import { analyzeText } from 'server/src/services/sentimentService';
+import { evaluateBiasImpact } from 'shared/utils/biasAdjustment';
+
+const sentiment = await analyzeText(transcript);
+const biasAdjustment = evaluateBiasImpact(sentiment.sentimentScore, sentiment.biasIndicators);
+
+console.log({
+  sentimentScore: sentiment.sentimentScore,
+  biasAdjustedScore: biasAdjustment.biasAdjustedScore,
+  biasImpact: biasAdjustment.biasImpact,
+  adjustmentRationale: biasAdjustment.adjustmentRationale
+});
+```
+
+## UX Philosophy
+- **Bias ≠ bad**: Biases shape perception. We analyze them so users can decide if a review matches their taste.
+- **Platform as arbiter**: Scorelytic owns the synthetic score, not the critic. All reviews are treated equally.
+- **User choice**: Users can toggle between raw and adjusted scores, with full transparency on every adjustment.
+
+## Milestones
+See [PROJECT_MILESTONES.MD](PROJECT_MILESTONES.MD).
 
 ## Overview
 
@@ -231,21 +269,88 @@ npx ts-node scripts/youtube-caption-ingest.ts --file video_ids.txt --gameSlug el
 npx ts-node scripts/youtube-caption-ingest.ts --file batch.json
 ```
 
+## YouTube Data v3 API Integration
+
+### New Features
+- **Automatic metadata extraction** from YouTube videos
+- **Smart game title detection** using regex patterns
+- **Enhanced video processing** with thumbnails, descriptions, and tags
+- **RESTful API endpoints** for video processing and metadata retrieval
+
+### API Endpoints
+
+#### Process YouTube Video
+```http
+POST /api/youtube/process
+Content-Type: application/json
+
+{
+  "videoId": "QkkoHAzjnUs"
+}
+```
+
+Processes a complete YouTube video:
+1. Fetches metadata from YouTube Data v3 API
+2. Extracts captions using existing pipeline
+3. Analyzes sentiment with LLM
+4. Auto-detects game title and creator
+5. Saves enriched review to database
+
+#### Get Video Metadata Only
+```http
+GET /api/youtube/metadata/QkkoHAzjnUs
+```
+
+Returns YouTube metadata without processing:
+- Video title, description, thumbnails
+- Channel information
+- Extracted game title suggestions
+- Suggested database slugs
+
+#### Check Existing Review
+```http
+GET /api/youtube/video/QkkoHAzjnUs
+```
+
+Checks if a video has already been processed and returns existing review data.
+
+### Environment Setup
+
+Add to your `.env` file:
+```env
+YOUTUBE_API_KEY=your_youtube_data_v3_api_key
+```
+
+Get your API key from [Google Cloud Console](https://console.cloud.google.com/apis/credentials).
+
+### Game Title Detection
+
+The system automatically extracts game titles from video metadata using patterns like:
+- "Elden Ring Review - Amazing Game!" → "Elden Ring"
+- "Cyberpunk 2077 Gameplay Walkthrough" → "Cyberpunk 2077"
+- "Game Title - Channel Name" → "Game Title"
+
+Falls back to video tags if title patterns don't match.
+
 ## Features
 - Dynamically looks up or auto-creates games and creators by slug/channel/title
 - Deduplicates reviews by video URL
 - Logs errors to `errors.log`
 - Prints a summary at the end
+- **NEW**: Rich metadata integration with thumbnails, descriptions, and auto-detection
 
 ## Troubleshooting
 - **Permission denied for schema public**: Run the GRANTs from the Supabase docs to ensure API roles have access
 - **Foreign key constraint errors**: Make sure referenced games/creators exist or let the script auto-create them
 - **Duplicate key errors**: The script skips reviews that already exist for a video
 - **No captions found**: The video may not have English captions or may be private
+- **YouTube API quota exceeded**: Check your Google Cloud Console quota limits
+- **Invalid API key**: Verify your `YOUTUBE_API_KEY` environment variable
 
 ## Example Output
 ```
 [YT] Fetching captions for videoId: QkkoHAzjnUs
+[API] Processing YouTube video: QkkoHAzjnUs
 [SUCCESS] Ingested review for videoId: QkkoHAzjnUs
 Ingestion summary: [ { videoId: 'QkkoHAzjnUs', status: 'success' } ]
 ```
@@ -286,6 +391,65 @@ This is an internal tool for reviewing, validating, and overriding LLM sentiment
   - `summary`, `sentimentScore`, `verdict`, `sentimentSummary`, `biasIndicators`, etc.
 - Results are stored in the DB and surfaced in the internal dashboard for QA and override.
 - The same data powers the public-facing game/creator pages and analytics.
+
+## Multi-Layered Bias Report Output
+- See `shared/types/biasReport.ts` for all output types
+- API: `POST /api/review/bias-report` (input: sentimentScore, biasIndicators)
+- React: `BiasReportViewer` (collapsible UI for all output layers)
+
+### Output Layers
+- **Summary:** User-facing, quick verdict and score, with confidence and bias summary
+- **Bias Details:** List of all detected biases, their severity, score impact, and qualitative effect
+- **Cultural Context:** Explains how cultural/ideological context may affect perception and score
+- **Full Report:** Internal, diagnostic output for transparency and audit
+
+### Sample Output
+```json
+{
+  "summary": {
+    "adjustedScore": 7.1,
+    "verdict": "generally positive",
+    "confidence": "high",
+    "recommendationStrength": "moderate",
+    "biasSummary": "Includes moderate identity signaling, narrative framing, and nostalgia biases."
+  },
+  "details": [
+    {
+      "name": "identity signaling bias",
+      "severity": "moderate",
+      "scoreImpact": -0.4,
+      "impactOnExperience": "Positive for players valuing identity expression; less immersive for others.",
+      "description": "Identity themes are foregrounded, which may enhance or detract from immersion depending on player alignment."
+    },
+    {
+      "name": "narrative framing bias",
+      "severity": "high",
+      "scoreImpact": -0.3,
+      "impactOnExperience": "Story heavily tied to contemporary sociopolitical themes.",
+      "description": "Narrative framing aligns with current ideological trends, which may polarize audiences."
+    }
+  ],
+  "culturalContext": {
+    "originalScore": 8.5,
+    "biasAdjustedScore": 7.1,
+    "justification": "Score adjusted to reflect detected ideological, narrative, or identity-related influences.",
+    "audienceReaction": {
+      "aligned": "positive",
+      "neutral": "mixed",
+      "opposed": "negative"
+    },
+    "biasDetails": [/* ... */]
+  },
+  "fullReport": {
+    "score_analysis_engine": {
+      "input_review_score": 8.5,
+      "ideological_biases_detected": [/* ... */],
+      "bias_adjusted_score": 7.1,
+      "score_context_note": "This adjustment is a contextual calibration, not a value judgment."
+    }
+  }
+}
+```
 
 
 

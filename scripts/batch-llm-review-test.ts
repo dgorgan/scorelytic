@@ -1,5 +1,5 @@
 import { supabase } from '../server/src/config/database';
-import { analyzeText, getEmbedding, DEFAULT_LLM_PROMPT, FEW_SHOT_EXAMPLES } from '../server/src/services/sentimentService';
+import { analyzeText, getEmbedding, UPDATED_LLM_PROMPT as DEFAULT_LLM_PROMPT, FEW_SHOT_EXAMPLES } from '../server/src/services/sentimentService';
 import { toCamel } from '../server/src/utils/caseMapping';
 import fs from 'fs';
 import yargs from 'yargs';

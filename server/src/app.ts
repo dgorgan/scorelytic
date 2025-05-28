@@ -7,6 +7,7 @@ const bodyParser = require('body-parser');
 import gameRoutes from './routes/gameRoutes';
 import reviewRoutes from './routes/reviewRoutes';
 import sentimentRoutes from './routes/sentimentRoutes';
+import youtubeRoutes from './routes/youtubeRoutes';
 
 dotenv.config();
 
@@ -22,5 +23,6 @@ app.get('/', (req: express.Request, res: express.Response) => res.send('Scorelyt
 app.use('/api/games', gameRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/sentiment', sentimentRoutes);
+app.use('/api/youtube', youtubeRoutes);
 
 export default app;

@@ -7,16 +7,38 @@ import { toSnake } from '../../utils/caseMapping';
  * Fetches captions for a given YouTube video ID.
  * Returns the transcript as a string.
  */
-export const fetchYoutubeCaptions = async (videoId: string): Promise<string> => {
+export const fetchYoutubeCaptions = async (videoId: string, language: string = 'en'): Promise<string> => {
   try {
     console.debug(`[YT] Fetching captions for videoId: ${videoId}`);
-    const captions = await getSubtitles({ videoID: videoId, lang: 'en' });
+    const captions = await getSubtitles({ videoID: videoId, lang: language });
     console.debug(`[YT] Raw captions result:`, captions);
-    if (!captions || captions.length === 0) throw new Error('No captions found');
-    return captions.map((c: { text: string }) => c.text).join(' ');
-  } catch (err) {
+    
+    if (!captions || captions.length === 0) {
+      throw new Error('No English captions available. Video may not have captions or may be in a different language.');
+    }
+    
+    const transcript = captions.map((c: { text: string }) => c.text).join(' ');
+    
+    if (transcript.trim().length === 0) {
+      throw new Error('Captions found but transcript is empty.');
+    }
+    
+    return transcript;
+  } catch (err: any) {
     console.debug(`[YT] Error fetching captions:`, err);
-    throw new Error(`Failed to fetch captions for ${videoId}: ${(err as Error).message}`);
+    
+    // Handle specific error cases
+    if (err.message?.includes('Video unavailable')) {
+      throw new Error(`Video ${videoId} is unavailable. It may be private, deleted, or region-blocked.`);
+    }
+    if (err.message?.includes('No captions')) {
+      throw new Error(`No captions available for video ${videoId}. Video may not have subtitles enabled.`);
+    }
+    if (err.message?.includes('No English captions')) {
+      throw err; // Re-throw our custom error
+    }
+    
+    throw new Error(`Failed to fetch captions for ${videoId}: ${err.message}`);
   }
 };
 
