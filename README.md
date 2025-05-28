@@ -1,6 +1,44 @@
 # Scorelytic
 
-A data-driven platform for unbiased, transparent reviews by creators, critics, and gamers.
+Scorelytic is a transparent, bias-aware video game review analysis platform. It ingests YouTube and critic reviews, extracts sentiment and bias, and provides both raw and bias-adjusted scores—empowering users to see how different perspectives shape review outcomes.
+
+## Key Features
+- **Hybrid transcript extraction** (captions + audio fallback)
+- **LLM-powered sentiment analysis**
+- **Bias detection and adjustment**
+- **Pure TypeScript bias adjustment engine** (`evaluateBiasImpact`)
+- **Public-facing toggle:** [Raw Sentiment Score] | [Bias-Adjusted Score]
+- **Full rationale and audience fit for every adjustment**
+- **Platform-owned synthetic score** (not the critic's)
+
+## How It Works
+1. **Transcript → Sentiment**: The LLM analyzes review text and outputs a synthetic `sentimentScore` (0-10) and detected `biasIndicators`.
+2. **Bias Adjustment**: `evaluateBiasImpact(sentimentScore, biasIndicators)` applies heuristics to adjust the score, providing a breakdown and rationale.
+3. **Transparency**: Both scores are shown, with a toggle and clear explanation—no moralizing, just context.
+
+## Example Usage
+```ts
+import { analyzeText } from 'server/src/services/sentimentService';
+import { evaluateBiasImpact } from 'shared/utils/biasAdjustment';
+
+const sentiment = await analyzeText(transcript);
+const biasAdjustment = evaluateBiasImpact(sentiment.sentimentScore, sentiment.biasIndicators);
+
+console.log({
+  sentimentScore: sentiment.sentimentScore,
+  biasAdjustedScore: biasAdjustment.biasAdjustedScore,
+  biasImpact: biasAdjustment.biasImpact,
+  adjustmentRationale: biasAdjustment.adjustmentRationale
+});
+```
+
+## UX Philosophy
+- **Bias ≠ bad**: Biases shape perception. We analyze them so users can decide if a review matches their taste.
+- **Platform as arbiter**: Scorelytic owns the synthetic score, not the critic. All reviews are treated equally.
+- **User choice**: Users can toggle between raw and adjusted scores, with full transparency on every adjustment.
+
+## Milestones
+See [PROJECT_MILESTONES.MD](PROJECT_MILESTONES.MD).
 
 ## Overview
 
@@ -353,6 +391,65 @@ This is an internal tool for reviewing, validating, and overriding LLM sentiment
   - `summary`, `sentimentScore`, `verdict`, `sentimentSummary`, `biasIndicators`, etc.
 - Results are stored in the DB and surfaced in the internal dashboard for QA and override.
 - The same data powers the public-facing game/creator pages and analytics.
+
+## Multi-Layered Bias Report Output
+- See `shared/types/biasReport.ts` for all output types
+- API: `POST /api/review/bias-report` (input: sentimentScore, biasIndicators)
+- React: `BiasReportViewer` (collapsible UI for all output layers)
+
+### Output Layers
+- **Summary:** User-facing, quick verdict and score, with confidence and bias summary
+- **Bias Details:** List of all detected biases, their severity, score impact, and qualitative effect
+- **Cultural Context:** Explains how cultural/ideological context may affect perception and score
+- **Full Report:** Internal, diagnostic output for transparency and audit
+
+### Sample Output
+```json
+{
+  "summary": {
+    "adjustedScore": 7.1,
+    "verdict": "generally positive",
+    "confidence": "high",
+    "recommendationStrength": "moderate",
+    "biasSummary": "Includes moderate identity signaling, narrative framing, and nostalgia biases."
+  },
+  "details": [
+    {
+      "name": "identity signaling bias",
+      "severity": "moderate",
+      "scoreImpact": -0.4,
+      "impactOnExperience": "Positive for players valuing identity expression; less immersive for others.",
+      "description": "Identity themes are foregrounded, which may enhance or detract from immersion depending on player alignment."
+    },
+    {
+      "name": "narrative framing bias",
+      "severity": "high",
+      "scoreImpact": -0.3,
+      "impactOnExperience": "Story heavily tied to contemporary sociopolitical themes.",
+      "description": "Narrative framing aligns with current ideological trends, which may polarize audiences."
+    }
+  ],
+  "culturalContext": {
+    "originalScore": 8.5,
+    "biasAdjustedScore": 7.1,
+    "justification": "Score adjusted to reflect detected ideological, narrative, or identity-related influences.",
+    "audienceReaction": {
+      "aligned": "positive",
+      "neutral": "mixed",
+      "opposed": "negative"
+    },
+    "biasDetails": [/* ... */]
+  },
+  "fullReport": {
+    "score_analysis_engine": {
+      "input_review_score": 8.5,
+      "ideological_biases_detected": [/* ... */],
+      "bias_adjusted_score": 7.1,
+      "score_context_note": "This adjustment is a contextual calibration, not a value judgment."
+    }
+  }
+}
+```
 
 
 

@@ -79,3 +79,13 @@ ai_assistant:
   summarize_changes_in_commit: true
   avoid_suggestions_outside_scope: true
 
+# Coverage rule
+Suggest coverage improvements or updates to test coverage thresholds when coverage is low or new code is added.
+
+# Testing requirements
+require_tests_for_new_features = true
+require_tests_for_new_files = true
+require_tests_for_new_services = true
+always_mock_external_apis = true
+never_make_real_api_calls_in_tests = true
+
