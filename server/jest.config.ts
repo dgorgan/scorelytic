@@ -9,6 +9,8 @@ const config: Config.InitialOptions = {
   },
   testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[jt]s?(x)'],
   moduleNameMapper: {
+    '^@/shared/(.*)$': '<rootDir>/../shared/$1',
+    '^@/(.*)$': '<rootDir>/src/$1',
     '^shared/(.*)$': '<rootDir>/../shared/$1',
     '^shared/types/biasReport$': '<rootDir>/../shared/types/biasReport.ts',
   },

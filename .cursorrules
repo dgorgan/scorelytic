@@ -68,8 +68,32 @@ testing:
   allowed_test_file_suffixes:
     - '.test.ts'
     - '.test.tsx'
+    - '.test.jsx'
   require_js_for_jest_setup: true  # All Jest setup files must be .js for ESM compatibility
   no_dom_polyfills_in_server_setup: true  # DOM/browser polyfills only in client setup
+
+  clientTests:
+    match: ['client/**/*.test.tsx', 'client/**/*.test.jsx']
+    jsxSupport: true
+    typeSafety: optional
+    transformer: ts-jest
+    allowImplicitAny: false
+    typeHints:
+      preferred: 'React.ReactNode'
+      allowFallbackToAny: true
+
+  serverTests:
+    match: ['server/**/*.test.ts', 'shared/**/*.test.ts', '**/__tests__/**/*.test.ts']
+    fileExtensions: ['.ts', '.tsx']
+    typeSafety: required
+    transformer: ts-jest
+
+  rules:
+    preventTestRemoval: true
+    allowTypeAnnotationsInMocks: true
+    preventAutoEslintDisables: true
+    preferExplicitTypes: true
+    suggestReactNodeForChildren: true
 
 # Documentation & Comments
 docs:
@@ -96,3 +120,7 @@ ai_assistant:
   summarize_changes_in_commit: true
   avoid_suggestions_outside_scope: true
 
+# Aliases (optional, if you want to add for your imports)
+aliases:
+  "@/": "src/"
+  

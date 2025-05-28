@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { buildYouTubeMetadataUrl, buildYouTubeProcessUrl, ERROR_MESSAGES } from '@scorelytic/shared/constants/api';
-import { extractVideoId } from '@scorelytic/shared/utils/youtube';
+import { buildYouTubeMetadataUrl, buildYouTubeProcessUrl, ERROR_MESSAGES } from '@/shared/constants/api';
+import { extractVideoId } from '@/shared/utils/youtube';
 
 interface YouTubeProcessorProps {
   onProcessComplete?: (result: any) => void;

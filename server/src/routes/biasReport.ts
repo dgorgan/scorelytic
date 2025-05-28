@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { biasReportController } from '../controllers/biasReportController';
+import { biasReportController } from '@/controllers/biasReportController';
 
 const router = Router();
 

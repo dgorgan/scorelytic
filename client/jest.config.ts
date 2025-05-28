@@ -10,6 +10,7 @@ const customJestConfig = {
   testEnvironment: 'jsdom',
   testMatch: ['**/?(*.)+(test).[jt]s?(x)'],
   moduleNameMapper: {
+    '^@/services/(.*)$': '<rootDir>/services/$1',
     '^@/(.*)$': '<rootDir>/src/$1',
     '^shared/types/(.*)$': '<rootDir>/../shared/types/$1.ts',
     '^shared/constants/(.*)$': '<rootDir>/../shared/constants/$1.ts',

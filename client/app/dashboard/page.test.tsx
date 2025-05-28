@@ -4,7 +4,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import Dashboard from './page';
 
 // Mock Supabase client
-jest.mock('../../services/supabase', () => ({
+jest.mock('@/services/supabase', () => ({
   supabase: {
     from: jest.fn(() => ({
       select: jest.fn().mockReturnThis(),
@@ -82,7 +82,7 @@ describe('Dashboard', () => {
     });
 
     // Mock Supabase calls
-    const mockSupabase = require('../../services/supabase').supabase;
+    const mockSupabase = require('@/services/supabase').supabase;
     mockSupabase.from.mockReturnValue({
       select: jest.fn().mockResolvedValue({ data: [], error: null }),
       upsert: jest.fn().mockResolvedValue({ data: null, error: null })

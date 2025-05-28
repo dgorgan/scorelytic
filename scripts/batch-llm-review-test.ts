@@ -1,10 +1,9 @@
-import { supabase } from '../server/src/config/database';
-import { analyzeText, getEmbedding, UPDATED_LLM_PROMPT as DEFAULT_LLM_PROMPT, FEW_SHOT_EXAMPLES } from '../server/src/services/sentimentService';
-import { toCamel } from '../server/src/utils/caseMapping';
-import fs from 'fs';
+import { supabase } from '../server/src/config/database.ts';
+import { analyzeText, getEmbedding, UPDATED_LLM_PROMPT as DEFAULT_LLM_PROMPT, FEW_SHOT_EXAMPLES } from '../server/src/services/sentiment/sentimentService.ts';
+import { toCamel } from '../server/src/utils/caseMapping.ts';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
-import { harmonizeBias } from '../shared/utils/bias-harmonizer';
+import { harmonizeBias } from '../shared/utils/bias-harmonizer.ts';
 import { createObjectCsvWriter } from 'csv-writer';
 
 const argv = yargs(hideBin(process.argv))

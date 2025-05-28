@@ -3,7 +3,7 @@ import { Game } from '../models/Game';
 import { Creator } from '../models/Creator';
 import { Review } from '../models/Review';
 import { toCamel, toSnake } from './caseMapping';
-import { harmonizeBias } from '../../../shared/utils/bias-harmonizer';
+import { harmonizeBias } from '@/shared/utils/bias-harmonizer';
 
 async function resetTables() {
   if (process.env.NODE_ENV === 'production') {

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { ApiResponse } from 'shared/types/api';
+import { ApiResponse } from '@/shared/types/api';
 
 export class ApiError extends Error {
   constructor(

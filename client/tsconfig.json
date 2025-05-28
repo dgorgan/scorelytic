@@ -4,14 +4,20 @@
     "baseUrl": ".",
     "paths": {
       "@/*": [
-        "client/*"
+        "./*"
+      ],
+      "@/shared/*": [
+        "../shared/*"
+      ],
+      "@/services/*": [
+        "services/*"
       ],
       "shared/*": [
         "../shared/*",
         "../shared/*.ts"
       ]
     },
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "lib": [
       "dom",
       "dom.iterable",

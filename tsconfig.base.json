@@ -14,10 +14,13 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "allowImportingTsExtensions": true,
     "baseUrl": ".",
     "paths": {
       "shared/*": ["shared/*"],
-      "@/*": ["*"]
+      "@/server/*": ["server/src/*"],
+      "@/client/*": ["client/*"],
+      "@/shared/*": ["shared/*"]
     }
   },
   "exclude": ["node_modules"],

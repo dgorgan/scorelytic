@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent } from '@testing-library/react';
 import BiasReportViewer from '../BiasReportViewer';
-import type { ReviewSummary, BiasDetail, CulturalContext, FullBiasReport } from '@scorelytic/shared/types/biasReport';
+import type { ReviewSummary, BiasDetail, CulturalContext, FullBiasReport } from '@/shared/types/biasReport';
 
 type BiasReport = {
   summary: ReviewSummary;

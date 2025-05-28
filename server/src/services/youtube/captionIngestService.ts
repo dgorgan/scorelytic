@@ -1,7 +1,7 @@
-import { Review } from '../../../../shared/types/Review';
+import { Review } from '@/shared/types/Review';
 import { getSubtitles } from 'youtube-captions-scraper';
-import { supabase } from '../../config/database';
-import { toSnake } from '../../utils/caseMapping';
+import { supabase } from '@/config/database';
+import { toSnake } from '@/utils/caseMapping';
 
 /**
  * Fetches captions for a given YouTube video ID.

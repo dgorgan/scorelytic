@@ -1,4 +1,4 @@
-import { extractVideoId, isValidVideoId, createYouTubeUrl, createThumbnailUrl } from '../youtube';
+import { extractVideoId, isValidVideoId, createYouTubeUrl, createThumbnailUrl } from '@/shared/utils/youtube';
 
 describe('extractVideoId', () => {
   it('returns null for empty or invalid input', () => {

@@ -2,9 +2,9 @@
 import 'dotenv/config';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
-import { fetchYoutubeCaptions, normalizeYoutubeToReview, upsertReviewToSupabase } from '../server/src/services/youtube/captionIngestService';
+import { fetchYoutubeCaptions, normalizeYoutubeToReview, upsertReviewToSupabase } from '../server/src/services/youtube/captionIngestService.ts';
 import fs from 'fs';
-import { supabase } from '../server/src/config/database';
+import { supabase } from '../server/src/config/database.ts';
 
 const argv = yargs(hideBin(process.argv))
   .option('ids', {

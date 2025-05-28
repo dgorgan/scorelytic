@@ -1,8 +1,8 @@
 #!/usr/bin/env ts-node
 import 'dotenv/config';
-import { fetchYoutubeCaptions, normalizeYoutubeToReview, upsertReviewToSupabase } from '../server/src/services/youtube/captionIngestService';
-import { supabase } from '../server/src/config/database';
-import { analyzeText } from '../server/src/services/sentimentService';
+import { fetchYoutubeCaptions, normalizeYoutubeToReview, upsertReviewToSupabase } from '../server/src/services/youtube/captionIngestService.ts';
+import { supabase } from '../server/src/config/database.ts';
+import { analyzeText } from '../server/src/services/sentiment/sentimentService.ts';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 

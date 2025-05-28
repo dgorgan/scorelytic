@@ -2,7 +2,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import Papa from 'papaparse';
-import { supabase } from '../../services/supabase';
+import { supabase } from '@/services/supabase';
 import FieldMismatchChart from '../../components/dashboard/FieldMismatchChart';
 import SweepSummaryChart from '../../components/dashboard/SweepSummaryChart';
 import DashboardControls from '../../components/dashboard/DashboardControls';

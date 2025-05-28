@@ -1,10 +1,10 @@
 // TODO: Implement reviewController for review-related business logic
 
 import { Request, Response } from 'express';
-import { ReviewAnalysisRequest, ReviewAnalysisResponse, ApiResponse } from 'shared/types/api';
-import { validateInput } from '../utils/validateInput';
-import { analyzeSentiment } from '../services/sentiment';
-import { getReviewMetadata } from '../services/youtube/reviewMetadataService';
+import { ReviewAnalysisRequest, ReviewAnalysisResponse, ApiResponse } from '@/shared/types/api';
+import { validateInput } from '@/utils/validateInput';
+import { analyzeSentiment } from '@/services/sentiment';
+import { getReviewMetadata } from '@/services/youtube/reviewMetadataService';
 
 export const reviewController = {
   analyzeReview: async (req: Request<{}, {}, ReviewAnalysisRequest>, res: Response<ApiResponse<ReviewAnalysisResponse>>) => {

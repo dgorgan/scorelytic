@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
-import { normalizeYoutubeToReview, upsertReviewToSupabase } from '../services/youtube/captionIngestService';
-import { fetchYouTubeVideoMetadata, extractGameFromMetadata, createSlug } from '../services/youtube/youtubeApiService';
-import { getHybridTranscript } from '../services/youtube/hybridTranscriptService';
-import { analyzeTextWithBiasAdjustmentFull } from '../services/sentiment';
-import { supabase } from '../config/database';
+import { normalizeYoutubeToReview, upsertReviewToSupabase } from '@/services/youtube/captionIngestService';
+import { fetchYouTubeVideoMetadata, extractGameFromMetadata, createSlug } from '@/services/youtube/youtubeApiService';
+import { getHybridTranscript } from '@/services/youtube/hybridTranscriptService';
+import { analyzeTextWithBiasAdjustmentFull } from '@/services/sentiment';
+import { supabase } from '@/config/database';
 
 const flattenSentiment = (obj: any) => {
   if (!obj) return {};
