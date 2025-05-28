@@ -97,7 +97,7 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
             value={videoId}
             onChange={(e) => setVideoId(e.target.value)}
             placeholder="dQw4w9WgXcQ or https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-600"
             disabled={processing}
           />
         </div>
