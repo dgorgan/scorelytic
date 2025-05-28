@@ -43,6 +43,24 @@ jest.mock('../../services/youtube/youtubeApiService', () => ({
   createSlug: jest.fn((str) => str.toLowerCase().replace(/\s+/g, '-'))
 }));
 
+jest.mock('../../services/sentimentService', () => ({
+  analyzeTextWithBiasAdjustmentFull: jest.fn(() => ({
+    summary: 'Test summary',
+    sentimentScore: 5,
+    verdict: 'positive',
+    sentimentSummary: 'Positive',
+    biasIndicators: [],
+    alsoRecommends: [],
+    pros: ['Good audio'],
+    cons: [],
+    reviewSummary: 'Good review',
+    biasDetection: {},
+    biasAdjustment: {},
+    sentimentSnapshot: {},
+    culturalContext: {}
+  }))
+}));
+
 describe('POST /api/youtube/process', () => {
   beforeEach(() => {
     jest.clearAllMocks();
