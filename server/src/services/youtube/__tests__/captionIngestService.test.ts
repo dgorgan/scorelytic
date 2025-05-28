@@ -1,4 +1,5 @@
-import { normalizeYoutubeToReview } from '../captionIngestService';
+import { normalizeYoutubeToReview, fetchYoutubeCaptions } from '../captionIngestService';
+import * as captionsScraper from 'youtube-captions-scraper';
 
 // Mock the database module with correct path
 jest.mock('../../../config/database', () => ({
@@ -31,5 +32,24 @@ describe('normalizeYoutubeToReview', () => {
     expect(review.transcript).toBe('test transcript');
     expect(typeof review.gameId).toBe('string');
     expect(typeof review.creatorId).toBe('string');
+  });
+});
+
+describe('fetchYoutubeCaptions', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it('should handle no captions available', async () => {
+    jest.spyOn(captionsScraper, 'getSubtitles').mockResolvedValue([]);
+    await expect(fetchYoutubeCaptions('videoId')).rejects.toThrow(/No English captions available/);
+  });
+
+  it('should handle captions in wrong language', async () => {
+    jest.spyOn(captionsScraper, 'getSubtitles').mockResolvedValue([]);
+    await expect(fetchYoutubeCaptions('videoId', 'es')).rejects.toThrow(/No English captions available/);
+  });
+
+  it('should handle getSubtitles error', async () => {
+    jest.spyOn(captionsScraper, 'getSubtitles').mockRejectedValue(new Error('fetch fail'));
+    await expect(fetchYoutubeCaptions('videoId')).rejects.toThrow('fetch fail');
   });
 }); 

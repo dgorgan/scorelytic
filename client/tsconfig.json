@@ -4,10 +4,11 @@
     "baseUrl": ".",
     "paths": {
       "@/*": [
-        "*"
+        "client/*"
       ],
       "shared/*": [
-        "../shared/*"
+        "../shared/*",
+        "../shared/*.ts"
       ]
     },
     "jsx": "preserve",
@@ -26,14 +27,23 @@
         "name": "next"
       }
     ],
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "allowImportingTsExtensions": true,
+    "types": ["jest"]
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "../shared/types/**/*.ts",
+    "../shared/constants/**/*.ts",
+    "../shared/utils/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "../shared/**/*.test.ts",
+    "../shared/**/__tests__/**",
+    "../shared/**/nodeOnly/**",
+    "../shared/**/serverOnly/**"
   ]
 }
