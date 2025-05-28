@@ -60,7 +60,7 @@ describe('analyzeReviewText', () => {
 
   it('throws if OpenAI response is malformed', async () => {
     mockCreate.mockResolvedValue({ choices: [ { message: { content: '{}' } } ] });
-    await expect(analyzeReviewText('Bad transcript', 'bad-id')).rejects.toThrow('Malformed LLM response');
+    await expect(analyzeReviewText('Bad transcript', 'bad-id')).rejects.toThrow('LLM returned empty or invalid response');
   });
 
   it('throws if OpenAI errors', async () => {

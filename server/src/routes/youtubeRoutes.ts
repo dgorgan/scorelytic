@@ -70,17 +70,27 @@ router.post('/process', async (req, res) => {
     // Step 3: Merge sentiment analysis into review
     const completeReview = {
       ...review,
-      sentimentSummary: sentiment.sentimentSummary,
+      sentimentSummary: sentiment.sentimentSummary || 'No sentiment analysis available',
       biasIndicators: sentiment.biasIndicators,
       alsoRecommends: sentiment.alsoRecommends,
       pros: sentiment.pros,
       cons: sentiment.cons,
-      reviewSummary: sentiment.reviewSummary,
-      score: sentiment.sentimentScore
+      reviewSummary: sentiment.reviewSummary || 'No review summary available',
+      score: sentiment.sentimentScore ?? 5 // Default to neutral score if null
     };
 
-    // Step 4: Save to database
-    await upsertReviewToSupabase(completeReview);
+    // Filter out extra YouTube metadata fields that don't exist in reviews table
+    const {
+      title: videoTitle,
+      description: videoDescription,
+      thumbnails,
+      tags,
+      publishedAt,
+      ...reviewForDatabase
+    } = completeReview;
+
+    // Step 4: Save to database (only fields that exist in reviews table)
+    await upsertReviewToSupabase(reviewForDatabase);
 
     res.json({
       success: true,

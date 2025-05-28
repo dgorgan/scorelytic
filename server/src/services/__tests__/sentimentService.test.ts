@@ -44,7 +44,7 @@ describe('analyzeText', () => {
         { message: { content: '{}' } }
       ]
     });
-    await expect(analyzeText('bad')).rejects.toThrow('Malformed LLM response');
+    await expect(analyzeText('bad')).rejects.toThrow('LLM returned empty or invalid response');
   });
 
   it('throws on OpenAI error', async () => {

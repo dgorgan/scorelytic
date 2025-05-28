@@ -1,15 +1,15 @@
 import OpenAI from 'openai';
 
 export type SentimentResult = {
-  summary: string;
-  sentimentScore: number;
-  verdict: string;
-  sentimentSummary: string;
+  summary: string | null;
+  sentimentScore: number | null;
+  verdict: string | null;
+  sentimentSummary: string | null;
   biasIndicators: string[];
   alsoRecommends: string[];
   pros: string[];
   cons: string[];
-  reviewSummary: string;
+  reviewSummary: string | null;
 };
 
 export const getEmbedding = async (text: string, model: string = 'text-embedding-ada-002'): Promise<number[]> => {
@@ -92,15 +92,15 @@ export const analyzeText = async (
   if (process.env.DISABLE_OPENAI === 'true') {
     console.log('[LLM] OpenAI disabled via DISABLE_OPENAI env var');
     return {
-      summary: 'OpenAI disabled',
-      sentimentScore: 5,
-      verdict: 'mixed',
-      sentimentSummary: 'Neutral',
+      summary: null,
+      sentimentScore: null,
+      verdict: null,
+      sentimentSummary: null,
       biasIndicators: [],
       alsoRecommends: [],
       pros: [],
       cons: [],
-      reviewSummary: 'OpenAI API calls disabled'
+      reviewSummary: null
     };
   }
 
@@ -131,22 +131,28 @@ export const analyzeText = async (
     }
     llmResult = JSON.parse(content);
     console.debug('[LLM] SentimentService parsed result:', llmResult);
-    // Accept null for string/number fields and [] for arrays if not mentioned
-    const isStringOrNull = (v: unknown): boolean => typeof v === 'string' || v === null;
-    const isNumberOrNull = (v: unknown): boolean => typeof v === 'number' || v === null;
-    const isArray = (v: unknown): boolean => Array.isArray(v);
-    if (!isStringOrNull(llmResult.summary)) throw new Error('Malformed LLM response: summary');
-    if (!isNumberOrNull(llmResult.sentimentScore)) throw new Error('Malformed LLM response: sentimentScore');
-    if (!isStringOrNull(llmResult.verdict)) throw new Error('Malformed LLM response: verdict');
-    if (!isStringOrNull(llmResult.sentimentSummary)) throw new Error('Malformed LLM response: sentimentSummary');
-    if (!isArray(llmResult.biasIndicators)) throw new Error('Malformed LLM response: biasIndicators');
-    if (!isArray(llmResult.alsoRecommends)) throw new Error('Malformed LLM response: alsoRecommends');
-    if (!isArray(llmResult.pros)) throw new Error('Malformed LLM response: pros');
-    if (!isArray(llmResult.cons)) throw new Error('Malformed LLM response: cons');
-    if (!isStringOrNull(llmResult.reviewSummary)) throw new Error('Malformed LLM response: reviewSummary');
+    
+    // Provide defaults for missing fields and validate types
+    const result: SentimentResult = {
+      summary: llmResult.summary || null,
+      sentimentScore: typeof llmResult.sentimentScore === 'number' ? llmResult.sentimentScore : null,
+      verdict: llmResult.verdict || null,
+      sentimentSummary: llmResult.sentimentSummary || null,
+      biasIndicators: Array.isArray(llmResult.biasIndicators) ? llmResult.biasIndicators : [],
+      alsoRecommends: Array.isArray(llmResult.alsoRecommends) ? llmResult.alsoRecommends : [],
+      pros: Array.isArray(llmResult.pros) ? llmResult.pros : [],
+      cons: Array.isArray(llmResult.cons) ? llmResult.cons : [],
+      reviewSummary: llmResult.reviewSummary || null
+    };
+    
+    // Validate that we have at least some meaningful data
+    if (!result.summary && !result.sentimentScore && !result.verdict) {
+      throw new Error('LLM returned empty or invalid response');
+    }
+    
+    return result;
   } catch (err: any) {
     console.debug('[LLM] SentimentService error:', err);
     throw new Error(`OpenAI sentiment analysis failed: ${err.message || err}`);
   }
-  return llmResult;
 }; 
