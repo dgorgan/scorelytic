@@ -1,7 +1,7 @@
 import express from 'express';
 import request from 'supertest';
 
-jest.mock('../../services/sentiment', () => ({
+jest.mock('@/services/sentiment', () => ({
   analyzeSentiment: jest.fn(async (text: string) => ({
     summary: 'R',
     sentimentScore: 2,
@@ -9,7 +9,7 @@ jest.mock('../../services/sentiment', () => ({
   })),
 }));
 
-jest.mock('../../config/database', () => ({
+jest.mock('@/config/database', () => ({
   supabase: {
     from: jest.fn(() => ({
       select: jest.fn(() => ({

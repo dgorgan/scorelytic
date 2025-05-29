@@ -1,6 +1,6 @@
 import request from 'supertest';
 import express from 'express';
-import biasReportRoutes from '../../routes/biasReport';
+import biasReportRoutes from '@/routes/biasReport';
 
 jest.resetModules();
 
