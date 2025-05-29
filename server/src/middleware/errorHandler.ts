@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ApiResponse } from '@/shared/types/api';
+import logger from '../logger';
+import Sentry from '../sentry';
 
 export class ApiError extends Error {
   constructor(
@@ -13,11 +15,14 @@ export class ApiError extends Error {
 
 export function errorHandler(
   err: Error,
-  req: Request,
+  _req: Request,
   res: Response<ApiResponse<any>>,
-  next: NextFunction,
+  _next: NextFunction,
 ) {
-  console.error(err);
+  logger.error(err);
+  if (Sentry && typeof Sentry.captureException === 'function') {
+    Sentry.captureException(err);
+  }
 
   if (err instanceof ApiError) {
     return res.status(err.statusCode).json({
