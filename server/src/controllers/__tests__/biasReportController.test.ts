@@ -1,6 +1,6 @@
 import request from 'supertest';
 import express from 'express';
-import biasReportRoutes from '../routes/biasReport';
+import biasReportRoutes from '../../routes/biasReport';
 
 jest.resetModules();
 
@@ -37,7 +37,7 @@ describe('biasReportController', () => {
       },
     }));
     // Re-require after mocking
-    const biasReportRoutesReloaded = require('../routes/biasReport').default;
+    const biasReportRoutesReloaded = require('@/routes/biasReport').default;
     const appWithMock = express();
     appWithMock.use(express.json());
     appWithMock.use('/api/bias-report', biasReportRoutesReloaded);

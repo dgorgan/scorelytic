@@ -1,6 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import request from 'supertest';
-import { errorHandler } from './errorHandler';
+import { errorHandler } from '../errorHandler';
 
 describe('errorHandler middleware', () => {
   let app: express.Application;
