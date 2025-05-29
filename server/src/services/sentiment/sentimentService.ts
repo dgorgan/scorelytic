@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
-import logger from '../../logger';
+import logger from '@/logger';
 
 export type SentimentResult = {
   summary: string | null;

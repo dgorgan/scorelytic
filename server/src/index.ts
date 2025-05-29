@@ -1,5 +1,5 @@
-import app from './app';
-import logger from './logger';
+import app from '@/app';
+import logger from '@/logger';
 import * as Sentry from '@sentry/node';
 
 const PORT = process.env.PORT || 3001;

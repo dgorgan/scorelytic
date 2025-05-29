@@ -1,10 +1,10 @@
-import { supabase } from '../config/database';
-import { Game } from '../models/Game';
-import { Creator } from '../models/Creator';
-import { Review } from '../models/Review';
-import { toCamel, toSnake } from './caseMapping';
+import { supabase } from '@/config/database';
+import { Game } from '@/models/Game';
+import { Creator } from '@/models/Creator';
+import { Review } from '@/models/Review';
+import { toCamel, toSnake } from '@/utils/caseMapping';
 import { harmonizeBias } from '@/shared/utils/bias-harmonizer';
-import logger from '../logger';
+import logger from '@/logger';
 
 async function resetTables() {
   if (process.env.NODE_ENV === 'production') {

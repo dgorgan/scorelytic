@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ApiResponse } from '@/shared/types/api';
-import logger from '../logger';
-import Sentry from '../sentry';
+import logger from '@/logger';
+import Sentry from '@/sentry';
 
 export class ApiError extends Error {
   constructor(
