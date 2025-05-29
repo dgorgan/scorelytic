@@ -5,7 +5,6 @@
     "@next/next/no-html-link-for-pages": "off",
     "eol-last": ["error", "always"],
     "import/no-relative-parent-imports": "error",
-    "import/no-relative-parent-imports": "error",
     "no-unused-vars": "error"
   },
   "parserOptions": {
@@ -14,9 +13,9 @@
   },
   "overrides": [
     {
-      "files": ["client/app/**/*.{ts,tsx}", "server/src/**/*.{ts,tsx}"],
+      "files": ["client/app/**/*.{ts,tsx}", "server/src/**/*.{ts,tsx}", "shared/**/*.{ts,tsx}"],
       "parserOptions": {
-        "project": ["./client/tsconfig.json", "./server/tsconfig.json"]
+        "project": ["./client/tsconfig.json", "./server/tsconfig.json", "./shared/tsconfig.json"]
       }
     }
   ]
