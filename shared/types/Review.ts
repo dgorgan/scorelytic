@@ -13,4 +13,4 @@ export type Review = {
   transcript: string;
   reviewSummary: string;
   transcriptCost?: number;
-}; 
+};

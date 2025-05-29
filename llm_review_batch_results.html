@@ -1,26 +1,38 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>LLM Batch Test Results</title>
-  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-</head>
-<body>
-  <h1>LLM Batch Test Results</h1>
-  <div id="bar" style="width:600px;height:400px;"></div>
-  <div id="hist" style="width:600px;height:400px;"></div>
-  <script>
-    Plotly.newPlot('bar', [{
-      x: ["sentimentSummary","biasIndicators","reviewSummary"],
-      y: [15,16,15],
-      type: 'bar',
-      marker: { color: 'crimson' }
-    }], { title: 'Mismatches per Field' });
-    Plotly.newPlot('hist', [{
-      x: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-      type: 'histogram',
-      marker: { color: 'royalblue' }
-    }], { title: 'Similarity Score Histogram', xaxis: { title: 'Similarity' } });
-  </script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <title>LLM Batch Test Results</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  </head>
+  <body>
+    <h1>LLM Batch Test Results</h1>
+    <div id="bar" style="width: 600px; height: 400px"></div>
+    <div id="hist" style="width: 600px; height: 400px"></div>
+    <script>
+      Plotly.newPlot(
+        'bar',
+        [
+          {
+            x: ['sentimentSummary', 'biasIndicators', 'reviewSummary'],
+            y: [15, 16, 15],
+            type: 'bar',
+            marker: { color: 'crimson' },
+          },
+        ],
+        { title: 'Mismatches per Field' },
+      );
+      Plotly.newPlot(
+        'hist',
+        [
+          {
+            x: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            type: 'histogram',
+            marker: { color: 'royalblue' },
+          },
+        ],
+        { title: 'Similarity Score Histogram', xaxis: { title: 'Similarity' } },
+      );
+    </script>
+  </body>
 </html>

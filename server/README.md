@@ -3,6 +3,7 @@
 ## Seeding the Database
 
 1. Set your Supabase credentials in a `.env` file:
+
    - `SUPABASE_URL`
    - `SUPABASE_SERVICE_ROLE_KEY`
 
@@ -15,4 +16,4 @@
 
 ```sh
 npm test
-``` 
+```

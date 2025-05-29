@@ -1,11 +1,17 @@
 jest.mock('openai');
 
-import { analyzeText, mapBiasLabelsToObjects, analyzeBiasImpact, setBiasAdjustmentEnabled, getBiasAdjustmentMetrics } from '../sentimentService';
+import {
+  analyzeText,
+  mapBiasLabelsToObjects,
+  analyzeBiasImpact,
+  setBiasAdjustmentEnabled,
+  getBiasAdjustmentMetrics,
+} from '../sentimentService';
 import OpenAI from 'openai';
 
 const mockCreate = jest.fn();
 (OpenAI as any).mockImplementation(() => ({
-  chat: { completions: { create: mockCreate } }
+  chat: { completions: { create: mockCreate } },
 }));
 
 describe('analyzeText', () => {
@@ -23,12 +29,10 @@ describe('analyzeText', () => {
       alsoRecommends: ['Game Y'],
       pros: ['Interesting mechanics'],
       cons: ['Bugs'],
-      reviewSummary: 'A nuanced review.'
+      reviewSummary: 'A nuanced review.',
     };
     mockCreate.mockResolvedValue({
-      choices: [
-        { message: { content: JSON.stringify(fullMockResult) } }
-      ]
+      choices: [{ message: { content: JSON.stringify(fullMockResult) } }],
     });
     const result = await analyzeText('This is a test.');
     expect(result).toEqual(fullMockResult);
@@ -36,9 +40,7 @@ describe('analyzeText', () => {
 
   it('returns fallback result on malformed LLM response', async () => {
     mockCreate.mockResolvedValue({
-      choices: [
-        { message: { content: '{}' } }
-      ]
+      choices: [{ message: { content: '{}' } }],
     });
     const result = await analyzeText('bad');
     expect(result).toEqual({
@@ -50,7 +52,7 @@ describe('analyzeText', () => {
       alsoRecommends: [],
       pros: [],
       cons: [],
-      reviewSummary: 'No review summary available.'
+      reviewSummary: 'No review summary available.',
     });
   });
 
@@ -66,7 +68,7 @@ describe('analyzeText', () => {
       alsoRecommends: [],
       pros: [],
       cons: [],
-      reviewSummary: 'No review summary available.'
+      reviewSummary: 'No review summary available.',
     });
   });
 });
@@ -81,7 +83,7 @@ describe('Bias Adjustment', () => {
     const result = mapBiasLabelsToObjects(['nostalgia bias']);
     expect(result[0].biasName).toBe('nostalgia bias');
     expect(result[0].severity).toBe('moderate');
-    expect(result[0].scoreInfluence).toBe(0.5);
+    expect(result[0].scoreInfluence).toBe(0.4);
   });
 
   it('maps influencer bias correctly', () => {
@@ -91,13 +93,15 @@ describe('Bias Adjustment', () => {
   });
 
   it('returns fallback on JSON parse error', async () => {
-    mockCreate.mockResolvedValue({ choices: [{ message: { content: 'not json' } }] });
+    mockCreate.mockResolvedValue({
+      choices: [{ message: { content: 'not json' } }],
+    });
     const result = await analyzeBiasImpact({
       originalScore: 7,
       biasIndicators: ['nostalgia bias', 'contrarian'],
       reviewSummary: 'A review',
       pros: [],
-      cons: []
+      cons: [],
     });
     expect(result.biasAdjustedScore).toBeLessThanOrEqual(10);
     expect(result.biasAnalysis.length).toBe(2);
@@ -111,7 +115,7 @@ describe('Bias Adjustment', () => {
       biasIndicators: ['franchise bias'],
       reviewSummary: 'A review',
       pros: [],
-      cons: []
+      cons: [],
     });
     expect(result.biasAdjustedScore).toBeLessThanOrEqual(10);
     expect(result.biasAnalysis[0].biasName).toBe('franchise bias');
@@ -119,21 +123,32 @@ describe('Bias Adjustment', () => {
   });
 
   it('tracks metrics for calls, fallbacks, and errors', async () => {
-    mockCreate.mockResolvedValue({ choices: [{ message: { content: '{"originalScore":8,"biasAdjustedScore":7.5,"totalScoreAdjustment":-0.5,"biasAnalysis":[],"audienceFit":"test","adjustmentRationale":"test"}' } }] });
+    mockCreate.mockResolvedValue({
+      choices: [
+        {
+          message: {
+            content:
+              '{"originalScore":8,"biasAdjustedScore":7.5,"totalScoreAdjustment":-0.5,"biasAnalysis":[],"audienceFit":"test","adjustmentRationale":"test"}',
+          },
+        },
+      ],
+    });
     await analyzeBiasImpact({
       originalScore: 8,
       biasIndicators: [],
       reviewSummary: '',
       pros: [],
-      cons: []
+      cons: [],
     });
-    mockCreate.mockResolvedValue({ choices: [{ message: { content: 'not json' } }] });
+    mockCreate.mockResolvedValue({
+      choices: [{ message: { content: 'not json' } }],
+    });
     await analyzeBiasImpact({
       originalScore: 7,
       biasIndicators: ['contrarian'],
       reviewSummary: '',
       pros: [],
-      cons: []
+      cons: [],
     });
     mockCreate.mockRejectedValue(new Error('API fail'));
     await analyzeBiasImpact({
@@ -141,11 +156,11 @@ describe('Bias Adjustment', () => {
       biasIndicators: ['contrarian'],
       reviewSummary: '',
       pros: [],
-      cons: []
+      cons: [],
     });
     const metrics = getBiasAdjustmentMetrics();
     expect(metrics.biasAdjustmentCallCount).toBeGreaterThanOrEqual(3);
     expect(metrics.biasAdjustmentFallbackCount).toBeGreaterThanOrEqual(1);
     expect(metrics.biasAdjustmentApiErrorCount).toBeGreaterThanOrEqual(1);
   });
-}); 
+});

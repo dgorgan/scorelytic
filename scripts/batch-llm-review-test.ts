@@ -1,21 +1,28 @@
-import { supabase } from '../server/src/config/database';
-import { analyzeText, getEmbedding, UPDATED_LLM_PROMPT as DEFAULT_LLM_PROMPT, FEW_SHOT_EXAMPLES } from '../server/src/services/sentimentService';
-import { toCamel } from '../server/src/utils/caseMapping';
-import fs from 'fs';
+import { supabase } from '../server/src/config/database.ts';
+import {
+  analyzeText,
+  getEmbedding,
+  UPDATED_LLM_PROMPT as DEFAULT_LLM_PROMPT,
+  FEW_SHOT_EXAMPLES,
+} from '../server/src/services/sentiment/sentimentService.ts';
+import { toCamel } from '../server/src/utils/caseMapping.ts';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
-import { harmonizeBias } from '../shared/utils/bias-harmonizer';
+import { harmonizeBias } from '../shared/utils/bias-harmonizer.ts';
 import { createObjectCsvWriter } from 'csv-writer';
 
 const argv = yargs(hideBin(process.argv))
   .option('model', { type: 'string', default: 'gpt-3.5-turbo' })
   .option('prompt', { type: 'string', default: DEFAULT_LLM_PROMPT })
-  .option('fewshot', { type: 'boolean', default: false, description: 'Include few-shot examples in prompt' })
+  .option('fewshot', {
+    type: 'boolean',
+    default: false,
+    description: 'Include few-shot examples in prompt',
+  })
   .option('ignore', { type: 'array', default: [] })
   .option('embedding', { type: 'boolean', default: false })
   .option('strict', { type: 'boolean', default: false })
-  .option('lenient', { type: 'boolean', default: false })
-  .argv;
+  .option('lenient', { type: 'boolean', default: false }).argv;
 
 const main = async () => {
   const argvResolved = await argv;
@@ -29,7 +36,8 @@ const main = async () => {
     process.exit(1);
   }
   const reviews = toCamel(rawReviews || []);
-  let total = 0, mismatches = 0;
+  let total = 0,
+    mismatches = 0;
   const csvWriter = createObjectCsvWriter({
     path: 'llm_review_batch_results.csv',
     header: [
@@ -37,8 +45,8 @@ const main = async () => {
       { id: 'field', title: 'field' },
       { id: 'seed', title: 'seed' },
       { id: 'llm', title: 'llm' },
-      { id: 'similarity', title: 'similarity' }
-    ]
+      { id: 'similarity', title: 'similarity' },
+    ],
   });
   const csvRows: any[] = [];
   // Thresholds
@@ -47,16 +55,19 @@ const main = async () => {
   function jaccardSim(a: string, b: string) {
     const setA = new Set(a.toLowerCase().split(/\W+/).filter(Boolean));
     const setB = new Set(b.toLowerCase().split(/\W+/).filter(Boolean));
-    const intersection = new Set([...setA].filter(x => setB.has(x)));
+    const intersection = new Set([...setA].filter((x) => setB.has(x)));
     const union = new Set([...setA, ...setB]);
     return union.size === 0 ? 1 : intersection.size / union.size;
   }
   function arraySimilarity(a: string[], b: string[]) {
     if (a.length === 0 && b.length === 0) return 1.0;
     if (a.length === 0 || b.length === 0) return 0.0;
-    const simsA = a.map(itemA => Math.max(...b.map(itemB => jaccardSim(itemA, itemB))));
-    const simsB = b.map(itemB => Math.max(...a.map(itemA => jaccardSim(itemA, itemB))));
-    return (simsA.reduce((s, v) => s + v, 0) + simsB.reduce((s, v) => s + v, 0)) / (simsA.length + simsB.length);
+    const simsA = a.map((itemA) => Math.max(...b.map((itemB) => jaccardSim(itemA, itemB))));
+    const simsB = b.map((itemB) => Math.max(...a.map((itemA) => jaccardSim(itemA, itemB))));
+    return (
+      (simsA.reduce((s, v) => s + v, 0) + simsB.reduce((s, v) => s + v, 0)) /
+      (simsA.length + simsB.length)
+    );
   }
   function cosineSim(a: number[], b: number[]): number {
     const dot = a.reduce((sum, v, i) => sum + v * b[i], 0);
@@ -76,7 +87,13 @@ const main = async () => {
         });
         fullPrompt += '\nNow analyze the following transcript:';
       }
-      const llm = await analyzeText(review.transcript, model, fullPrompt, undefined, review.games?.title);
+      const llm = await analyzeText(
+        review.transcript,
+        model,
+        fullPrompt,
+        undefined,
+        review.games?.title,
+      );
       let hasMismatch = false;
       const fields = [
         'sentimentScore',
@@ -86,7 +103,7 @@ const main = async () => {
         'reviewSummary',
         'alsoRecommends',
         'pros',
-        'cons'
+        'cons',
       ];
       for (const field of fields) {
         if (ignore.includes(field)) continue;
@@ -106,10 +123,7 @@ const main = async () => {
             sim = jaccardSim(seedVal, llmVal);
             if (sim >= 0.5) sim = 1; // treat as match if above 0.5
           } else if (embedding && wordCountA + wordCountB > 10) {
-            const [embA, embB] = await Promise.all([
-              getEmbedding(seedVal),
-              getEmbedding(llmVal)
-            ]);
+            const [embA, embB] = await Promise.all([getEmbedding(seedVal), getEmbedding(llmVal)]);
             sim = cosineSim(embA, embB);
           } else {
             sim = jaccardSim(seedVal, llmVal);
@@ -124,7 +138,7 @@ const main = async () => {
           field,
           seed: seedVal === undefined || seedVal === null ? '' : JSON.stringify(seedVal),
           llm: llmVal === undefined || llmVal === null ? '' : JSON.stringify(llmVal),
-          similarity: sim.toFixed(2)
+          similarity: sim.toFixed(2),
         });
         if (sim < (Array.isArray(seedVal) ? arrayThresh : stringThresh)) hasMismatch = true;
       }
@@ -134,7 +148,9 @@ const main = async () => {
     }
   }
   await csvWriter.writeRecords(csvRows);
-  console.log(`\nBatch test complete. ${total} reviews processed. Results exported to llm_review_batch_results.csv`);
+  console.log(
+    `\nBatch test complete. ${total} reviews processed. Results exported to llm_review_batch_results.csv`,
+  );
 };
 
-main(); 
+main();

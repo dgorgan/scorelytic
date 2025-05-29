@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["jest"]
+  },
+  "include": [
+    "src/**/*.test.ts",
+    "../shared/types/**/*.ts",
+    "../shared/constants/**/*.ts",
+    "../shared/utils/**/*.ts"
+  ]
+}

@@ -17,7 +17,7 @@ for (const line of lines) {
 }
 
 const fields = Object.keys(fieldCounts);
-const counts = fields.map(f => fieldCounts[f]);
+const counts = fields.map((f) => fieldCounts[f]);
 
 const html = `<!DOCTYPE html>
 <html lang="en">
@@ -47,4 +47,4 @@ const html = `<!DOCTYPE html>
 </html>`;
 
 fs.writeFileSync(outPath, html);
-console.log('Visualization written to', outPath); 
+console.log('Visualization written to', outPath);

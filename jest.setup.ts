@@ -1,7 +1,10 @@
 import '@testing-library/jest-dom';
-require('openai/shims/node');
-const dotenv = require('dotenv');
-dotenv.config();
+
+(async () => {
+  const { default: dotenv } = await import('dotenv');
+  await dotenv.config();
+  await import('openai/shims/node');
+})();
 
 // Add ResizeObserver polyfill for Recharts
 global.ResizeObserver = jest.fn().mockImplementation(() => ({
@@ -30,4 +33,4 @@ jest.mock('@supabase/supabase-js', () => {
       })),
     })),
   };
-}); 
+});

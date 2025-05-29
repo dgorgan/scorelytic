@@ -25,12 +25,14 @@ export const fetchYouTubeVideoMetadata = async (videoId: string): Promise<YouTub
       params: {
         part: 'snippet,statistics',
         id: videoId,
-        key: apiKey
-      }
+        key: apiKey,
+      },
     });
 
     if (!response.data.items || response.data.items.length === 0) {
-      throw new Error(`No video found for ID: ${videoId}. Video may be private, deleted, or region-blocked.`);
+      throw new Error(
+        `No video found for ID: ${videoId}. Video may be private, deleted, or region-blocked.`,
+      );
     }
 
     const video = response.data.items[0];
@@ -38,7 +40,9 @@ export const fetchYouTubeVideoMetadata = async (videoId: string): Promise<YouTub
 
     // Check for age-restricted or private content
     if (!snippet) {
-      throw new Error(`Video ${videoId} is not accessible. It may be private, age-restricted, or deleted.`);
+      throw new Error(
+        `Video ${videoId} is not accessible. It may be private, age-restricted, or deleted.`,
+      );
     }
 
     return {
@@ -48,7 +52,7 @@ export const fetchYouTubeVideoMetadata = async (videoId: string): Promise<YouTub
       publishedAt: snippet.publishedAt || new Date().toISOString(),
       description: snippet.description || '',
       thumbnails: snippet.thumbnails || {},
-      tags: snippet.tags || []
+      tags: snippet.tags || [],
     };
   } catch (error: any) {
     if (error.response?.status === 403) {
@@ -69,7 +73,7 @@ export const fetchYouTubeVideoMetadata = async (videoId: string): Promise<YouTub
  */
 export const extractGameFromMetadata = (metadata: YouTubeVideoMetadata): string | null => {
   const { title, description, tags } = metadata;
-  
+
   // Common patterns for game reviews
   const patterns = [
     /^(.+?)\s+review/i, // "Game Title Review"
@@ -90,10 +94,11 @@ export const extractGameFromMetadata = (metadata: YouTubeVideoMetadata): string 
   // Try tags
   if (tags) {
     // Look for game-related tags
-    const gameTag = tags.find(tag => 
-      tag.toLowerCase().includes('game') || 
-      tag.toLowerCase().includes('review') ||
-      tag.length > 10 // Longer tags are often game titles
+    const gameTag = tags.find(
+      (tag) =>
+        tag.toLowerCase().includes('game') ||
+        tag.toLowerCase().includes('review') ||
+        tag.length > 10, // Longer tags are often game titles
     );
     if (gameTag) return gameTag;
   }
@@ -112,4 +117,4 @@ export const createSlug = (text: string): string => {
     .replace(/-+/g, '-')
     .replace(/^-+|-+$/g, '') // Remove leading/trailing dashes
     .trim();
-}; 
+};

@@ -3,20 +3,13 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "client/*"
-      ],
-      "shared/*": [
-        "../shared/*",
-        "../shared/*.ts"
-      ]
+      "@/*": ["./*"],
+      "@/shared/*": ["../shared/*"],
+      "@/services/*": ["services/*"],
+      "shared/*": ["../shared/*", "../shared/*.ts"]
     },
     "jsx": "preserve",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "noEmit": true,
     "incremental": true,

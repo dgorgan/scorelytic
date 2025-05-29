@@ -12,7 +12,7 @@ describe('Supabase Model Types', () => {
       releaseDate: '2023-01-01',
       metaCriticScore: 90,
       description: 'A test game',
-      contentCriticScore: 88
+      contentCriticScore: 88,
     };
     expect(game.title).toBe('Test Game');
   });
@@ -43,8 +43,8 @@ describe('Supabase Model Types', () => {
       alsoRecommends: [],
       createdAt: '2023-01-01T00:00:00Z',
       transcript: 'Test transcript',
-      reviewSummary: 'Test summary'
+      reviewSummary: 'Test summary',
     };
     expect(review.score).toBe(8.5);
   });
-}); 
+});

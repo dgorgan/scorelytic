@@ -1,5 +1,10 @@
 import axios from 'axios';
-import { fetchYouTubeVideoMetadata, extractGameFromMetadata, createSlug, YouTubeVideoMetadata } from '../youtubeApiService';
+import {
+  fetchYouTubeVideoMetadata,
+  extractGameFromMetadata,
+  createSlug,
+  YouTubeVideoMetadata,
+} from '../youtubeApiService';
 
 // Mock axios
 jest.mock('axios');
@@ -19,38 +24,37 @@ describe('YouTubeApiService', () => {
     it('should fetch video metadata successfully', async () => {
       const mockResponse = {
         data: {
-          items: [{
-            snippet: {
-              title: 'Elden Ring Review - Amazing Game!',
-              channelTitle: 'GameReviewer',
-              channelId: 'UC123456789',
-              publishedAt: '2022-02-25T00:00:00Z',
-              description: 'My review of Elden Ring',
-              thumbnails: {
-                default: { url: 'https://example.com/default.jpg' },
-                medium: { url: 'https://example.com/medium.jpg' },
-                high: { url: 'https://example.com/high.jpg' }
+          items: [
+            {
+              snippet: {
+                title: 'Elden Ring Review - Amazing Game!',
+                channelTitle: 'GameReviewer',
+                channelId: 'UC123456789',
+                publishedAt: '2022-02-25T00:00:00Z',
+                description: 'My review of Elden Ring',
+                thumbnails: {
+                  default: { url: 'https://example.com/default.jpg' },
+                  medium: { url: 'https://example.com/medium.jpg' },
+                  high: { url: 'https://example.com/high.jpg' },
+                },
+                tags: ['elden ring', 'review', 'gaming'],
               },
-              tags: ['elden ring', 'review', 'gaming']
-            }
-          }]
-        }
+            },
+          ],
+        },
       };
 
       mockedAxios.get.mockResolvedValue(mockResponse);
 
       const result = await fetchYouTubeVideoMetadata('test-video-id');
 
-      expect(mockedAxios.get).toHaveBeenCalledWith(
-        'https://www.googleapis.com/youtube/v3/videos',
-        {
-          params: {
-            part: 'snippet,statistics',
-            id: 'test-video-id',
-            key: 'test-api-key'
-          }
-        }
-      );
+      expect(mockedAxios.get).toHaveBeenCalledWith('https://www.googleapis.com/youtube/v3/videos', {
+        params: {
+          part: 'snippet,statistics',
+          id: 'test-video-id',
+          key: 'test-api-key',
+        },
+      });
 
       expect(result).toEqual({
         title: 'Elden Ring Review - Amazing Game!',
@@ -61,33 +65,36 @@ describe('YouTubeApiService', () => {
         thumbnails: {
           default: { url: 'https://example.com/default.jpg' },
           medium: { url: 'https://example.com/medium.jpg' },
-          high: { url: 'https://example.com/high.jpg' }
+          high: { url: 'https://example.com/high.jpg' },
         },
-        tags: ['elden ring', 'review', 'gaming']
+        tags: ['elden ring', 'review', 'gaming'],
       });
     });
 
     it('should throw error when API key is missing', async () => {
       delete process.env.YOUTUBE_API_KEY;
 
-      await expect(fetchYouTubeVideoMetadata('test-video-id'))
-        .rejects.toThrow('YouTube API key not configured');
+      await expect(fetchYouTubeVideoMetadata('test-video-id')).rejects.toThrow(
+        'YouTube API key not configured',
+      );
     });
 
     it('should throw error when video not found', async () => {
       mockedAxios.get.mockResolvedValue({ data: { items: [] } });
 
-      await expect(fetchYouTubeVideoMetadata('invalid-video-id'))
-        .rejects.toThrow('No video found for ID: invalid-video-id. Video may be private, deleted, or region-blocked.');
+      await expect(fetchYouTubeVideoMetadata('invalid-video-id')).rejects.toThrow(
+        'No video found for ID: invalid-video-id. Video may be private, deleted, or region-blocked.',
+      );
     });
 
     it('should handle API quota exceeded error', async () => {
       mockedAxios.get.mockRejectedValue({
-        response: { status: 403 }
+        response: { status: 403 },
       });
 
-      await expect(fetchYouTubeVideoMetadata('test-video-id'))
-        .rejects.toThrow('YouTube API quota exceeded. Please try again later.');
+      await expect(fetchYouTubeVideoMetadata('test-video-id')).rejects.toThrow(
+        'YouTube API quota exceeded. Please try again later.',
+      );
     });
   });
 
@@ -102,9 +109,9 @@ describe('YouTubeApiService', () => {
         thumbnails: {
           default: { url: '' },
           medium: { url: '' },
-          high: { url: '' }
+          high: { url: '' },
         },
-        tags: []
+        tags: [],
       };
 
       const result = extractGameFromMetadata(metadata);
@@ -121,9 +128,9 @@ describe('YouTubeApiService', () => {
         thumbnails: {
           default: { url: '' },
           medium: { url: '' },
-          high: { url: '' }
+          high: { url: '' },
         },
-        tags: []
+        tags: [],
       };
 
       const result = extractGameFromMetadata(metadata);
@@ -140,9 +147,9 @@ describe('YouTubeApiService', () => {
         thumbnails: {
           default: { url: '' },
           medium: { url: '' },
-          high: { url: '' }
+          high: { url: '' },
         },
-        tags: ['gaming', 'The Witcher 3: Wild Hunt', 'rpg']
+        tags: ['gaming', 'The Witcher 3: Wild Hunt', 'rpg'],
       };
 
       const result = extractGameFromMetadata(metadata);
@@ -159,9 +166,9 @@ describe('YouTubeApiService', () => {
         thumbnails: {
           default: { url: '' },
           medium: { url: '' },
-          high: { url: '' }
+          high: { url: '' },
         },
-        tags: ['music', 'fun']
+        tags: ['music', 'fun'],
       };
 
       const result = extractGameFromMetadata(metadata);
@@ -178,4 +185,4 @@ describe('YouTubeApiService', () => {
       expect(createSlug('---Multiple---Dashes---')).toBe('multiple-dashes');
     });
   });
-}); 
+});

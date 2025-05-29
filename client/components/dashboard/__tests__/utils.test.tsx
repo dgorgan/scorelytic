@@ -117,10 +117,10 @@ describe('Dashboard Utils', () => {
     });
 
     it('handles nested structures', () => {
-      const nested = { 
-        array: [1, 2, 3], 
+      const nested = {
+        array: [1, 2, 3],
         object: { nested: 'value' },
-        primitive: 'string'
+        primitive: 'string',
       };
       const result = displayCell(nested);
       expect(result).toContain('"array":[1,2,3]');
@@ -128,4 +128,4 @@ describe('Dashboard Utils', () => {
       expect(result).toContain('"primitive":"string"');
     });
   });
-}); 
+});
