@@ -25,5 +25,8 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
+      - run: npm run build --workspace=client
+      - run: npm run start --workspace=client &
+      - run: npx wait-on http://localhost:3000
       - run: npx playwright install --with-deps
       - run: npx playwright test client/test/e2e
