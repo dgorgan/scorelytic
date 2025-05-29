@@ -28,9 +28,24 @@ jobs:
       # Inject correct env vars for Next.js + Supabase
       - run: echo "NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321" >> client/.env
       - run: echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=dummy" >> client/.env
-      # If server-side tests need Supabase, add:
-      # - run: echo "SUPABASE_URL=http://localhost:54321" >> server/.env
-      # - run: echo "SUPABASE_SERVICE_ROLE_KEY=dummy" >> server/.env
+      - run: echo "SUPABASE_URL=http://localhost:54321" >> server/.env
+      - run: echo "SUPABASE_SERVICE_ROLE_KEY=dummy" >> server/.env
+      - run: echo "LOGTAIL_SOURCE_TOKEN=dummy" >> server/.env
+      - run: echo "SENTRY_DSN=dummy" >> server/.env
+      - run: echo "SENTRY_ENVIRONMENT=ci" >> server/.env
+      - run: echo "SENTRY_RELEASE=ci" >> server/.env
+      - run: echo "OPENAI_API_KEY=dummy" >> server/.env
+      - run: echo "DISABLE_OPENAI=true" >> server/.env
+      - run: echo "LLM_PROMPT_STYLE=DEFAULT" >> server/.env
+      - run: echo "PORT=5000" >> server/.env
+      - run: echo "YOUTUBE_API_KEY=dummy" >> server/.env
+      - run: echo "SENTRY_DSN=dummy" >> client/.env
+      - run: echo "SENTRY_ENVIRONMENT=ci" >> client/.env
+      - run: echo "SENTRY_RELEASE=ci" >> client/.env
+      - run: echo "SENTRY_ORG=scorelytic" >> client/.env
+      - run: echo "SENTRY_PROJECT=javascript-nextjs" >> client/.env
+      - run: echo "SENTRY_AUTH_TOKEN=dummy" >> client/.env
+      - run: echo "NEXT_PUBLIC_API_URL=http://localhost:5000" >> client/.env
       - run: npm run build --workspace=client
       - run: npm run start --workspace=client -- -p 4000 &
       - run: npx wait-on http://localhost:4000
