@@ -501,3 +501,40 @@ This is an internal tool for reviewing, validating, and overriding LLM sentiment
   }
 }
 ```
+
+## Logging & Error Tracking
+
+- **Sentry** is used for error and performance monitoring in both backend (Express) and frontend (Next.js).
+- **Logtail** is used for structured backend logging (JSON in prod, pretty in dev), powered by **Pino**.
+- All backend logs are structured (JSON), enabling log search, filtering, and analytics in Logtail.
+- Errors and exceptions are sent to Sentry with full context.
+- Example backend log (JSON):
+  ```json
+  {
+    "level": "info",
+    "service": "backend-api",
+    "msg": "Request completed",
+    "method": "POST",
+    "url": "/api/youtube/process",
+    "status": 200,
+    "durationMs": 12.49
+  }
+  ```
+- See `.cursorrules` for logging and error tracking policies.
+
+## Commit Message & Code Quality Enforcement
+
+- **Commit messages** are enforced via [commitlint](https://commitlint.js.org/) and [Husky](https://typicode.github.io/husky/):
+  - Conventional commit style (e.g. `feat:`, `fix:`, `chore:`)
+  - Max 100 characters
+  - No empty type or subject
+  - Enforced locally on every commit (see `.husky/commit-msg`)
+- **Code style** is enforced by ESLint (see `.eslintrc.json`), including alias import rules and no unused vars.
+- **Test coverage** is enforced (see `.cursorrules` for thresholds and policy).
+- **Tests** are colocated in `__tests__` folders and run via root `npm test` (monorepo Jest config).
+- See `.cursorrules` for all code quality and enforcement policies.
+
+## RESTful API Conventions
+
+- All backend routes follow RESTful naming (e.g. `/api/games`, `/api/reviews`).
+- See `DOCUMENTATION.MD` for full API spec.

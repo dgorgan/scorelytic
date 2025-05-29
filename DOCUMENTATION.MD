@@ -266,3 +266,26 @@ See `shared/types/biasReport.ts` for:
 - **Bias Details:** For users interested in why the score was adjusted.
 - **Cultural Context:** For analysts/creators—deep insights into cultural framing and ideological influence.
 - **Full Report:** For internal QA, model debugging, or full audit trail.
+
+## Commit Message & Code Quality Enforcement
+
+- All commit messages are checked by commitlint + Husky (conventional style, max 100 chars, no empty type/subject).
+- Husky v10+ hooks: no `husky.sh` sourcing, just shebang and commands.
+- Code style, test colocation, and alias import rules are enforced (see `.cursorrules`).
+- Test coverage thresholds are enforced (see `.cursorrules`).
+
+## Logging & Error Tracking
+
+- Sentry is used for error and performance monitoring (backend and frontend).
+- Logtail is used for structured backend logging, powered by **Pino** (JSON in prod, pretty in dev).
+- All backend logs are structured (JSON), enabling log search, filtering, and analytics in Logtail.
+- Errors and exceptions are sent to Sentry with full context.
+- Example backend log (JSON):
+  ```json
+  { "level": "info", "service": "backend-api", "msg": "Request completed", "method": "POST", "url": "/api/youtube/process", "status": 200, "durationMs": 12.49 }
+  ```
+
+## RESTful API Conventions
+
+- All backend routes use RESTful naming (e.g. `/api/games`, `/api/reviews`).
+- See API section above for details.
