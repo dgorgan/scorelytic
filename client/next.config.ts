@@ -13,11 +13,16 @@ const nextConfig: NextConfig = {
     };
     return config;
   },
+  productionBrowserSourceMaps: true,
+  experimental: {},
 };
 
 export default withSentryConfig(nextConfig, {
-  silent: true,
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
+  org: process.env.SENTRY_ORG || 'scorelytic',
+  project: process.env.SENTRY_PROJECT || 'javascript-nextjs',
   authToken: process.env.SENTRY_AUTH_TOKEN,
+  widenClientFileUpload: true,
+  disableLogger: true,
+  silent: !process.env.CI,
+  automaticVercelMonitors: true,
 });

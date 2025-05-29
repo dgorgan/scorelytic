@@ -11,7 +11,8 @@
     "test:watch": "jest --config jest.config.ts --watchAll",
     "start": "node dist/server.js",
     "dev": "ts-node-dev -r tsconfig-paths/register server.ts",
-    "clean": "rm -rf dist node_modules/.cache"
+    "clean": "rm -rf dist node_modules/.cache",
+    "build": "tsc -p tsconfig.json"
   },
   "keywords": [],
   "author": "",
@@ -20,7 +21,7 @@
     "@logtail/node": "^0.5.5",
     "@logtail/pino": "^0.5.5",
     "@scorelytic/shared": "*",
-    "@sentry/node": "^9.23.0",
+    "@sentry/node": "^8.19.0",
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",

@@ -7,24 +7,69 @@ on:
     branches: [main, develop, feature/*]
 
 jobs:
-  build:
+  build-and-sentry:
     runs-on: ubuntu-latest
+    env:
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+      SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+      SENTRY_RELEASE: ${{ github.sha }}
+      NEXT_PUBLIC_SENTRY_RELEASE: ${{ github.sha }}
+
     steps:
       - uses: actions/checkout@v3
+
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
+
       - name: Install root dependencies
         run: npm install
+
       - name: Install client dependencies
         run: cd client && npm install
+
+      - name: Install server dependencies
+        run: cd server && npm install
+
+      - name: Build client (Next.js)
+        run: |
+          cd client
+          npm run build
+
+      - name: Build server (tsc)
+        run: |
+          cd server
+          npm run build
+
+      - name: Upload client sourcemaps to Sentry
+        run: |
+          cd client
+          npx sentry-cli sourcemaps upload \
+            --org "$SENTRY_ORG" \
+            --project "$SENTRY_PROJECT" \
+            --release "$SENTRY_RELEASE" \
+            .next
+
+      - name: Upload server sourcemaps to Sentry
+        run: |
+          cd server
+          npx sentry-cli sourcemaps upload \
+            --org "$SENTRY_ORG" \
+            --project "$SENTRY_PROJECT" \
+            --release "$SENTRY_RELEASE" \
+            dist
+
       - name: Type check
         run: npm run check:types
+
       - name: Lint
         run: npm run lint
+
       - name: Test
         run: npm test
+
       - name: Check for accidental JS artifacts in src
         run: |
           if find server/src client/services client/test -type f \( -name '*.js' -o -name '*.js.map' -o -name '*.d.ts' \) ! -path '*/dist-server/*' ! -path '*/.next/*' | grep .; then

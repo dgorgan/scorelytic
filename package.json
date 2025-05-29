@@ -89,6 +89,8 @@
     "wait-on": "^8.0.3"
   },
   "dependencies": {
+    "@logtail/node": "^0.5.5",
+    "@logtail/pino": "^0.5.5",
     "@radix-ui/react-tooltip": "^1.2.7",
     "@supabase/gotrue-js": "^2.70.0",
     "@supabase/postgrest-js": "^1.19.4",

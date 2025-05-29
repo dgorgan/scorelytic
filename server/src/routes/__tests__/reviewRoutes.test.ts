@@ -35,7 +35,7 @@ import { getReviewMetadata } from '../../services/youtube/reviewMetadataService'
 describe('reviewRoutes', () => {
   const app = express();
   app.use(express.json());
-  app.use('/api/reviews', reviewRoutes);
+  app.use('/api/review', reviewRoutes);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -43,7 +43,7 @@ describe('reviewRoutes', () => {
   });
 
   it('returns sentiment for valid review', async () => {
-    const res = await request(app).post('/api/reviews/analyze').send({ reviewId: '1' });
+    const res = await request(app).post('/api/review/analyze').send({ reviewId: '1' });
     expect(res.status).toBe(200);
     expect(res.body).toEqual({
       success: true,
@@ -63,7 +63,7 @@ describe('reviewRoutes', () => {
     jest
       .spyOn(require('../../services/youtube/reviewMetadataService'), 'getReviewMetadata')
       .mockResolvedValueOnce(null);
-    const res = await request(app).post('/api/reviews/analyze').send({ reviewId: '404' });
+    const res = await request(app).post('/api/review/analyze').send({ reviewId: '404' });
     expect(res.status).toBe(404);
     expect(res.body).toEqual({ success: false, error: expect.any(String) });
   });
@@ -77,14 +77,14 @@ describe('reviewRoutes', () => {
         publishedAt: new Date().toISOString(),
         description: '',
       });
-    const res = await request(app).post('/api/reviews/analyze').send({ reviewId: '2' });
+    const res = await request(app).post('/api/review/analyze').send({ reviewId: '2' });
     expect(res.status).toBe(400);
     expect(res.body).toEqual({ success: false, error: expect.any(String) });
   });
 
   it('500s on analyzeSentiment error', async () => {
     (analyzeSentiment as jest.Mock).mockRejectedValueOnce(new Error('fail'));
-    const res = await request(app).post('/api/reviews/analyze').send({ reviewId: '1' });
+    const res = await request(app).post('/api/review/analyze').send({ reviewId: '1' });
     expect(res.status).toBe(500);
     expect(res.body).toEqual({
       success: false,
