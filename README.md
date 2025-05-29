@@ -192,7 +192,7 @@ Once the MVP is built and tested, we aim to enhance the platform with additional
    npm run dev
    ```
 
-   This will start both the client (http://localhost:3000) and server (http://localhost:5000) development servers concurrently.
+   This will start both the client (http://localhost:4000) and server (http://localhost:5000) development servers concurrently.
 
 ## Project Structure
 
