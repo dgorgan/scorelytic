@@ -53,12 +53,12 @@ export const displayCell = (val: unknown): string | React.ReactElement => {
   if (val === undefined || val === null || val === 'undefined' || val === 'null') {
     return <span className="text-gray-400 italic">N/A</span>;
   }
-  
+
   // Handle bigint by converting to string
   if (typeof val === 'bigint') {
     return val.toString();
   }
-  
+
   if (typeof val === 'string') {
     // Try to parse as array, even if not perfectly stringified
     if ((val.startsWith('[') && val.endsWith(']')) || (val.startsWith('{') && val.endsWith('}'))) {
@@ -74,14 +74,14 @@ export const displayCell = (val: unknown): string | React.ReactElement => {
     }
     return val;
   }
-  
+
   if (Array.isArray(val)) {
     return val.join(', ');
   }
-  
+
   if (typeof val === 'object') {
     return JSON.stringify(val);
   }
-  
+
   return String(val);
-}; 
+};

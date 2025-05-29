@@ -7,10 +7,14 @@ import { Result } from '../utils';
 // Mock Radix UI Tooltip
 jest.mock('@radix-ui/react-tooltip', () => ({
   Root: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  Trigger: ({ children, asChild }: { children: React.ReactNode; asChild?: boolean }) => <div>{children}</div>,
+  Trigger: ({ children, asChild }: { children: React.ReactNode; asChild?: boolean }) => (
+    <div>{children}</div>
+  ),
   Portal: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  Content: ({ children }: { children: React.ReactNode }) => <div data-testid="tooltip-content">{children}</div>,
-  Arrow: () => <div data-testid="tooltip-arrow" />
+  Content: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="tooltip-content">{children}</div>
+  ),
+  Arrow: () => <div data-testid="tooltip-arrow" />,
 }));
 
 describe('AdvancedTable', () => {
@@ -20,27 +24,27 @@ describe('AdvancedTable', () => {
       field: 'pros',
       seed: 'Great graphics',
       llm: 'Excellent visuals',
-      similarity: '0.85'
+      similarity: '0.85',
     },
     {
       reviewId: 'review-1',
       field: 'cons',
       seed: 'Too short',
       llm: 'Brief gameplay',
-      similarity: '0.75'
+      similarity: '0.75',
     },
     {
       reviewId: 'review-2',
       field: 'sentimentScore',
       seed: '',
       llm: '8',
-      similarity: '0.60'
-    }
+      similarity: '0.60',
+    },
   ];
 
   const mockProps = {
     filteredResults: mockResults,
-    onEditResult: jest.fn()
+    onEditResult: jest.fn(),
   };
 
   beforeEach(() => {
@@ -49,7 +53,7 @@ describe('AdvancedTable', () => {
 
   it('renders table with correct headers', () => {
     render(<AdvancedTable {...mockProps} />);
-    
+
     expect(screen.getByText('Review ID')).toBeInTheDocument();
     expect(screen.getByText('Field')).toBeInTheDocument();
     expect(screen.getByText('Seed')).toBeInTheDocument();
@@ -60,7 +64,7 @@ describe('AdvancedTable', () => {
 
   it('renders results correctly', () => {
     render(<AdvancedTable {...mockProps} />);
-    
+
     expect(screen.getAllByText('review-1')[0]).toBeInTheDocument();
     expect(screen.getByText('review-2')).toBeInTheDocument();
     expect(screen.getByText('pros')).toBeInTheDocument();
@@ -72,7 +76,7 @@ describe('AdvancedTable', () => {
 
   it('applies correct row styling for mismatches', () => {
     render(<AdvancedTable {...mockProps} />);
-    
+
     const rows = screen.getAllByRole('row');
     // First row is header, second is 0.85 (no mismatch), third is 0.75 (mismatch), fourth is 0.60 (mismatch)
     expect(rows[1]).toHaveClass('bg-white'); // 0.85 >= 0.8
@@ -82,17 +86,17 @@ describe('AdvancedTable', () => {
 
   it('displays similarity scores with correct styling', () => {
     render(<AdvancedTable {...mockProps} />);
-    
+
     const similarityValues = screen.getAllByText(/0\.\d{2}/);
-    
+
     // 0.85 should be green (good)
     expect(similarityValues[0]).toHaveClass('text-green-600');
     expect(similarityValues[0]).toHaveTextContent('0.85');
-    
+
     // 0.75 should be red (mismatch)
     expect(similarityValues[1]).toHaveClass('text-red-600', 'font-bold');
     expect(similarityValues[1]).toHaveTextContent('0.75');
-    
+
     // 0.60 should be red (mismatch)
     expect(similarityValues[2]).toHaveClass('text-red-600', 'font-bold');
     expect(similarityValues[2]).toHaveTextContent('0.60');
@@ -100,15 +104,15 @@ describe('AdvancedTable', () => {
 
   it('handles edit button clicks', () => {
     render(<AdvancedTable {...mockProps} />);
-    
+
     const editButtons = screen.getAllByText('Edit');
-    
+
     fireEvent.click(editButtons[0]);
     expect(mockProps.onEditResult).toHaveBeenCalledWith(0);
-    
+
     fireEvent.click(editButtons[1]);
     expect(mockProps.onEditResult).toHaveBeenCalledWith(1);
-    
+
     fireEvent.click(editButtons[2]);
     expect(mockProps.onEditResult).toHaveBeenCalledWith(2);
   });
@@ -116,14 +120,14 @@ describe('AdvancedTable', () => {
   it('handles empty results gracefully', () => {
     const emptyProps = {
       ...mockProps,
-      filteredResults: []
+      filteredResults: [],
     };
-    
+
     render(<AdvancedTable {...emptyProps} />);
-    
+
     expect(screen.getByText('Review ID')).toBeInTheDocument();
     expect(screen.getByText('Field')).toBeInTheDocument();
-    
+
     // Should only have header row
     const rows = screen.getAllByRole('row');
     expect(rows).toHaveLength(1);
@@ -136,31 +140,31 @@ describe('AdvancedTable', () => {
         field: 'field1',
         seed: 'seed1',
         llm: 'llm1',
-        similarity: '0.90'
+        similarity: '0.90',
       },
       {
         reviewId: 'review-2',
         field: 'field2',
         seed: 'seed2',
         llm: 'llm2',
-        similarity: '0.85'
+        similarity: '0.85',
       },
       {
         reviewId: 'review-3',
         field: 'field3',
         seed: 'seed3',
         llm: 'llm3',
-        similarity: '0.95'
-      }
+        similarity: '0.95',
+      },
     ];
-    
+
     const goodProps = {
       ...mockProps,
-      filteredResults: goodResults
+      filteredResults: goodResults,
     };
-    
+
     render(<AdvancedTable {...goodProps} />);
-    
+
     const rows = screen.getAllByRole('row');
     // Skip header row (index 0)
     expect(rows[1]).toHaveClass('bg-white'); // Even index (0)
@@ -170,7 +174,7 @@ describe('AdvancedTable', () => {
 
   it('renders tooltips for seed and LLM data', () => {
     render(<AdvancedTable {...mockProps} />);
-    
+
     // Should have tooltip content elements for seed and LLM columns
     expect(screen.getAllByTestId('tooltip-content')).toHaveLength(6);
   });
@@ -182,30 +186,30 @@ describe('AdvancedTable', () => {
         field: 'test',
         seed: 'test',
         llm: 'test',
-        similarity: '0.80' // Exactly at threshold
+        similarity: '0.80', // Exactly at threshold
       },
       {
         reviewId: 'review-edge2',
         field: 'test2',
         seed: 'test2',
         llm: 'test2',
-        similarity: '1.00' // Perfect match
-      }
+        similarity: '1.00', // Perfect match
+      },
     ];
-    
+
     const edgeProps = {
       ...mockProps,
-      filteredResults: edgeCaseResults
+      filteredResults: edgeCaseResults,
     };
-    
+
     render(<AdvancedTable {...edgeProps} />);
-    
+
     const similarityValues = screen.getAllByText(/[01]\.\d{2}/);
-    
+
     // 0.80 should be green (not a mismatch)
     expect(similarityValues[0]).toHaveClass('text-green-600');
     expect(similarityValues[0]).toHaveTextContent('0.80');
-    
+
     // 1.00 should be green
     expect(similarityValues[1]).toHaveClass('text-green-600');
     expect(similarityValues[1]).toHaveTextContent('1.00');
@@ -213,9 +217,9 @@ describe('AdvancedTable', () => {
 
   it('generates unique keys for table rows', () => {
     render(<AdvancedTable {...mockProps} />);
-    
+
     const rows = screen.getAllByRole('row');
     // Should render without React key warnings (no duplicate keys)
     expect(rows).toHaveLength(4); // 1 header + 3 data rows
   });
-}); 
+});

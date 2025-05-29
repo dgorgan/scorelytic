@@ -3,6 +3,7 @@
 ## ✅ Phase 1: MVP Web App
 
 ### 🎯 Core Features
+
 - [ ] Basic app shell and scaffolding
 - [ ] Landing page: list recently reviewed games
 - [ ] Game profile: `/games/[gameSlug]`
@@ -17,6 +18,7 @@
   - [ ] Display review tendencies or trends
 
 ### 🔧 Tech Setup
+
 - [x] Frontend: Next.js + Tailwind CSS
 - [x] Backend: Express, Next API routes, or Supabase
 - [x] Models: Prisma or SQL with slug support
@@ -67,6 +69,7 @@
 - [ ] YouTube metadata enrichment (video title, channel, etc.)
 
 ## 1. Core Sentiment & Review Pipeline (Complete)
+
 - [x] YouTube Data v3 integration
 - [x] Hybrid transcript (caption/audio) service
 - [x] OpenAI Whisper transcription
@@ -75,6 +78,7 @@
 - [x] 130+ tests passing
 
 ## 2. Bias-Aware Scoring & Transparency (Current)
+
 - [x] Implement bias detection in LLM pipeline
 - [x] Add pure TypeScript bias adjustment engine (`evaluateBiasImpact`)
 - [x] Show both raw sentiment and bias-adjusted scores
@@ -84,6 +88,7 @@
 - [x] Full test coverage for bias adjustment logic
 
 ## 3. Public-Facing UI & Discovery
+
 - [ ] Build homepage with latest games and updates
 - [ ] Game profile pages with aggregated sentiment
 - [ ] Creator profile pages
@@ -92,6 +97,7 @@
 - [ ] Game/review/creator search and analytics
 
 ## 4. Advanced Features & Analytics
+
 - [ ] Batch processing UI for multiple videos
 - [ ] Analytics dashboard for transcript costs
 - [ ] Video performance metrics (views, engagement vs sentiment)
@@ -99,6 +105,7 @@
 - [ ] Gaming-specific features (genre detection, trend analysis)
 
 ## 5. Production Readiness
+
 - [ ] Deploy to production
 - [ ] Monitoring/logging for API usage
 - [ ] Secure environment variables

@@ -12,6 +12,6 @@ export async function getReviewMetadata(reviewId: string): Promise<ReviewMetadat
     gameTitle: 'Sample Game',
     channelTitle: 'Game Reviewer',
     publishedAt: new Date().toISOString(),
-    description: 'This is a great game with excellent mechanics and engaging story.'
+    description: 'This is a great game with excellent mechanics and engaging story.',
   };
-} 
+}

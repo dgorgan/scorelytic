@@ -4,7 +4,7 @@ import fs from 'fs';
 const models = ['gpt-3.5-turbo', 'gpt-4'];
 const prompts = [
   undefined,
-  'Analyze the review and be as literal as possible. Use the exact words from the transcript for all fields.'
+  'Analyze the review and be as literal as possible. Use the exact words from the transcript for all fields.',
 ];
 const embedding = true;
 
@@ -32,29 +32,33 @@ for (const model of models) {
       prompt: prompt || 'default',
       total,
       totalMismatch,
-      fieldCounts
+      fieldCounts,
     });
   }
 }
 
 // Output summary CSV
-const outRows = [
-  'model,prompt,field,total_mismatches,total_comparisons'
-];
+const outRows = ['model,prompt,field,total_mismatches,total_comparisons'];
 for (const result of sweepResults) {
   for (const field of Object.keys(result.fieldCounts)) {
-    outRows.push(`${result.model},${JSON.stringify(result.prompt)},${field},${result.fieldCounts[field]},${result.total}`);
+    outRows.push(
+      `${result.model},${JSON.stringify(result.prompt)},${field},${result.fieldCounts[field]},${result.total}`,
+    );
   }
 }
 fs.writeFileSync('llm_review_sweep_summary.csv', outRows.join('\n'));
 
 // Print best config per field
-const fieldBest: Record<string, { model: string, prompt: string, mismatches: number }> = {};
+const fieldBest: Record<string, { model: string; prompt: string; mismatches: number }> = {};
 for (const result of sweepResults) {
   for (const field of Object.keys(result.fieldCounts)) {
     const mismatches = result.fieldCounts[field];
     if (!fieldBest[field] || mismatches < fieldBest[field].mismatches) {
-      fieldBest[field] = { model: result.model, prompt: result.prompt, mismatches };
+      fieldBest[field] = {
+        model: result.model,
+        prompt: result.prompt,
+        mismatches,
+      };
     }
   }
 }
@@ -69,4 +73,6 @@ let best = sweepResults[0];
 for (const result of sweepResults) {
   if (result.totalMismatch < best.totalMismatch) best = result;
 }
-console.log(`\nBest overall: ${best.model} | ${best.prompt} | total mismatches: ${best.totalMismatch}`); 
+console.log(
+  `\nBest overall: ${best.model} | ${best.prompt} | total mismatches: ${best.totalMismatch}`,
+);

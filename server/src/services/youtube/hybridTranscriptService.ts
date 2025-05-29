@@ -22,11 +22,11 @@ export interface HybridTranscriptOptions extends TranscriptionOptions {
  */
 export const getHybridTranscript = async (
   videoId: string,
-  options: HybridTranscriptOptions = {}
+  options: HybridTranscriptOptions = {},
 ): Promise<HybridTranscriptResult> => {
   const {
     allowAudioFallback = true,
-    maxCostUSD = 1.00,
+    maxCostUSD = 1.0,
     language = 'en',
     ...transcriptionOptions
   } = options;
@@ -38,14 +38,14 @@ export const getHybridTranscript = async (
   try {
     debug.push(`[HYBRID] Attempting captions for ${videoId}`);
     const transcript = await fetchYoutubeCaptions(videoId, language);
-    
+
     if (transcript && transcript.trim().length > 0) {
       debug.push(`[HYBRID] ✅ Captions successful: ${transcript.length} characters`);
       return {
         transcript,
         method: 'captions',
         cost: 0,
-        debug
+        debug,
       };
     }
   } catch (error: any) {
@@ -59,7 +59,7 @@ export const getHybridTranscript = async (
       transcript: '',
       method: 'none',
       error: 'No captions available and audio fallback disabled',
-      debug
+      debug,
     };
   }
 
@@ -69,7 +69,9 @@ export const getHybridTranscript = async (
     const duration = await audioService.getVideoDuration(videoId);
     const estimatedCost = audioService.estimateTranscriptionCost(duration);
 
-    debug.push(`[HYBRID] Video duration: ${duration} minutes, estimated cost: $${estimatedCost.toFixed(3)}`);
+    debug.push(
+      `[HYBRID] Video duration: ${duration} minutes, estimated cost: $${estimatedCost.toFixed(3)}`,
+    );
 
     // Cost check
     if (estimatedCost > maxCostUSD) {
@@ -80,30 +82,32 @@ export const getHybridTranscript = async (
         duration,
         cost: estimatedCost,
         error: `Video too expensive to transcribe: $${estimatedCost.toFixed(3)} (max: $${maxCostUSD})`,
-        debug
+        debug,
       };
     }
 
     // Proceed with audio transcription
     debug.push(`[HYBRID] Attempting audio transcription for ${videoId}`);
-    const transcript = await audioService.transcribeYouTubeAudio(videoId, { ...transcriptionOptions, language });
-    
+    const transcript = await audioService.transcribeYouTubeAudio(videoId, {
+      ...transcriptionOptions,
+      language,
+    });
+
     debug.push(`[HYBRID] ✅ Audio transcription successful: ${transcript.length} characters`);
     return {
       transcript,
       method: 'audio',
       duration,
       cost: estimatedCost,
-      debug
+      debug,
     };
-
   } catch (error: any) {
     debug.push(`[HYBRID] ❌ Audio transcription failed: ${error.message}`);
     return {
       transcript: '',
       method: 'none',
       error: `Both captions and audio transcription failed: ${error.message}`,
-      debug
+      debug,
     };
   }
 };
@@ -113,13 +117,15 @@ export const getHybridTranscript = async (
  */
 export const getHybridTranscriptBatch = async (
   videoIds: string[],
-  options: HybridTranscriptOptions = {}
+  options: HybridTranscriptOptions = {},
 ): Promise<Record<string, HybridTranscriptResult>> => {
   const results: Record<string, HybridTranscriptResult> = {};
   let totalCost = 0;
-  const maxBatchCost = options.maxCostUSD || 10.00; // Default $10 max per batch
+  const maxBatchCost = options.maxCostUSD || 10.0; // Default $10 max per batch
 
-  console.log(`[HYBRID] Starting batch processing for ${videoIds.length} videos (max cost: $${maxBatchCost})`);
+  console.log(
+    `[HYBRID] Starting batch processing for ${videoIds.length} videos (max cost: $${maxBatchCost})`,
+  );
 
   for (const videoId of videoIds) {
     if (totalCost >= maxBatchCost) {
@@ -127,7 +133,7 @@ export const getHybridTranscriptBatch = async (
       results[videoId] = {
         transcript: '',
         method: 'none',
-        error: 'Batch cost limit reached'
+        error: 'Batch cost limit reached',
       };
       continue;
     }
@@ -135,23 +141,24 @@ export const getHybridTranscriptBatch = async (
     try {
       const result = await getHybridTranscript(videoId, {
         ...options,
-        maxCostUSD: Math.min(options.maxCostUSD || 1.00, maxBatchCost - totalCost)
+        maxCostUSD: Math.min(options.maxCostUSD || 1.0, maxBatchCost - totalCost),
       });
-      
+
       results[videoId] = result;
       totalCost += result.cost || 0;
-      
-      console.log(`[HYBRID] ${videoId}: ${result.method} (cost: $${(result.cost || 0).toFixed(3)}, total: $${totalCost.toFixed(3)})`);
-      
+
+      console.log(
+        `[HYBRID] ${videoId}: ${result.method} (cost: $${(result.cost || 0).toFixed(3)}, total: $${totalCost.toFixed(3)})`,
+      );
     } catch (error: any) {
       results[videoId] = {
         transcript: '',
         method: 'none',
-        error: error.message
+        error: error.message,
       };
     }
   }
 
   console.log(`[HYBRID] Batch complete. Total cost: $${totalCost.toFixed(3)}`);
   return results;
-}; 
+};

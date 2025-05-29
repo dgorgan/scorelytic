@@ -5,4 +5,4 @@ const router = Router();
 
 router.post('/generate', biasReportController.generateReport);
 
-export default router; 
+export default router;

@@ -5,4 +5,4 @@ const router = Router();
 
 router.post('/analyze', reviewController.analyzeReview);
 
-export default router; 
+export default router;

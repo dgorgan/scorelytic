@@ -1,6 +1,13 @@
 import { Request, Response } from 'express';
-import { normalizeYoutubeToReview, upsertReviewToSupabase } from '@/services/youtube/captionIngestService';
-import { fetchYouTubeVideoMetadata, extractGameFromMetadata, createSlug } from '@/services/youtube/youtubeApiService';
+import {
+  normalizeYoutubeToReview,
+  upsertReviewToSupabase,
+} from '@/services/youtube/captionIngestService';
+import {
+  fetchYouTubeVideoMetadata,
+  extractGameFromMetadata,
+  createSlug,
+} from '@/services/youtube/youtubeApiService';
 import { getHybridTranscript } from '@/services/youtube/hybridTranscriptService';
 import { analyzeTextWithBiasAdjustmentFull } from '@/services/sentiment';
 import { supabase } from '@/config/database';
@@ -8,7 +15,10 @@ import { supabase } from '@/config/database';
 const flattenSentiment = (obj: any) => {
   if (!obj) return {};
   if (obj.sentiment && typeof obj.sentiment === 'object') {
-    return { ...obj.sentiment, ...Object.fromEntries(Object.entries(obj).filter(([k]) => k !== 'sentiment')) };
+    return {
+      ...obj.sentiment,
+      ...Object.fromEntries(Object.entries(obj).filter(([k]) => k !== 'sentiment')),
+    };
   }
   return obj;
 };
@@ -26,7 +36,7 @@ const normalizeSentiment = (obj: any) => ({
   biasDetection: obj.biasDetection ?? obj.bias_detection ?? {},
   biasAdjustment: obj.biasAdjustment ?? obj.bias_adjustment ?? {},
   sentimentSnapshot: obj.sentimentSnapshot ?? obj.sentiment_snapshot ?? {},
-  culturalContext: obj.culturalContext ?? obj.cultural_context ?? {}
+  culturalContext: obj.culturalContext ?? obj.cultural_context ?? {},
 });
 
 const processYouTubeVideo = async (videoId: string) => {
@@ -36,8 +46,8 @@ const processYouTubeVideo = async (videoId: string) => {
   const creatorSlug = createSlug(metadata.channelTitle);
   const transcriptResult = await getHybridTranscript(videoId, {
     allowAudioFallback: true,
-    maxCostUSD: 0.50,
-    maxDurationMinutes: 20
+    maxCostUSD: 0.5,
+    maxDurationMinutes: 20,
   });
   const review = await normalizeYoutubeToReview({
     videoId,
@@ -47,7 +57,7 @@ const processYouTubeVideo = async (videoId: string) => {
     gameTitle: extractedGameTitle || metadata.title,
     creatorName: metadata.channelTitle,
     channelUrl: `https://www.youtube.com/channel/${metadata.channelId}`,
-    publishedAt: metadata.publishedAt
+    publishedAt: metadata.publishedAt,
   });
   return {
     ...review,
@@ -59,7 +69,7 @@ const processYouTubeVideo = async (videoId: string) => {
     transcriptMethod: transcriptResult.method,
     transcriptCost: transcriptResult.cost,
     transcriptError: transcriptResult.error,
-    transcriptDebug: transcriptResult.debug
+    transcriptDebug: transcriptResult.debug,
   };
 };
 
@@ -91,13 +101,13 @@ export const youtubeController = {
             creatorName: existingReview.creator_name,
             videoTitle: existingReview.title,
             channelTitle: existingReview.channel_title,
-            publishedAt: existingReview.published_at
+            publishedAt: existingReview.published_at,
           },
           transcript: {
             method: existingReview.transcript_method,
             cost: existingReview.transcript_cost,
-            length: existingReview.transcript ? existingReview.transcript.length : 0
-          }
+            length: existingReview.transcript ? existingReview.transcript.length : 0,
+          },
         });
       }
       const review = await processYouTubeVideo(videoId);
@@ -109,32 +119,34 @@ export const youtubeController = {
           undefined,
           undefined,
           review.title,
-          review.title
+          review.title,
         );
         sentiment = normalizeSentiment(flattenSentiment(llmResult));
       } else {
-        sentiment = normalizeSentiment(flattenSentiment({
-          summary: '',
-          sentimentScore: 0,
-          verdict: '',
-          sentimentSummary: '',
-          biasIndicators: [],
-          alsoRecommends: [],
-          pros: [],
-          cons: [],
-          reviewSummary: '',
-          biasDetection: {},
-          biasAdjustment: {},
-          sentimentSnapshot: {},
-          culturalContext: {}
-        }));
+        sentiment = normalizeSentiment(
+          flattenSentiment({
+            summary: '',
+            sentimentScore: 0,
+            verdict: '',
+            sentimentSummary: '',
+            biasIndicators: [],
+            alsoRecommends: [],
+            pros: [],
+            cons: [],
+            reviewSummary: '',
+            biasDetection: {},
+            biasAdjustment: {},
+            sentimentSnapshot: {},
+            culturalContext: {},
+          }),
+        );
       }
-      const isValidSentiment = sentiment && (
-        sentiment.sentimentScore !== 0 ||
-        (sentiment.summary && sentiment.summary.trim().length > 0) ||
-        (sentiment.pros && sentiment.pros.length > 0) ||
-        (sentiment.cons && sentiment.cons.length > 0)
-      );
+      const isValidSentiment =
+        sentiment &&
+        (sentiment.sentimentScore !== 0 ||
+          (sentiment.summary && sentiment.summary.trim().length > 0) ||
+          (sentiment.pros && sentiment.pros.length > 0) ||
+          (sentiment.cons && sentiment.cons.length > 0));
       if (review.transcript && review.transcript.trim().length > 0 && isValidSentiment) {
         const {
           title: videoTitle,
@@ -159,20 +171,20 @@ export const youtubeController = {
           creatorName: (review as any).creatorName || '',
           videoTitle: review.title,
           channelTitle: (review as any).channelTitle || (review as any).creatorName || '',
-          publishedAt: review.publishedAt
+          publishedAt: review.publishedAt,
         },
         transcript: {
           method: review.transcriptMethod,
           cost: review.transcriptCost,
           length: review.transcript ? review.transcript.length : 0,
           error: review.transcriptError,
-          debug: review.transcriptDebug
-        }
+          debug: review.transcriptDebug,
+        },
       });
     } catch (error: any) {
       res.status(500).json({
-        error: error.message || 'Failed to process YouTube video'
+        error: error.message || 'Failed to process YouTube video',
       });
     }
-  }
-}; 
+  },
+};

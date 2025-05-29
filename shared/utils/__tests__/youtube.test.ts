@@ -1,4 +1,9 @@
-import { extractVideoId, isValidVideoId, createYouTubeUrl, createThumbnailUrl } from '@/shared/utils/youtube';
+import {
+  extractVideoId,
+  isValidVideoId,
+  createYouTubeUrl,
+  createThumbnailUrl,
+} from '@/shared/utils/youtube';
 
 describe('extractVideoId', () => {
   it('returns null for empty or invalid input', () => {
@@ -41,12 +46,22 @@ describe('createYouTubeUrl', () => {
 
 describe('createThumbnailUrl', () => {
   it('creates correct thumbnail URLs for all qualities', () => {
-    expect(createThumbnailUrl('dQw4w9WgXcQ', 'default')).toBe('https://i.ytimg.com/vi/dQw4w9WgXcQ/default.jpg');
-    expect(createThumbnailUrl('dQw4w9WgXcQ', 'medium')).toBe('https://i.ytimg.com/vi/dQw4w9WgXcQ/mqdefault.jpg');
-    expect(createThumbnailUrl('dQw4w9WgXcQ', 'high')).toBe('https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg');
-    expect(createThumbnailUrl('dQw4w9WgXcQ', 'maxres')).toBe('https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg');
+    expect(createThumbnailUrl('dQw4w9WgXcQ', 'default')).toBe(
+      'https://i.ytimg.com/vi/dQw4w9WgXcQ/default.jpg',
+    );
+    expect(createThumbnailUrl('dQw4w9WgXcQ', 'medium')).toBe(
+      'https://i.ytimg.com/vi/dQw4w9WgXcQ/mqdefault.jpg',
+    );
+    expect(createThumbnailUrl('dQw4w9WgXcQ', 'high')).toBe(
+      'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg',
+    );
+    expect(createThumbnailUrl('dQw4w9WgXcQ', 'maxres')).toBe(
+      'https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
+    );
   });
   it('defaults to medium quality', () => {
-    expect(createThumbnailUrl('dQw4w9WgXcQ')).toBe('https://i.ytimg.com/vi/dQw4w9WgXcQ/mqdefault.jpg');
+    expect(createThumbnailUrl('dQw4w9WgXcQ')).toBe(
+      'https://i.ytimg.com/vi/dQw4w9WgXcQ/mqdefault.jpg',
+    );
   });
-}); 
+});

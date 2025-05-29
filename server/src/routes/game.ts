@@ -6,4 +6,4 @@ const router = Router();
 router.get('/', gameController.getGames);
 router.get('/:id', gameController.getGameById);
 
-export default router; 
+export default router;

@@ -4,4 +4,4 @@ const router = Router();
 
 // TODO: Implement creator routes
 
-export default router; 
+export default router;

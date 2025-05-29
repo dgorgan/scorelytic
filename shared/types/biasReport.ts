@@ -33,4 +33,4 @@ export type FullBiasReport = {
     bias_adjusted_score: number;
     score_context_note: string;
   };
-}; 
+};

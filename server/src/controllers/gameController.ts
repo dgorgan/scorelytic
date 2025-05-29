@@ -2,7 +2,10 @@ import { Request, Response } from 'express';
 import { supabase } from '@/config/database';
 
 const getGames = (req: Request, res: Response) => {
-  res.status(200).json([{ id: 1, title: 'Game 1' }, { id: 2, title: 'Game 2' }]);
+  res.status(200).json([
+    { id: 1, title: 'Game 1' },
+    { id: 2, title: 'Game 2' },
+  ]);
 };
 
 const getGameById = async (req: Request, res: Response) => {
@@ -42,7 +45,7 @@ const getGameById = async (req: Request, res: Response) => {
   const creatorMap = Object.fromEntries(creators.map((c: any) => [c.id, c]));
   const reviewsWithCreators = reviews.map((r: any) => ({
     ...r,
-    creator: creatorMap[r.creatorId] || null
+    creator: creatorMap[r.creatorId] || null,
   }));
   // Sentiment summary
   const avgScore = reviews.length
@@ -53,11 +56,11 @@ const getGameById = async (req: Request, res: Response) => {
     game,
     reviews: reviewsWithCreators,
     averageSentimentScore: avgScore,
-    sentimentSummaries
+    sentimentSummaries,
   });
 };
 
 export const gameController = {
   getGames,
-  getGameById
+  getGameById,
 };

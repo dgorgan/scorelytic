@@ -50,7 +50,14 @@ describe('validateInput', () => {
   });
 
   it('returns true for multiple valid fields', () => {
-    expect(validateInput({ text: 'hi', sentimentScore: 0.5, biasIndicators: ['b'], reviewId: 'id1' })).toBe(true);
+    expect(
+      validateInput({
+        text: 'hi',
+        sentimentScore: 0.5,
+        biasIndicators: ['b'],
+        reviewId: 'id1',
+      }),
+    ).toBe(true);
   });
 
   it('returns false if any field is invalid', () => {
@@ -58,4 +65,4 @@ describe('validateInput', () => {
     expect(validateInput({ text: '', reviewId: 'id1' })).toBe(false);
     expect(validateInput({ biasIndicators: [], reviewId: 'id1' })).toBe(false);
   });
-}); 
+});

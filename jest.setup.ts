@@ -33,4 +33,4 @@ jest.mock('@supabase/supabase-js', () => {
       })),
     })),
   };
-}); 
+});

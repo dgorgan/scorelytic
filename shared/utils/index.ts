@@ -1,3 +1,3 @@
 export * from './youtube';
 export * from './biasAdjustment';
-export * from './bias-harmonizer'; 
+export * from './bias-harmonizer';

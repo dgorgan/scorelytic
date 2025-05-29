@@ -5,4 +5,4 @@ const router = Router();
 
 router.post('/analyze', sentimentController.analyze);
 
-export default router; 
+export default router;

@@ -7,7 +7,10 @@ import { analyzeSentiment } from '@/services/sentiment';
 import { getReviewMetadata } from '@/services/youtube/reviewMetadataService';
 
 export const reviewController = {
-  analyzeReview: async (req: Request<{}, {}, ReviewAnalysisRequest>, res: Response<ApiResponse<ReviewAnalysisResponse>>) => {
+  analyzeReview: async (
+    req: Request<{}, {}, ReviewAnalysisRequest>,
+    res: Response<ApiResponse<ReviewAnalysisResponse>>,
+  ) => {
     try {
       const { reviewId } = req.body;
 
@@ -15,24 +18,24 @@ export const reviewController = {
       if (!validateInput({ reviewId })) {
         return res.status(400).json({
           success: false,
-          error: 'Invalid input: reviewId must be a valid string'
+          error: 'Invalid input: reviewId must be a valid string',
         });
       }
 
       // Get review metadata from YouTube
       const metadata = await getReviewMetadata(reviewId);
-      
+
       if (!metadata) {
         return res.status(404).json({
           success: false,
-          error: 'Review not found'
+          error: 'Review not found',
         });
       }
 
       if (!metadata.description || metadata.description.trim().length === 0) {
         return res.status(400).json({
           success: false,
-          error: 'No transcript/description available for this review'
+          error: 'No transcript/description available for this review',
         });
       }
 
@@ -47,15 +50,15 @@ export const reviewController = {
           metadata: {
             gameTitle: metadata.gameTitle,
             creatorName: metadata.channelTitle,
-            publishedAt: metadata.publishedAt
-          }
-        }
+            publishedAt: metadata.publishedAt,
+          },
+        },
       });
     } catch (error: any) {
       return res.status(500).json({
         success: false,
-        error: error.message || 'Failed to analyze review'
+        error: error.message || 'Failed to analyze review',
       });
     }
-  }
+  },
 };

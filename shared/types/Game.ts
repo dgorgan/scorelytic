@@ -7,4 +7,4 @@ export type Game = {
   releaseDate: string; // ISO date
   metaCriticScore: number | null;
   contentCriticScore: number | null;
-}; 
+};

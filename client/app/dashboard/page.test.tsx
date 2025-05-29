@@ -19,7 +19,7 @@ jest.mock('@/services/supabase', () => ({
       upsert: jest.fn().mockResolvedValue({ data: null, error: null }),
       then: jest.fn().mockResolvedValue({ data: [], error: null }),
     })),
-  }
+  },
 }));
 
 // Mock fetch
@@ -34,19 +34,19 @@ jest.mock('papaparse', () => ({
         field: 'pros',
         seed: 'Great graphics',
         llm: 'Excellent visuals',
-        similarity: '0.85'
+        similarity: '0.85',
       },
       {
         reviewId: 'review-1',
         field: 'cons',
         seed: 'Too short',
         llm: 'Brief gameplay',
-        similarity: '0.75'
-      }
+        similarity: '0.75',
+      },
     ],
-    errors: []
+    errors: [],
   })),
-  unparse: jest.fn(() => 'mocked,csv,data')
+  unparse: jest.fn(() => 'mocked,csv,data'),
 }));
 
 // Mock Recharts components
@@ -61,31 +61,38 @@ jest.mock('recharts', () => ({
   XAxis: () => <div data-testid="recharts-xaxis" />,
   YAxis: () => <div data-testid="recharts-yaxis" />,
   CartesianGrid: () => <div data-testid="recharts-grid" />,
-  Tooltip: () => <div data-testid="recharts-tooltip" />
+  Tooltip: () => <div data-testid="recharts-tooltip" />,
 }));
 
 // Mock Radix UI Tooltip
 jest.mock('@radix-ui/react-tooltip', () => ({
   Provider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   Root: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  Trigger: ({ children, asChild }: { children: React.ReactNode; asChild?: boolean }) => <div>{children}</div>,
+  Trigger: ({ children, asChild }: { children: React.ReactNode; asChild?: boolean }) => (
+    <div>{children}</div>
+  ),
   Portal: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  Content: ({ children }: { children: React.ReactNode }) => <div data-testid="tooltip-content">{children}</div>,
-  Arrow: () => <div data-testid="tooltip-arrow" />
+  Content: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="tooltip-content">{children}</div>
+  ),
+  Arrow: () => <div data-testid="tooltip-arrow" />,
 }));
 
 describe('Dashboard', () => {
   beforeEach(() => {
     (fetch as jest.Mock).mockResolvedValue({
       ok: true,
-      text: () => Promise.resolve('reviewId,field,seed,llm,similarity\nreview-1,pros,Great graphics,Excellent visuals,0.85')
+      text: () =>
+        Promise.resolve(
+          'reviewId,field,seed,llm,similarity\nreview-1,pros,Great graphics,Excellent visuals,0.85',
+        ),
     });
 
     // Mock Supabase calls
     const mockSupabase = require('@/services/supabase').supabase;
     mockSupabase.from.mockReturnValue({
       select: jest.fn().mockResolvedValue({ data: [], error: null }),
-      upsert: jest.fn().mockResolvedValue({ data: null, error: null })
+      upsert: jest.fn().mockResolvedValue({ data: null, error: null }),
     });
   });
 
@@ -95,7 +102,7 @@ describe('Dashboard', () => {
 
   it('renders dashboard with main components', async () => {
     render(<Dashboard />);
-    
+
     await waitFor(() => {
       expect(screen.getByText('LLM Review Analysis Dashboard')).toBeInTheDocument();
     });
@@ -107,7 +114,7 @@ describe('Dashboard', () => {
 
   it('displays row color legend', async () => {
     render(<Dashboard />);
-    
+
     await waitFor(() => {
       expect(screen.getByText('Mismatch')).toBeInTheDocument();
     });
@@ -119,7 +126,7 @@ describe('Dashboard', () => {
 
   it('renders dashboard controls', async () => {
     render(<Dashboard />);
-    
+
     await waitFor(() => {
       expect(screen.getByLabelText(/Show only mismatches/)).toBeInTheDocument();
     });
@@ -132,7 +139,7 @@ describe('Dashboard', () => {
 
   it('toggles between grouped and advanced view', async () => {
     render(<Dashboard />);
-    
+
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /Advanced QA/ })).toBeInTheDocument();
     });
@@ -150,7 +157,7 @@ describe('Dashboard', () => {
 
   it('opens edit modal when edit button is clicked', async () => {
     render(<Dashboard />);
-    
+
     await waitFor(() => {
       expect(screen.getByText('review-1')).toBeInTheDocument();
     });
@@ -165,7 +172,7 @@ describe('Dashboard', () => {
 
   it('closes edit modal when cancel is clicked', async () => {
     render(<Dashboard />);
-    
+
     await waitFor(() => {
       expect(screen.getByText('review-1')).toBeInTheDocument();
     });
@@ -183,7 +190,7 @@ describe('Dashboard', () => {
 
   it('handles search functionality', async () => {
     render(<Dashboard />);
-    
+
     await waitFor(() => {
       expect(screen.getByPlaceholderText(/Search reviewId, field, text.../)).toBeInTheDocument();
     });
@@ -196,7 +203,7 @@ describe('Dashboard', () => {
 
   it('handles mismatch filter toggle', async () => {
     render(<Dashboard />);
-    
+
     await waitFor(() => {
       expect(screen.getByLabelText(/Show only mismatches/)).toBeInTheDocument();
     });
@@ -206,4 +213,4 @@ describe('Dashboard', () => {
 
     expect(checkbox).toBeChecked();
   });
-}); 
+});

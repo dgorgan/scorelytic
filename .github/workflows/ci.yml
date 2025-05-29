@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop, feature/* ]
+    branches: [main, develop, feature/*]
   pull_request:
-    branches: [ main, develop, feature/* ]
+    branches: [main, develop, feature/*]
 
 jobs:
   build:
@@ -30,4 +30,4 @@ jobs:
           if find server/src client/services client/test -type f \( -name '*.js' -o -name '*.js.map' -o -name '*.d.ts' \) ! -path '*/dist-server/*' ! -path '*/.next/*' | grep .; then
             echo '❌ JS artifacts found in source! Clean up before merging.'
             exit 1
-          fi 
+          fi

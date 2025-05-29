@@ -27,7 +27,7 @@ export function validateInput(input: ValidationInput): boolean {
         if (!Array.isArray(value) || value.length === 0) {
           return false;
         }
-        if (!value.every(item => typeof item === 'string')) {
+        if (!value.every((item) => typeof item === 'string')) {
           return false;
         }
         break;
