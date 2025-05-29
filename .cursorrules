@@ -100,6 +100,9 @@ docs:
   always_document_public_functions: true
   prefer_jsdoc_style: true
   no_todos_in_commits: true
+  # Commit messages should be conventional, concise, and summarize intent—not full diffs or file-by-file changes.
+  # Example: "fix(server): handle Sentry error edge case" or "chore(shared): enforce alias imports"
+  # Enforcement: Use commitlint + Husky commit-msg hook for actual enforcement.
 
 # Project management references
 project_management:
@@ -119,8 +122,20 @@ ai_assistant:
   ask_before_big_changes: true
   summarize_changes_in_commit: true
   avoid_suggestions_outside_scope: true
+  commit_message_max_length: 100
+  commit_message_style: "conventional, concise, and descriptive (no full diffs or file lists)"
+  # Enforced by commitlint + Husky commit-msg hook if enabled
 
 # Aliases (optional, if you want to add for your imports)
 aliases:
   "@/": "src/"
+  
+# Aliasing & Internal Imports
+aliasing:
+  enforce_alias_imports: true
+  allowed_aliases:
+    - '@/'
+  disallow_relative_parent_imports: true
+  allow_relative_in_shared_tests: true  # For Jest compatibility in shared/__tests__
+  # Enforced by eslint-plugin-import/no-relative-parent-imports
   
