@@ -289,3 +289,9 @@ See `shared/types/biasReport.ts` for:
 
 - All backend routes use RESTful naming (e.g. `/api/games`, `/api/reviews`).
 - See API section above for details.
+
+## Environment Variable Validation
+
+- All required environment variables are validated at startup using [envalid](https://github.com/af/envalid) (client and server).
+- The app fails fast with a clear error if any required variable is missing or invalid.
+- See `.env.example` for the canonical list of required variables.

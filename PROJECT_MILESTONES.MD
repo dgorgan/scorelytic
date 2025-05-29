@@ -32,6 +32,8 @@
 - [x] Type-aware linting in shared
 - [x] Monorepo Jest config (root npm test runs all)
 - [x] All policies documented in .cursorrules and DOCUMENTATION.MD
+- [x] Env var validation at startup (fail-fast, envalid in client/server)
+- [x] .env.example policy and documentation
 
 ---
 

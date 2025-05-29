@@ -43,6 +43,7 @@ backend_framework:
   supabase:
     always_use_env_vars: true
     mask_sensitive_env_vars: true
+  env_validation: true  # All required env vars must be validated at startup (fail-fast, e.g. with envalid)
 
 # Testing
 # Colocate all test files with the nearest service, component, or feature folder.

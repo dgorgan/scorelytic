@@ -538,3 +538,30 @@ This is an internal tool for reviewing, validating, and overriding LLM sentiment
 
 - All backend routes follow RESTful naming (e.g. `/api/games`, `/api/reviews`).
 - See `DOCUMENTATION.MD` for full API spec.
+
+## Local CI Parity: Pre-Push Hook
+
+- Every push runs a Husky `pre-push` hook that executes your full CI suite locally (`npm run check:all`).
+- This gives fast feedback, blocks pushes that would fail CI, and is easy to maintain.
+- Example `.husky/pre-push`:
+  ```sh
+  #!/usr/bin/env sh
+  npm run check:all
+  ```
+- For even closer CI parity, use [act](https://github.com/nektos/act) to run GitHub Actions locally.
+- With this setup, you'll almost never be surprised by a CI failure after opening a PR.
+
+## Environment Variables & CI
+
+- All required environment variables are listed in `.env.example` (copy and fill for local dev).
+- Never commit real secrets! Use dummy/test values for PRs and CI.
+- CI workflows inject all required env vars for both client and server before build/test.
+- The app fails fast if a required env var is missing.
+- For production, use CI secrets or your deployment platform's env management.
+- See `.env.example` for the canonical list.
+
+## Environment Variable Validation
+
+- All required env vars are validated at startup using [envalid](https://github.com/af/envalid) (both client and server).
+- If any required variable is missing or invalid, the app fails fast with a clear error.
+- See `.env.example` for the canonical list of required variables.
