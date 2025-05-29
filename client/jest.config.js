@@ -16,6 +16,15 @@ const customConfig = {
   },
   coverageDirectory: '<rootDir>/../coverage',
   collectCoverageFrom: ['<rootDir>/**/*.{ts,tsx,js,jsx}'],
+  coverageThreshold: {
+    global: {
+      branches: 80,
+      functions: 85,
+      lines: 85,
+      statements: 85,
+    },
+  },
+  snapshotSerializers: ['@emotion/jest/serializer'],
 };
 
 module.exports = createJestConfig(customConfig);
