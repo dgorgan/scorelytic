@@ -1,9 +1,9 @@
 #!/bin/sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-npm run test:changed
+npx lint-staged
 
-npx prettier --write .
+npm run test:changed
 
 npm run check:all 
 
