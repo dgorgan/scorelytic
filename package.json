@@ -14,6 +14,7 @@
     "batch:llm-test": "dotenv -e server/.env -- npx ts-node -P scripts/tsconfig.json scripts/batch-llm-review-test.ts",
     "prepare": "husky install",
     "test": "jest --coverage",
+    "test:changed": "jest --onlyChanged",
     "lint": "eslint . --ext .js,.ts,.tsx --max-warnings=0"
   },
   "keywords": [],
