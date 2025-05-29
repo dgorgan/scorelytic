@@ -3,7 +3,11 @@
   "compilerOptions": {
     "composite": true,
     "outDir": "../dist-shared",
-    "rootDir": "."
+    "rootDir": ".",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    }
   },
   "include": ["**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules", "**/__tests__/**"]

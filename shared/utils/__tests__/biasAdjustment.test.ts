@@ -1,4 +1,4 @@
-import { evaluateBiasImpact, generateBiasReport } from '@/shared/utils/biasAdjustment';
+import { evaluateBiasImpact, generateBiasReport } from '../biasAdjustment';
 
 describe('evaluateBiasImpact', () => {
   it('returns no adjustment for no bias', () => {
