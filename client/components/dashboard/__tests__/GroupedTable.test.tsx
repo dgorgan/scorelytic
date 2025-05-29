@@ -1,8 +1,8 @@
 import React from 'react';
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent } from '@testing-library/react';
-import GroupedTable from '../GroupedTable';
-import { GroupedResult, Result } from '../utils';
+import GroupedTable from '@/components/dashboard/GroupedTable';
+import { GroupedResult, Result } from '@/components/dashboard/utils';
 
 // Mock Radix UI Tooltip
 jest.mock('@radix-ui/react-tooltip', () => ({

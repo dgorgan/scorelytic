@@ -1,7 +1,8 @@
 import React from 'react';
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import EditReviewModal from '../EditReviewModal';
+import EditReviewModal from '@/components/dashboard/EditReviewModal';
+import { Result } from '@/components/dashboard/utils';
 
 describe('EditReviewModal', () => {
   const mockProps = {

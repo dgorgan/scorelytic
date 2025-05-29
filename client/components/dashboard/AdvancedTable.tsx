@@ -1,5 +1,6 @@
 import * as Tooltip from '@radix-ui/react-tooltip';
-import { Result, displayCell, prettyTooltip } from './utils';
+import { Result } from '@/components/dashboard/utils';
+import { displayCell, prettyTooltip } from '@/components/dashboard/utils';
 
 interface AdvancedTableProps {
   filteredResults: Result[];

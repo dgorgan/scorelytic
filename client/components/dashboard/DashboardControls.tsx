@@ -1,3 +1,5 @@
+import { GroupedResult } from '@/components/dashboard/utils';
+
 interface DashboardControlsProps {
   showMismatches: boolean;
   setShowMismatches: (value: boolean) => void;
