@@ -117,6 +117,7 @@ project_management:
     - 'Code coverage meets threshold'
     - 'No debug or console.log statements'
     - 'Documentation updated if needed'
+    - 'All required env vars are injected in all CI jobs (unit, e2e, etc.)—no reliance on local .env'
 
 # AI interaction preferences
 ai_assistant:

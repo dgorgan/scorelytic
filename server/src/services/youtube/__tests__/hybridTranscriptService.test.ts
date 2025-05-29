@@ -11,10 +11,14 @@ import * as audioService from '../audioTranscriptionService';
 
 describe('getHybridTranscript', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
     (audioService.getVideoDuration as jest.Mock).mockImplementation(() => 10);
     (audioService.estimateTranscriptionCost as jest.Mock).mockImplementation(() => 0.1);
     (audioService.transcribeYouTubeAudio as jest.Mock).mockReset();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('returns captions if available', async () => {
