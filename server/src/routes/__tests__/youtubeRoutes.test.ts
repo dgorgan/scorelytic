@@ -9,24 +9,24 @@ jest.mock('../../config/database', () => ({
       select: () => ({
         eq: () => ({
           single: () => ({ data: null }),
-          maybeSingle: () => ({ data: null })
-        })
+          maybeSingle: () => ({ data: null }),
+        }),
       }),
       insert: () => ({
         select: () => ({
           single: () => ({ data: { id: 1 } }),
-          maybeSingle: () => ({ data: { id: 1 } })
-        })
+          maybeSingle: () => ({ data: { id: 1 } }),
+        }),
       }),
       upsert: () => ({
         select: () => ({
           single: () => ({ data: { id: 1 } }),
-          maybeSingle: () => ({ data: { id: 1 } })
-        })
-      })
-    })
+          maybeSingle: () => ({ data: { id: 1 } }),
+        }),
+      }),
+    }),
   },
-  upsertReviewToSupabase: jest.fn()
+  upsertReviewToSupabase: jest.fn(),
 }));
 
 jest.mock('../../services/youtube/youtubeApiService', () => ({
@@ -37,13 +37,13 @@ jest.mock('../../services/youtube/youtubeApiService', () => ({
     publishedAt: '2020-01-01T00:00:00Z',
     description: 'desc',
     thumbnails: {},
-    tags: []
+    tags: [],
   })),
   extractGameFromMetadata: jest.fn(() => 'Test Game'),
-  createSlug: jest.fn((str) => str.toLowerCase().replace(/\s+/g, '-'))
+  createSlug: jest.fn((str) => str.toLowerCase().replace(/\s+/g, '-')),
 }));
 
-jest.mock('../../services/sentimentService', () => ({
+jest.mock('../../services/sentiment', () => ({
   analyzeTextWithBiasAdjustmentFull: jest.fn(() => ({
     summary: 'Test summary',
     sentimentScore: 5,
@@ -57,8 +57,8 @@ jest.mock('../../services/sentimentService', () => ({
     biasDetection: {},
     biasAdjustment: {},
     sentimentSnapshot: {},
-    culturalContext: {}
-  }))
+    culturalContext: {},
+  })),
 }));
 
 describe('POST /api/youtube/process', () => {
@@ -71,21 +71,35 @@ describe('POST /api/youtube/process', () => {
       transcript: 'audio transcript',
       method: 'audio',
       cost: 0.2,
-      debug: ['[HYBRID] Attempting captions', '[HYBRID] ❌ Captions failed', '[HYBRID] Attempting audio transcription', '[HYBRID] ✅ Audio transcription successful']
+      debug: [
+        '[HYBRID] Attempting captions',
+        '[HYBRID] ❌ Captions failed',
+        '[HYBRID] Attempting audio transcription',
+        '[HYBRID] ✅ Audio transcription successful',
+      ],
     });
     const res = await request(app)
       .post('/api/youtube/process')
       .send({ videoId: 'audio-fallback-test' });
     expect(res.status).toBe(200);
     expect(res.body.transcript.method).toBe('audio');
-    expect(res.body.transcript.debug).toEqual(expect.arrayContaining(['[HYBRID] Attempting audio transcription', '[HYBRID] ✅ Audio transcription successful']));
+    expect(res.body.transcript.debug).toEqual(
+      expect.arrayContaining([
+        '[HYBRID] Attempting audio transcription',
+        '[HYBRID] ✅ Audio transcription successful',
+      ]),
+    );
   }, 15000);
 
   it('should not cache if transcript is empty or sentiment is default', async () => {
     jest.spyOn(hybridService, 'getHybridTranscript').mockResolvedValue({
       transcript: '',
       method: 'none',
-      debug: ['[HYBRID] Attempting captions', '[HYBRID] ❌ Captions failed', '[HYBRID] Audio fallback disabled']
+      debug: [
+        '[HYBRID] Attempting captions',
+        '[HYBRID] ❌ Captions failed',
+        '[HYBRID] Audio fallback disabled',
+      ],
     });
     const upsertSpy = upsertReviewToSupabase as jest.Mock;
     const res = await request(app)
@@ -101,7 +115,11 @@ describe('POST /api/youtube/process', () => {
       transcript: '',
       method: 'none',
       error: 'Both captions and audio transcription failed',
-      debug: ['[HYBRID] Attempting captions', '[HYBRID] ❌ Captions failed', '[HYBRID] ❌ Audio transcription failed']
+      debug: [
+        '[HYBRID] Attempting captions',
+        '[HYBRID] ❌ Captions failed',
+        '[HYBRID] ❌ Audio transcription failed',
+      ],
     });
     const res = await request(app)
       .post('/api/youtube/process')
@@ -110,4 +128,4 @@ describe('POST /api/youtube/process', () => {
     expect(res.body.transcript.error).toMatch(/Both captions and audio transcription failed/);
     expect(res.body.transcript.debug).toContain('[HYBRID] ❌ Audio transcription failed');
   });
-}); 
+});

@@ -1,1 +1,1 @@
-export * from '../../../shared/types/Game';
+export * from '@/shared/types/Game';

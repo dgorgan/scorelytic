@@ -1,4 +1,4 @@
-import { evaluateBiasImpact, generateBiasReport } from '../biasAdjustment';
+import { evaluateBiasImpact, generateBiasReport } from '@/shared/utils/biasAdjustment';
 
 describe('evaluateBiasImpact', () => {
   it('returns no adjustment for no bias', () => {
@@ -30,7 +30,7 @@ describe('evaluateBiasImpact', () => {
   it('handles multiple biases', () => {
     const result = evaluateBiasImpact(8, ['nostalgia bias', 'franchise bias']);
     expect(result.biasAdjustedScore).toBe(8.6);
-    expect(result.totalScoreAdjustment).toBe(0.6);
+    expect(result.totalScoreAdjustment).toBeCloseTo(0.6);
     expect(result.biasImpact).toHaveLength(2);
   });
 
@@ -48,16 +48,18 @@ describe('generateBiasReport', () => {
       'nostalgia bias',
       'identity signaling bias',
       'narrative framing bias',
-      'representation bias'
+      'representation bias',
     ]);
     expect(summary.adjustedScore).toBeLessThan(8.5);
     expect(summary.verdict).toMatch(/positive|mixed|negative/);
     expect(summary.confidence).toBe('moderate');
     expect(summary.recommendationStrength).toMatch(/strong|moderate|weak/);
-    expect(summary.biasSummary).toMatch(/nostalgia, identity signaling, narrative framing, representation/);
+    expect(summary.biasSummary).toMatch(
+      /nostalgia, identity signaling, narrative framing, representation/,
+    );
     expect(details.length).toBe(4);
-    expect(details.some(d => d.name === 'identity signaling bias')).toBe(true);
-    expect(details.some(d => d.name === 'narrative framing bias')).toBe(true);
+    expect(details.some((d) => d.name === 'identity signaling bias')).toBe(true);
+    expect(details.some((d) => d.name === 'narrative framing bias')).toBe(true);
     expect(culturalContext.biasAdjustedScore).toBe(summary.adjustedScore);
     expect(culturalContext.biasDetails.length).toBe(4);
     expect(fullReport.score_analysis_engine.bias_adjusted_score).toBe(summary.adjustedScore);
@@ -71,4 +73,4 @@ describe('generateBiasReport', () => {
     expect(culturalContext.justification).toMatch(/no significant/i);
     expect(fullReport.score_analysis_engine.bias_adjusted_score).toBe(7);
   });
-}); 
+});

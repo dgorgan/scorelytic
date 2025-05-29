@@ -9,11 +9,11 @@ jest.mock('../../../config/database', () => ({
       eq: jest.fn().mockReturnThis(),
       single: jest.fn().mockResolvedValue({
         data: { id: 'mock-game-id' },
-        error: null
+        error: null,
       }),
-      insert: jest.fn().mockReturnThis()
-    }))
-  }
+      insert: jest.fn().mockReturnThis(),
+    })),
+  },
 }));
 
 describe('normalizeYoutubeToReview', () => {
@@ -25,7 +25,7 @@ describe('normalizeYoutubeToReview', () => {
       creatorSlug: 'test-creator',
       gameTitle: 'Test Game',
       creatorName: 'Test Creator',
-      channelUrl: 'https://youtube.com/test-creator'
+      channelUrl: 'https://youtube.com/test-creator',
     });
     expect(review).toHaveProperty('gameId');
     expect(review).toHaveProperty('creatorId');
@@ -45,11 +45,13 @@ describe('fetchYoutubeCaptions', () => {
 
   it('should handle captions in wrong language', async () => {
     jest.spyOn(captionsScraper, 'getSubtitles').mockResolvedValue([]);
-    await expect(fetchYoutubeCaptions('videoId', 'es')).rejects.toThrow(/No English captions available/);
+    await expect(fetchYoutubeCaptions('videoId', 'es')).rejects.toThrow(
+      /No English captions available/,
+    );
   });
 
   it('should handle getSubtitles error', async () => {
     jest.spyOn(captionsScraper, 'getSubtitles').mockRejectedValue(new Error('fetch fail'));
     await expect(fetchYoutubeCaptions('videoId')).rejects.toThrow('fetch fail');
   });
-}); 
+});

@@ -29,11 +29,15 @@ const defaultHelpers: TranscriptionHelpers = {
     await ytDlpWrap.execPromise([
       videoUrl,
       '--extract-audio',
-      '--audio-format', 'mp3',
-      '--audio-quality', audioQuality,
-      '--match-filter', `duration < ${maxDurationMinutes * 60}`,
-      '--output', audioPath.replace('.mp3', '.%(ext)s'),
-      '--no-playlist'
+      '--audio-format',
+      'mp3',
+      '--audio-quality',
+      audioQuality,
+      '--match-filter',
+      `duration < ${maxDurationMinutes * 60}`,
+      '--output',
+      audioPath.replace('.mp3', '.%(ext)s'),
+      '--no-playlist',
     ]);
   },
   transcribeAudioWithOpenAI: async (audioPath, language) => {
@@ -42,7 +46,7 @@ const defaultHelpers: TranscriptionHelpers = {
       file: fs.createReadStream(audioPath),
       model: 'whisper-1',
       language,
-      response_format: 'text'
+      response_format: 'text',
     });
     return transcription;
   },
@@ -55,7 +59,7 @@ const defaultHelpers: TranscriptionHelpers = {
   fileExists: (filePath) => fs.existsSync(filePath),
   unlinkFile: (filePath) => unlinkAsync(filePath),
   createReadStream: (filePath) => fs.createReadStream(filePath),
-  getOpenAI: () => new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  getOpenAI: () => new OpenAI({ apiKey: process.env.OPENAI_API_KEY }),
 };
 
 /**
@@ -64,7 +68,7 @@ const defaultHelpers: TranscriptionHelpers = {
 export const transcribeYouTubeAudio = async (
   videoId: string,
   options: TranscriptionOptions = {},
-  helpers: TranscriptionHelpers = defaultHelpers
+  helpers: TranscriptionHelpers = defaultHelpers,
 ): Promise<string> => {
   if (process.env.DISABLE_OPENAI === 'true') {
     throw new Error('Audio transcription disabled');
@@ -74,7 +78,7 @@ export const transcribeYouTubeAudio = async (
     maxDurationMinutes = 30,
     audioQuality = 'worst',
     tempDir = '/tmp',
-    language = 'en'
+    language = 'en',
   } = options;
 
   const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
@@ -82,9 +86,14 @@ export const transcribeYouTubeAudio = async (
 
   try {
     // Download audio
-    await helpers.downloadAudio(videoUrl, audioPath, { maxDurationMinutes, audioQuality });
+    await helpers.downloadAudio(videoUrl, audioPath, {
+      maxDurationMinutes,
+      audioQuality,
+    });
     if (!helpers.fileExists(audioPath)) {
-      throw new Error(`Audio extraction failed - file not created. Video may be too long (>${maxDurationMinutes}min) or unavailable.`);
+      throw new Error(
+        `Audio extraction failed - file not created. Video may be too long (>${maxDurationMinutes}min) or unavailable.`,
+      );
     }
     // Transcribe
     const transcription = await helpers.transcribeAudioWithOpenAI(audioPath, language);
@@ -97,7 +106,9 @@ export const transcribeYouTubeAudio = async (
       }
     } catch {}
     if (error.message?.includes('duration')) {
-      throw new Error(`Video ${videoId} is too long (>${maxDurationMinutes} minutes) for audio transcription`);
+      throw new Error(
+        `Video ${videoId} is too long (>${maxDurationMinutes} minutes) for audio transcription`,
+      );
     }
     if (error.message?.includes('Video unavailable')) {
       throw new Error(`Video ${videoId} is unavailable for audio extraction`);
@@ -123,11 +134,11 @@ export const estimateTranscriptionCost = (durationMinutes: number): number => {
 export const getVideoDuration = async (videoId: string): Promise<number> => {
   const ytDlpWrap = new YTDlpWrap();
   const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-  
+
   try {
     const info = await ytDlpWrap.getVideoInfo(videoUrl);
     return Math.ceil((info.duration || 0) / 60); // Return duration in minutes
   } catch (error: any) {
     throw new Error(`Failed to get video duration: ${error.message}`);
   }
-}; 
+};

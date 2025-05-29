@@ -7,7 +7,7 @@ describe('BiasReport types', () => {
       verdict: 'generally positive',
       confidence: 'high',
       recommendationStrength: 'moderate',
-      biasSummary: 'Includes moderate identity signaling bias.'
+      biasSummary: 'Includes moderate identity signaling bias.',
     };
     expect(summary.adjustedScore).toBe(7.1);
   });
@@ -18,7 +18,7 @@ describe('BiasReport types', () => {
       severity: 'moderate',
       scoreImpact: -0.4,
       impactOnExperience: 'Positive for some, less immersive for others.',
-      description: 'Identity themes foregrounded.'
+      description: 'Identity themes foregrounded.',
     };
     expect(detail.name).toMatch(/identity/);
   });
@@ -28,8 +28,12 @@ describe('BiasReport types', () => {
       originalScore: 8.5,
       biasAdjustedScore: 7.1,
       justification: 'Score adjusted for ideological influences.',
-      audienceReaction: { aligned: 'positive', neutral: 'mixed', opposed: 'negative' },
-      biasDetails: []
+      audienceReaction: {
+        aligned: 'positive',
+        neutral: 'mixed',
+        opposed: 'negative',
+      },
+      biasDetails: [],
     };
     expect(context.biasAdjustedScore).toBeLessThan(context.originalScore);
   });
@@ -40,9 +44,9 @@ describe('BiasReport types', () => {
         input_review_score: 8.5,
         ideological_biases_detected: [],
         bias_adjusted_score: 7.1,
-        score_context_note: 'Contextual calibration.'
-      }
+        score_context_note: 'Contextual calibration.',
+      },
     };
     expect(report.score_analysis_engine.bias_adjusted_score).toBe(7.1);
   });
-}); 
+});

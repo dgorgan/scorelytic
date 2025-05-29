@@ -5,4 +5,4 @@ export type Creator = {
   avatarUrl: string;
   bio: string;
   channelUrl: string;
-}; 
+};

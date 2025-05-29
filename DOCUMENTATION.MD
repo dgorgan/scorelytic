@@ -1,13 +1,16 @@
 # Scorelytic Documentation
 
 ## Overview
+
 Scorelytic analyzes video game reviews (YouTube, critics, creators) to extract sentiment, detect bias, and provide both raw and bias-adjusted scores. The platform is transparency-first: users see how scores are shaped, not just the final number.
 
 ## Sentiment & Bias Pipeline
+
 - **analyzeText()**: Extracts a synthetic sentiment score (0-10) and bias indicators from review transcripts using LLMs.
 - **evaluateBiasImpact()**: Pure TypeScript function that takes the sentiment score and bias indicators, applies heuristics, and returns a bias-adjusted score, breakdown, and rationale.
 
 ## API Usage
+
 ```ts
 import { analyzeText } from 'server/src/services/sentimentService';
 import { evaluateBiasImpact } from 'shared/utils/biasAdjustment';
@@ -24,47 +27,53 @@ const biasAdjustment = evaluateBiasImpact(sentiment.sentimentScore, sentiment.bi
 ```
 
 ## UX & Transparency
+
 - **Toggle**: Users can switch between raw sentiment and bias-adjusted scores.
 - **Rationale**: Every adjustment is explained neutrally—no moralizing.
 - **Platform as arbiter**: Scorelytic owns the synthetic score, not the critic. All reviews are analyzed equally.
 
 ## Extending to Critics
+
 - Critic reviews are treated as transcripts. If an explicit score is present, it can be compared to the synthetic score for extra context.
 
 ## Milestones & Roadmap
+
 See [PROJECT_MILESTONES.MD](PROJECT_MILESTONES.MD).
 
 ## 🧩 Data Models
 
 ### Game
+
 - `id: string`
 - `title: string`
-- `slug: string`           // SEO-friendly URL slug (e.g. "dragon-age-veilguard")
+- `slug: string` // SEO-friendly URL slug (e.g. "dragon-age-veilguard")
 - `description: string`
 - `coverArtUrl: string`
 - `releaseDate: Date`
-- `metaCriticScore?: number`        // Official Metacritic score
-- `contentCriticScore?: number`     // AI-generated aggregate score
+- `metaCriticScore?: number` // Official Metacritic score
+- `contentCriticScore?: number` // AI-generated aggregate score
 
 ### Creator
+
 - `id: string`
 - `name: string`
-- `slug: string`           // SEO-friendly URL slug (e.g. "honestgamer")
+- `slug: string` // SEO-friendly URL slug (e.g. "honestgamer")
 - `avatarUrl: string`
 - `bio?: string`
 - `channelUrl: string`
 
 ### Review
-- `id: string`              // Unique review ID (e.g. `${creatorId}_${gameId}`)
+
+- `id: string` // Unique review ID (e.g. `${creatorId}_${gameId}`)
 - `gameId: string`
 - `creatorId: string`
-- `score: number`           // AI-generated sentiment score (1–10)
-- `videoUrl: string`        // Link to YouTube review
+- `score: number` // AI-generated sentiment score (1–10)
+- `videoUrl: string` // Link to YouTube review
 - `sentimentSummary: string`
 - `pros: string[]`
 - `cons: string[]`
 - `biasIndicators?: string[]`
-- `alsoRecommends?: string[]`   // Array of related game IDs
+- `alsoRecommends?: string[]` // Array of related game IDs
 - `createdAt: Date`
 
 ---
@@ -72,11 +81,13 @@ See [PROJECT_MILESTONES.MD](PROJECT_MILESTONES.MD).
 ## 🔗 API Endpoints
 
 ### Games
+
 - `GET /api/games`  
   Returns a list of games with basic details and scores.
 
 - `GET /api/games/:gameId`  
   Returns detailed info for a game including:
+
   - Game details
   - Reviews (with creator info attached)
   - `averageSentimentScore` (number)
@@ -87,10 +98,12 @@ See [PROJECT_MILESTONES.MD](PROJECT_MILESTONES.MD).
   Returns all reviews for a specific game.
 
 ### Reviews
+
 - `GET /api/reviews/:reviewId`  
   Returns full review with sentiment, video, and metadata.
 
 ### Creators
+
 - `GET /api/creators/:creatorId`  
   Returns creator profile and list of their reviews.
 
@@ -98,12 +111,12 @@ See [PROJECT_MILESTONES.MD](PROJECT_MILESTONES.MD).
 
 ## 🌐 Frontend Routes (SEO-Friendly)
 
-| Route Pattern                      | Description                                  |
-| --------------------------------- | -------------------------------------------- |
-| `/`                               | Homepage with latest games and updates       |
-| `/games/:gameSlug`                | Game profile with reviews and ratings        |
-| `/creators/:creatorSlug`          | Creator profile with bio and reviews         |
-| `/reviews/:creatorSlug/:gameSlug` | Detailed review page for a creator/game      |
+| Route Pattern                     | Description                             |
+| --------------------------------- | --------------------------------------- |
+| `/`                               | Homepage with latest games and updates  |
+| `/games/:gameSlug`                | Game profile with reviews and ratings   |
+| `/creators/:creatorSlug`          | Creator profile with bio and reviews    |
+| `/reviews/:creatorSlug/:gameSlug` | Detailed review page for a creator/game |
 
 ---
 
@@ -121,10 +134,10 @@ See [PROJECT_MILESTONES.MD](PROJECT_MILESTONES.MD).
 
 # Testing Strategy
 
-- Use **Jest** with **ts-jest** for testing API routes and utility functions.  
-- Use **React Testing Library** for testing React components.  
-- Mock external dependencies (e.g., Supabase, OpenAI) using `jest.mock()`.  
-- Place tests in a `__tests__` folder colocated with the code being tested.  
+- Use **Jest** with **ts-jest** for testing API routes and utility functions.
+- Use **React Testing Library** for testing React components.
+- Mock external dependencies (e.g., Supabase, OpenAI) using `jest.mock()`.
+- Place tests in a `__tests__` folder colocated with the code being tested.
 - Write descriptive test names covering happy paths and basic edge cases.
 - Run all tests with `npm test` at the repo root (runs both server and client tests)
 - All backend code is under `server/src/` for TypeScript rootDir consistency
@@ -172,23 +185,30 @@ See [PROJECT_MILESTONES.MD](PROJECT_MILESTONES.MD).
 ## Bias-Adjusted Review Output (Multi-Layered)
 
 ### Data Models (Types)
+
 See `shared/types/biasReport.ts` for:
+
 - `ReviewSummary`: User-facing, quick verdict and score, with confidence and bias summary.
 - `BiasDetail`: List of all detected biases, their severity, score impact, and qualitative effect.
 - `CulturalContext`: Explains how cultural/ideological context may affect perception and score.
 - `FullBiasReport`: Internal, diagnostic output for transparency and audit.
 
 ### API Endpoint
+
 `POST /api/review/bias-report`
+
 - **Input:** `{ sentimentScore: number, biasIndicators: string[] }`
 - **Output:** `{ summary, details, culturalContext, fullReport }` (see types above)
 
 ### React Component
+
 `BiasReportViewer` (see `client/components/review/BiasReportViewer.tsx`)
+
 - Collapsible sections for each output layer
 - Tailwind CSS for styling
 
 ### Sample Output
+
 ```json
 {
   "summary": {
@@ -223,12 +243,16 @@ See `shared/types/biasReport.ts` for:
       "neutral": "mixed",
       "opposed": "negative"
     },
-    "biasDetails": [/* ... */]
+    "biasDetails": [
+      /* ... */
+    ]
   },
   "fullReport": {
     "score_analysis_engine": {
       "input_review_score": 8.5,
-      "ideological_biases_detected": [/* ... */],
+      "ideological_biases_detected": [
+        /* ... */
+      ],
       "bias_adjusted_score": 7.1,
       "score_context_note": "This adjustment is a contextual calibration, not a value judgment."
     }
@@ -237,6 +261,7 @@ See `shared/types/biasReport.ts` for:
 ```
 
 ### Output Layer Purposes
+
 - **Summary:** For gamers/casual users—quick, trustworthy verdict.
 - **Bias Details:** For users interested in why the score was adjusted.
 - **Cultural Context:** For analysts/creators—deep insights into cultural framing and ideological influence.

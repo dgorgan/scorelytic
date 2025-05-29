@@ -1,6 +1,5 @@
 import request from 'supertest';
 import app from '../../app';
-// import * as db from '../../../config/database';
 
 jest.mock('../../config/database', () => {
   const chain: any = {
@@ -14,7 +13,7 @@ jest.mock('../../config/database', () => {
   chain.eq.mockReturnValue(chain);
   chain.order.mockReturnValue(chain);
   chain.in.mockReturnValue(chain);
-  
+
   return {
     supabase: {
       from: jest.fn(() => chain),
@@ -33,7 +32,7 @@ describe('GET /api/games/:id', () => {
     coverArtUrl: 'url',
     releaseDate: '2022-01-01',
     metaCriticScore: 90,
-    contentCriticScore: 88
+    contentCriticScore: 88,
   };
   const mockReviews = [
     {
@@ -47,8 +46,8 @@ describe('GET /api/games/:id', () => {
       sentimentSummary: 'positive',
       biasIndicators: [],
       alsoRecommends: [],
-      createdAt: '2022-01-02'
-    }
+      createdAt: '2022-01-02',
+    },
   ];
   const mockCreators = [
     {
@@ -57,8 +56,8 @@ describe('GET /api/games/:id', () => {
       slug: 'creator',
       avatarUrl: 'a',
       bio: 'b',
-      channelUrl: 'ch'
-    }
+      channelUrl: 'ch',
+    },
   ];
   let chain: any;
   beforeEach(() => {
@@ -67,11 +66,20 @@ describe('GET /api/games/:id', () => {
     chain.eq.mockImplementation(() => chain);
     chain.order.mockImplementation(() => chain);
     chain.in.mockImplementation(() => chain);
-    chain.single.mockImplementation(async () => ({ data: mockGame, error: null }));
+    chain.single.mockImplementation(async () => ({
+      data: mockGame,
+      error: null,
+    }));
     // reviews
-    chain.order.mockImplementationOnce(() => ({ data: mockReviews, error: null }));
+    chain.order.mockImplementationOnce(() => ({
+      data: mockReviews,
+      error: null,
+    }));
     // creators
-    chain.in.mockImplementationOnce(() => ({ data: mockCreators, error: null }));
+    chain.in.mockImplementationOnce(() => ({
+      data: mockCreators,
+      error: null,
+    }));
   });
   afterEach(() => jest.restoreAllMocks());
   it('returns game, reviews, creators, and sentiment summary', async () => {
@@ -83,7 +91,10 @@ describe('GET /api/games/:id', () => {
     expect(res.body.sentimentSummaries).toContain('positive');
   });
   it('returns 404 if game not found', async () => {
-    chain.single.mockImplementationOnce(async () => ({ data: null, error: 'not found' }));
+    chain.single.mockImplementationOnce(async () => ({
+      data: null,
+      error: 'not found',
+    }));
     const res = await request(app).get(`/api/games/doesnotexist`);
     expect(res.status).toBe(404);
   });
@@ -94,9 +105,9 @@ describe('GET /api/games/:id', () => {
         return {
           select: () => ({
             eq: () => ({
-              order: async () => ({ data: null, error: 'fail' })
-            })
-          })
+              order: async () => ({ data: null, error: 'fail' }),
+            }),
+          }),
         };
       }
       return chain;
@@ -111,8 +122,8 @@ describe('GET /api/games/:id', () => {
       if (table === 'creators') {
         return {
           select: () => ({
-            in: async () => ({ data: null, error: 'fail' })
-          })
+            in: async () => ({ data: null, error: 'fail' }),
+          }),
         };
       }
       return chain;
@@ -121,4 +132,4 @@ describe('GET /api/games/:id', () => {
     expect(res.status).toBe(500);
     db.supabase.from = originalFrom;
   });
-}); 
+});

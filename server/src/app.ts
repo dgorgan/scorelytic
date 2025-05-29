@@ -4,10 +4,10 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 const bodyParser = require('body-parser');
 
-import gameRoutes from './routes/gameRoutes';
-import reviewRoutes from './routes/reviewRoutes';
-import sentimentRoutes from './routes/sentimentRoutes';
-import youtubeRoutes from './routes/youtubeRoutes';
+import gameRoutes from './routes/game';
+import reviewRoutes from './routes/review';
+import sentimentRoutes from './routes/sentiment';
+import youtubeRoutes from './routes/youtube';
 
 dotenv.config();
 

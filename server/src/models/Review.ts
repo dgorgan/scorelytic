@@ -1,1 +1,1 @@
-export * from '../../../shared/types/Review';
+export * from '@/shared/types/Review';

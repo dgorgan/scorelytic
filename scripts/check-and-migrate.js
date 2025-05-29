@@ -7,7 +7,7 @@ if (!dbUrl) {
   process.exit(1);
 }
 
-const [,, table, column] = process.argv;
+const [, , table, column] = process.argv;
 if (!table || !column) {
   console.error('Usage: node scripts/check-and-migrate.js <table> <column>');
   process.exit(1);
@@ -20,7 +20,7 @@ const client = new Client({ connectionString: dbUrl });
     await client.connect();
     const res = await client.query(
       `SELECT column_name FROM information_schema.columns WHERE table_name=$1 AND column_name=$2`,
-      [table, column]
+      [table, column],
     );
     if (res.rows.length > 0) {
       console.log(`Column ${column} already exists in ${table}. No migration needed.`);
@@ -36,4 +36,4 @@ const client = new Client({ connectionString: dbUrl });
   } finally {
     await client.end();
   }
-})(); 
+})();

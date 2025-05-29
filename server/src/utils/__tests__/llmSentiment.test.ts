@@ -11,28 +11,26 @@ const fullMockResult = {
   alsoRecommends: ['Game X'],
   pros: ['Great story'],
   cons: ['Too short'],
-  reviewSummary: 'A solid review.'
+  reviewSummary: 'A solid review.',
 };
 const mockCreate = jest.fn().mockResolvedValue({
-  choices: [
-    { message: { content: JSON.stringify(fullMockResult) } }
-  ]
+  choices: [{ message: { content: JSON.stringify(fullMockResult) } }],
 });
 jest.mock('openai', () => ({
   __esModule: true,
   default: jest.fn().mockImplementation(() => ({
     chat: {
       completions: {
-        create: mockCreate
-      }
-    }
-  }))
+        create: mockCreate,
+      },
+    },
+  })),
 }));
 
 import { analyzeReviewText } from '../llmSentiment';
 
 jest.mock('../../config/database', () => ({
-  supabase: { from: fromMock }
+  supabase: { from: fromMock },
 }));
 
 describe('analyzeReviewText', () => {
@@ -42,9 +40,7 @@ describe('analyzeReviewText', () => {
     eqMock.mockClear();
     mockCreate.mockReset();
     mockCreate.mockResolvedValue({
-      choices: [
-        { message: { content: JSON.stringify(fullMockResult) } }
-      ]
+      choices: [{ message: { content: JSON.stringify(fullMockResult) } }],
     });
   });
 
@@ -54,12 +50,14 @@ describe('analyzeReviewText', () => {
     const result = await analyzeReviewText(transcript, reviewId);
     expect(result).toEqual(fullMockResult);
     expect(fromMock).toHaveBeenCalledWith('reviews');
-    expect(updateMock).toHaveBeenCalledWith({ sentimentSummary: JSON.stringify(result) });
+    expect(updateMock).toHaveBeenCalledWith({
+      sentimentSummary: JSON.stringify(result),
+    });
     expect(eqMock).toHaveBeenCalledWith('id', reviewId);
   });
 
   it('returns fallback if OpenAI response is malformed', async () => {
-    mockCreate.mockResolvedValue({ choices: [ { message: { content: '{}' } } ] });
+    mockCreate.mockResolvedValue({ choices: [{ message: { content: '{}' } }] });
     await expect(analyzeReviewText('Bad transcript', 'bad-id')).resolves.toEqual({
       alsoRecommends: [],
       biasIndicators: [],
@@ -69,7 +67,7 @@ describe('analyzeReviewText', () => {
       sentimentScore: 5,
       sentimentSummary: 'Mixed',
       summary: 'No clear summary detected.',
-      verdict: 'mixed'
+      verdict: 'mixed',
     });
   });
 
@@ -84,7 +82,7 @@ describe('analyzeReviewText', () => {
       sentimentScore: 5,
       sentimentSummary: 'Mixed',
       summary: 'No clear summary detected.',
-      verdict: 'mixed'
+      verdict: 'mixed',
     });
   });
 });

@@ -2,7 +2,7 @@ jest.mock('../audioTranscriptionService', () => ({
   ...jest.requireActual('../audioTranscriptionService'),
   getVideoDuration: jest.fn(() => 10),
   estimateTranscriptionCost: jest.fn(() => 0.1),
-  transcribeYouTubeAudio: jest.fn()
+  transcribeYouTubeAudio: jest.fn(),
 }));
 
 import { getHybridTranscript } from '../hybridTranscriptService';
@@ -34,7 +34,9 @@ describe('getHybridTranscript', () => {
 
   it('returns error and debug if both captions and audio fail', async () => {
     jest.spyOn(captions, 'fetchYoutubeCaptions').mockRejectedValue(new Error('yt-dlp missing'));
-    (audioService.transcribeYouTubeAudio as jest.Mock).mockRejectedValue(new Error('yt-dlp missing'));
+    (audioService.transcribeYouTubeAudio as jest.Mock).mockRejectedValue(
+      new Error('yt-dlp missing'),
+    );
     const result = await getHybridTranscript('videoId');
     expect(result.method).toBe('none');
     expect(result.error).toMatch(/yt-dlp missing/);
@@ -48,4 +50,4 @@ describe('getHybridTranscript', () => {
     expect(result.method).toBe('audio');
     expect(result.transcript).toBe('audio transcript');
   });
-}); 
+});

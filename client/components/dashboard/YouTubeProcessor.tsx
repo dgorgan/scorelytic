@@ -1,6 +1,10 @@
 import { useState } from 'react';
-import { buildYouTubeMetadataUrl, buildYouTubeProcessUrl, ERROR_MESSAGES } from '@scorelytic/shared/constants/api';
-import { extractVideoId } from '@scorelytic/shared/utils/youtube';
+import {
+  buildYouTubeMetadataUrl,
+  buildYouTubeProcessUrl,
+  ERROR_MESSAGES,
+} from '@/shared/constants/api';
+import { extractVideoId } from '@/shared/utils/youtube';
 
 interface YouTubeProcessorProps {
   onProcessComplete?: (result: any) => void;
@@ -77,7 +81,7 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
   return (
     <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
       <h3 className="text-lg font-bold text-gray-900 mb-4">YouTube Video Processor</h3>
-      
+
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -101,7 +105,7 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
           >
             {processing ? 'Loading...' : 'Get Metadata'}
           </button>
-          
+
           <button
             onClick={handleProcess}
             disabled={processing || !videoId.trim()}
@@ -128,4 +132,4 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
       </div>
     </div>
   );
-} 
+}

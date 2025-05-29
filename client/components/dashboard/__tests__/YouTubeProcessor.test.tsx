@@ -17,7 +17,9 @@ describe('YouTubeProcessor', () => {
 
   it('shows error for invalid input', async () => {
     render(<YouTubeProcessor />);
-    fireEvent.change(screen.getByPlaceholderText(/dQw4w9WgXcQ/i), { target: { value: 'invalid' } });
+    fireEvent.change(screen.getByPlaceholderText(/dQw4w9WgXcQ/i), {
+      target: { value: 'invalid' },
+    });
     fireEvent.click(screen.getByRole('button', { name: /Full Process/i }));
     await waitFor(() => {
       expect(screen.getByText(/Please enter a valid YouTube video ID or URL/i)).toBeInTheDocument();
@@ -27,26 +29,32 @@ describe('YouTubeProcessor', () => {
   it('calls fetch and displays result for process', async () => {
     (fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ transcript: 'test transcript' })
+      json: async () => ({ transcript: 'test transcript' }),
     });
     const onProcessComplete = jest.fn();
     render(<YouTubeProcessor onProcessComplete={onProcessComplete} />);
-    fireEvent.change(screen.getByPlaceholderText(/dQw4w9WgXcQ/i), { target: { value: 'dQw4w9WgXcQ' } });
+    fireEvent.change(screen.getByPlaceholderText(/dQw4w9WgXcQ/i), {
+      target: { value: 'dQw4w9WgXcQ' },
+    });
     fireEvent.click(screen.getByRole('button', { name: /Full Process/i }));
     await waitFor(() => {
       expect(screen.getByText(/Result:/i)).toBeInTheDocument();
       expect(screen.getByText(/test transcript/i)).toBeInTheDocument();
-      expect(onProcessComplete).toHaveBeenCalledWith({ transcript: 'test transcript' });
+      expect(onProcessComplete).toHaveBeenCalledWith({
+        transcript: 'test transcript',
+      });
     });
   });
 
   it('calls fetch and displays result for metadata', async () => {
     (fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ title: 'Test Title' })
+      json: async () => ({ title: 'Test Title' }),
     });
     render(<YouTubeProcessor />);
-    fireEvent.change(screen.getByPlaceholderText(/dQw4w9WgXcQ/i), { target: { value: 'dQw4w9WgXcQ' } });
+    fireEvent.change(screen.getByPlaceholderText(/dQw4w9WgXcQ/i), {
+      target: { value: 'dQw4w9WgXcQ' },
+    });
     fireEvent.click(screen.getByRole('button', { name: /Get Metadata/i }));
     await waitFor(() => {
       expect(screen.getByText(/Result:/i)).toBeInTheDocument();
@@ -57,10 +65,12 @@ describe('YouTubeProcessor', () => {
   it('shows error on fetch failure', async () => {
     (fetch as jest.Mock).mockResolvedValueOnce({
       ok: false,
-      json: async () => ({ error: 'API fail' })
+      json: async () => ({ error: 'API fail' }),
     });
     render(<YouTubeProcessor />);
-    fireEvent.change(screen.getByPlaceholderText(/dQw4w9WgXcQ/i), { target: { value: 'dQw4w9WgXcQ' } });
+    fireEvent.change(screen.getByPlaceholderText(/dQw4w9WgXcQ/i), {
+      target: { value: 'dQw4w9WgXcQ' },
+    });
     fireEvent.click(screen.getByRole('button', { name: /Full Process/i }));
     await waitFor(() => {
       expect(screen.getByText(/API fail/i)).toBeInTheDocument();
@@ -69,9 +79,16 @@ describe('YouTubeProcessor', () => {
 
   it('shows loading state', async () => {
     let resolveFetch: any;
-    (fetch as jest.Mock).mockImplementationOnce(() => new Promise(res => { resolveFetch = res; }));
+    (fetch as jest.Mock).mockImplementationOnce(
+      () =>
+        new Promise((res) => {
+          resolveFetch = res;
+        }),
+    );
     render(<YouTubeProcessor />);
-    fireEvent.change(screen.getByPlaceholderText(/dQw4w9WgXcQ/i), { target: { value: 'dQw4w9WgXcQ' } });
+    fireEvent.change(screen.getByPlaceholderText(/dQw4w9WgXcQ/i), {
+      target: { value: 'dQw4w9WgXcQ' },
+    });
     fireEvent.click(screen.getByRole('button', { name: /Full Process/i }));
     expect(screen.getByRole('button', { name: /Processing.../i })).toBeDisabled();
     resolveFetch({ ok: true, json: async () => ({ transcript: 'done' }) });
@@ -79,4 +96,4 @@ describe('YouTubeProcessor', () => {
       expect(screen.getByText(/done/i)).toBeInTheDocument();
     });
   });
-}); 
+});

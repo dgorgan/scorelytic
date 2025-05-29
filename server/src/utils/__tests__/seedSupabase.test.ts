@@ -28,4 +28,4 @@ describe('seedSupabase', () => {
     expect(supabase.from).toHaveBeenCalledWith('creators');
     expect(supabase.from).toHaveBeenCalledWith('reviews');
   });
-}); 
+});

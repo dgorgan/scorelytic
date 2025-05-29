@@ -7,10 +7,14 @@ import { GroupedResult, Result } from '../utils';
 // Mock Radix UI Tooltip
 jest.mock('@radix-ui/react-tooltip', () => ({
   Root: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  Trigger: ({ children, asChild }: { children: React.ReactNode; asChild?: boolean }) => <div>{children}</div>,
+  Trigger: ({ children, asChild }: { children: React.ReactNode; asChild?: boolean }) => (
+    <div>{children}</div>
+  ),
   Portal: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  Content: ({ children }: { children: React.ReactNode }) => <div data-testid="tooltip-content">{children}</div>,
-  Arrow: () => <div data-testid="tooltip-arrow" />
+  Content: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="tooltip-content">{children}</div>
+  ),
+  Arrow: () => <div data-testid="tooltip-arrow" />,
 }));
 
 describe('GroupedTable', () => {
@@ -20,22 +24,22 @@ describe('GroupedTable', () => {
       field: 'pros',
       seed: 'Great graphics',
       llm: 'Excellent visuals',
-      similarity: '0.85'
+      similarity: '0.85',
     },
     {
       reviewId: 'review-1',
       field: 'cons',
       seed: 'Too short',
       llm: 'Brief gameplay',
-      similarity: '0.75'
+      similarity: '0.75',
     },
     {
       reviewId: 'review-2',
       field: 'pros',
       seed: 'Good story',
       llm: 'Compelling narrative',
-      similarity: '0.90'
-    }
+      similarity: '0.90',
+    },
   ];
 
   const mockGroupedResults: (GroupedResult & { hasMismatch: boolean })[] = [
@@ -44,32 +48,32 @@ describe('GroupedTable', () => {
       seed: 'Great graphics',
       fields: {
         pros: 'Excellent visuals',
-        cons: 'Brief gameplay'
+        cons: 'Brief gameplay',
       },
       idxs: {
         pros: 0,
-        cons: 1
+        cons: 1,
       },
-      hasMismatch: true
+      hasMismatch: true,
     },
     {
       reviewId: 'review-2',
       seed: 'Good story',
       fields: {
-        pros: 'Compelling narrative'
+        pros: 'Compelling narrative',
       },
       idxs: {
-        pros: 2
+        pros: 2,
       },
-      hasMismatch: false
-    }
+      hasMismatch: false,
+    },
   ];
 
   const mockProps = {
     filteredGroupedResults: mockGroupedResults,
     reviewFields: ['pros', 'cons'],
     results: mockResults,
-    onEditReview: jest.fn()
+    onEditReview: jest.fn(),
   };
 
   beforeEach(() => {
@@ -78,7 +82,7 @@ describe('GroupedTable', () => {
 
   it('renders table with correct headers', () => {
     render(<GroupedTable {...mockProps} />);
-    
+
     expect(screen.getByText('Review ID')).toBeInTheDocument();
     expect(screen.getByText('pros')).toBeInTheDocument();
     expect(screen.getByText('cons')).toBeInTheDocument();
@@ -87,7 +91,7 @@ describe('GroupedTable', () => {
 
   it('renders grouped results correctly', () => {
     render(<GroupedTable {...mockProps} />);
-    
+
     expect(screen.getByText('review-1')).toBeInTheDocument();
     expect(screen.getByText('review-2')).toBeInTheDocument();
     // Use getAllByText for elements that appear multiple times (in tooltips too)
@@ -98,7 +102,7 @@ describe('GroupedTable', () => {
 
   it('applies correct row styling for mismatches', () => {
     render(<GroupedTable {...mockProps} />);
-    
+
     const rows = screen.getAllByRole('row');
     // First row is header, second is review-1 (has mismatch), third is review-2 (no mismatch, index 1 = odd)
     expect(rows[1]).toHaveClass('bg-red-50');
@@ -107,7 +111,7 @@ describe('GroupedTable', () => {
 
   it('displays seed and LLM data in separate sections', () => {
     render(<GroupedTable {...mockProps} />);
-    
+
     expect(screen.getAllByText('Seed')).toHaveLength(4); // 2 reviews × 2 fields each
     expect(screen.getAllByText('LLM')).toHaveLength(4);
     expect(screen.getAllByText('Great graphics')[0]).toBeInTheDocument();
@@ -116,12 +120,12 @@ describe('GroupedTable', () => {
 
   it('handles edit button clicks', () => {
     render(<GroupedTable {...mockProps} />);
-    
+
     const editButtons = screen.getAllByText('Edit');
     fireEvent.click(editButtons[0]);
-    
+
     expect(mockProps.onEditReview).toHaveBeenCalledWith(0);
-    
+
     fireEvent.click(editButtons[1]);
     expect(mockProps.onEditReview).toHaveBeenCalledWith(1);
   });
@@ -130,15 +134,15 @@ describe('GroupedTable', () => {
     const emptyProps = {
       ...mockProps,
       filteredGroupedResults: [],
-      results: []
+      results: [],
     };
-    
+
     render(<GroupedTable {...emptyProps} />);
-    
+
     expect(screen.getByText('Review ID')).toBeInTheDocument();
     expect(screen.getByText('pros')).toBeInTheDocument();
     expect(screen.getByText('cons')).toBeInTheDocument();
-    
+
     // Should only have header row
     const rows = screen.getAllByRole('row');
     expect(rows).toHaveLength(1);
@@ -150,24 +154,24 @@ describe('GroupedTable', () => {
         reviewId: 'review-incomplete',
         seed: 'Some seed',
         fields: {
-          pros: 'Only pros field'
+          pros: 'Only pros field',
           // cons field missing
         },
         idxs: {
-          pros: 0
+          pros: 0,
           // cons index missing
         },
-        hasMismatch: false
-      }
+        hasMismatch: false,
+      },
     ];
-    
+
     const incompleteProps = {
       ...mockProps,
-      filteredGroupedResults: incompleteGroupedResults
+      filteredGroupedResults: incompleteGroupedResults,
     };
-    
+
     render(<GroupedTable {...incompleteProps} />);
-    
+
     expect(screen.getByText('review-incomplete')).toBeInTheDocument();
     expect(screen.getAllByText('Only pros field')[0]).toBeInTheDocument();
   });
@@ -178,16 +182,16 @@ describe('GroupedTable', () => {
       seed: `seed-${i}`,
       fields: { pros: `pros-${i}` },
       idxs: { pros: i },
-      hasMismatch: false
+      hasMismatch: false,
     }));
-    
+
     const manyProps = {
       ...mockProps,
-      filteredGroupedResults: manyResults
+      filteredGroupedResults: manyResults,
     };
-    
+
     render(<GroupedTable {...manyProps} />);
-    
+
     const rows = screen.getAllByRole('row');
     // Skip header row (index 0)
     expect(rows[1]).toHaveClass('bg-white'); // Even index (0)
@@ -198,10 +202,10 @@ describe('GroupedTable', () => {
 
   it('renders tooltips for seed and LLM data', () => {
     render(<GroupedTable {...mockProps} />);
-    
+
     // Should have tooltip content elements - each field has 2 tooltips (seed + LLM)
     // review-1 has 2 fields (pros, cons) = 4 tooltips
     // review-2 has 1 field (pros) but cons shows N/A = 4 tooltips total
     expect(screen.getAllByTestId('tooltip-content')).toHaveLength(8);
   });
-}); 
+});

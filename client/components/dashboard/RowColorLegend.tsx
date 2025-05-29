@@ -11,8 +11,13 @@ export default function RowColorLegend() {
             <span className="ml-1 text-gray-500 cursor-help">?</span>
           </Tooltip.Trigger>
           <Tooltip.Portal>
-            <Tooltip.Content className="z-50 rounded bg-gray-900 text-white px-2 py-1 text-xs shadow-lg" side="top" align="center">
-              At least one field in this row has a similarity &lt; 0.8 between LLM and seed (disagreement)
+            <Tooltip.Content
+              className="z-50 rounded bg-gray-900 text-white px-2 py-1 text-xs shadow-lg"
+              side="top"
+              align="center"
+            >
+              At least one field in this row has a similarity &lt; 0.8 between LLM and seed
+              (disagreement)
               <Tooltip.Arrow className="fill-gray-900" />
             </Tooltip.Content>
           </Tooltip.Portal>
@@ -26,7 +31,11 @@ export default function RowColorLegend() {
             <span className="ml-1 text-gray-500 cursor-help">?</span>
           </Tooltip.Trigger>
           <Tooltip.Portal>
-            <Tooltip.Content className="z-50 rounded bg-gray-900 text-white px-2 py-1 text-xs shadow-lg" side="top" align="center">
+            <Tooltip.Content
+              className="z-50 rounded bg-gray-900 text-white px-2 py-1 text-xs shadow-lg"
+              side="top"
+              align="center"
+            >
               This row has been manually edited/overridden by a reviewer
               <Tooltip.Arrow className="fill-gray-900" />
             </Tooltip.Content>
@@ -41,7 +50,11 @@ export default function RowColorLegend() {
             <span className="ml-1 text-gray-500 cursor-help">?</span>
           </Tooltip.Trigger>
           <Tooltip.Portal>
-            <Tooltip.Content className="z-50 rounded bg-gray-900 text-white px-2 py-1 text-xs shadow-lg" side="top" align="center">
+            <Tooltip.Content
+              className="z-50 rounded bg-gray-900 text-white px-2 py-1 text-xs shadow-lg"
+              side="top"
+              align="center"
+            >
               Alternating row color for readability (no special meaning)
               <Tooltip.Arrow className="fill-gray-900" />
             </Tooltip.Content>
@@ -56,7 +69,11 @@ export default function RowColorLegend() {
             <span className="ml-1 text-gray-500 cursor-help">?</span>
           </Tooltip.Trigger>
           <Tooltip.Portal>
-            <Tooltip.Content className="z-50 rounded bg-gray-900 text-white px-2 py-1 text-xs shadow-lg" side="top" align="center">
+            <Tooltip.Content
+              className="z-50 rounded bg-gray-900 text-white px-2 py-1 text-xs shadow-lg"
+              side="top"
+              align="center"
+            >
               No mismatches, no overrides (all similarities ≥ 0.8)
               <Tooltip.Arrow className="fill-gray-900" />
             </Tooltip.Content>
@@ -65,4 +82,4 @@ export default function RowColorLegend() {
       </div>
     </div>
   );
-} 
+}

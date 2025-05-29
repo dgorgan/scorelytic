@@ -25,7 +25,7 @@ jest.mock('recharts', () => ({
   ),
   Tooltip: ({ formatter, labelFormatter }: any) => (
     <div data-testid="recharts-tooltip" data-formatter={formatter?.toString()} />
-  )
+  ),
 }));
 
 describe('SweepSummaryChart', () => {
@@ -35,27 +35,27 @@ describe('SweepSummaryChart', () => {
       prompt: 'default',
       field: 'sentimentScore',
       total_mismatches: '15',
-      total_comparisons: '100'
+      total_comparisons: '100',
     },
     {
       model: 'gpt-4',
       prompt: 'enhanced',
       field: 'verdict',
       total_mismatches: '8',
-      total_comparisons: '100'
-    }
+      total_comparisons: '100',
+    },
   ];
 
   it('renders chart with correct data transformation', () => {
     render(<SweepSummaryChart sweepSummary={mockSweepSummary} />);
-    
+
     expect(screen.getByTestId('recharts-container')).toBeInTheDocument();
     expect(screen.getByTestId('recharts-bar-chart')).toBeInTheDocument();
-    
+
     // Check that data is properly transformed
     const chartElement = screen.getByTestId('recharts-bar-chart');
     const chartData = JSON.parse(chartElement.getAttribute('data-chart-data') || '[]');
-    
+
     expect(chartData).toHaveLength(2);
     expect(chartData[0]).toEqual({
       name: 'gpt-3.5-turbo | default | sentimentScore',
@@ -63,13 +63,13 @@ describe('SweepSummaryChart', () => {
       model: 'gpt-3.5-turbo',
       prompt: 'default',
       field: 'sentimentScore',
-      comparisons: 100
+      comparisons: 100,
     });
   });
 
   it('renders chart components with correct props', () => {
     render(<SweepSummaryChart sweepSummary={mockSweepSummary} />);
-    
+
     expect(screen.getByTestId('recharts-bar')).toHaveAttribute('data-key', 'mismatches');
     expect(screen.getByTestId('recharts-bar')).toHaveAttribute('data-fill', '#8884d8');
     expect(screen.getByTestId('recharts-xaxis')).toHaveAttribute('data-key', 'name');
@@ -78,12 +78,12 @@ describe('SweepSummaryChart', () => {
 
   it('handles empty sweep summary', () => {
     render(<SweepSummaryChart sweepSummary={[]} />);
-    
+
     expect(screen.getByTestId('recharts-container')).toBeInTheDocument();
-    
+
     const chartElement = screen.getByTestId('recharts-bar-chart');
     const chartData = JSON.parse(chartElement.getAttribute('data-chart-data') || '[]');
-    
+
     expect(chartData).toHaveLength(0);
   });
 
@@ -94,15 +94,15 @@ describe('SweepSummaryChart', () => {
         prompt: 'test-prompt',
         field: 'test-field',
         total_mismatches: '25',
-        total_comparisons: '200'
-      }
+        total_comparisons: '200',
+      },
     ];
-    
+
     render(<SweepSummaryChart sweepSummary={sweepWithStringNumbers} />);
-    
+
     const chartElement = screen.getByTestId('recharts-bar-chart');
     const chartData = JSON.parse(chartElement.getAttribute('data-chart-data') || '[]');
-    
+
     expect(chartData[0].mismatches).toBe(25);
     expect(chartData[0].comparisons).toBe(200);
     expect(typeof chartData[0].mismatches).toBe('number');
@@ -116,15 +116,15 @@ describe('SweepSummaryChart', () => {
         prompt: 'enhanced-v2',
         field: 'reviewSummary',
         total_mismatches: '5',
-        total_comparisons: '50'
-      }
+        total_comparisons: '50',
+      },
     ];
-    
+
     render(<SweepSummaryChart sweepSummary={complexSweep} />);
-    
+
     const chartElement = screen.getByTestId('recharts-bar-chart');
     const chartData = JSON.parse(chartElement.getAttribute('data-chart-data') || '[]');
-    
+
     expect(chartData[0].name).toBe('gpt-4-turbo | enhanced-v2 | reviewSummary');
   });
-}); 
+});

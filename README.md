@@ -3,6 +3,7 @@
 Scorelytic is a transparent, bias-aware video game review analysis platform. It ingests YouTube and critic reviews, extracts sentiment and bias, and provides both raw and bias-adjusted scores—empowering users to see how different perspectives shape review outcomes.
 
 ## Key Features
+
 - **Hybrid transcript extraction** (captions + audio fallback)
 - **LLM-powered sentiment analysis**
 - **Bias detection and adjustment**
@@ -12,11 +13,13 @@ Scorelytic is a transparent, bias-aware video game review analysis platform. It 
 - **Platform-owned synthetic score** (not the critic's)
 
 ## How It Works
+
 1. **Transcript → Sentiment**: The LLM analyzes review text and outputs a synthetic `sentimentScore` (0-10) and detected `biasIndicators`.
 2. **Bias Adjustment**: `evaluateBiasImpact(sentimentScore, biasIndicators)` applies heuristics to adjust the score, providing a breakdown and rationale.
 3. **Transparency**: Both scores are shown, with a toggle and clear explanation—no moralizing, just context.
 
 ## Example Usage
+
 ```ts
 import { analyzeText } from 'server/src/services/sentimentService';
 import { evaluateBiasImpact } from 'shared/utils/biasAdjustment';
@@ -28,16 +31,18 @@ console.log({
   sentimentScore: sentiment.sentimentScore,
   biasAdjustedScore: biasAdjustment.biasAdjustedScore,
   biasImpact: biasAdjustment.biasImpact,
-  adjustmentRationale: biasAdjustment.adjustmentRationale
+  adjustmentRationale: biasAdjustment.adjustmentRationale,
 });
 ```
 
 ## UX Philosophy
+
 - **Bias ≠ bad**: Biases shape perception. We analyze them so users can decide if a review matches their taste.
 - **Platform as arbiter**: Scorelytic owns the synthetic score, not the critic. All reviews are treated equally.
 - **User choice**: Users can toggle between raw and adjusted scores, with full transparency on every adjustment.
 
 ## Milestones
+
 See [PROJECT_MILESTONES.MD](PROJECT_MILESTONES.MD).
 
 ## Overview
@@ -46,12 +51,14 @@ Scorelytic is designed to bridge the gap between gamers and media reviewers by o
 
 ## Tech Stack
 
-- **Frontend**: 
+- **Frontend**:
+
   - **Next.js** (React framework)
   - **Tailwind CSS** (Utility-first CSS framework for styling)
   - **TypeScript** (for type safety and better developer experience)
 
 - **Backend**:
+
   - **Express.js** (Minimal web framework for Node.js)
   - **Supabase** (PostgreSQL database, auth, and storage)
   - **TypeScript** (Ensures strong typing and better scalability)
@@ -66,29 +73,33 @@ Scorelytic is designed to bridge the gap between gamers and media reviewers by o
 - **Sentiment Analysis**: Live, using OpenAI to analyze review texts, identify sentiment trends, and bias indicators.
 - **Dashboard QA**: Internal dashboard for human-in-the-loop review, override, and validation of LLM results.
 - **Creator Score**: Based on sentiment analysis, a **curated (or weighted)** creator score will be calculated, factoring in the tone and sentiment of their reviews. This score will allow users to compare creator sentiment with traditional **critic scores** (e.g., MetaCritic, OpenCritic). The goal is to provide a more balanced view of a creator's opinion in relation to a critic's analysis.
-- **Machine Learning**: For understanding review patterns and predicting potential biases based on historical data.  
+- **Machine Learning**: For understanding review patterns and predicting potential biases based on historical data.
 - **Bias Detection**: Scoring algorithms will calculate the degree of bias in each review, helping users to identify whether a review is skewed by personal preferences or external factors.
 
 ## MVP Goals (2 - 4 weeks)
 
 The MVP now includes:
+
 - LLM sentiment analysis pipeline (YouTube → transcript → LLM → sentiment in DB)
 - Internal dashboard for QA and override
 
 The initial MVP focuses on building the essential features of the platform, allowing for rapid iteration and user feedback. The MVP will include:
 
 1. **Frontend** (User Interface):
+
    - Build a Next.js app with a simple and responsive UI.
    - Display **critic** and **creator** reviews, along with scores.
    - Implement **basic sentiment analysis** to categorize reviews as positive, neutral, or negative.
    - A functional homepage that introduces Scorelytic and its purpose, trending games, etc.
 
 2. **Backend** (API):
+
    - Create an Express.js API to serve user data and review information.
    - Implement routes for posting and retrieving reviews.
    - Set up Supabase (PostgreSQL) to store reviews and user data.
 
 3. **AI-Driven Insights**:
+
    - **Sentiment analysis**: Provide a breakdown of whether reviews are generally positive, neutral, or negative.
    - Display aggregated review data and show potential biases across critics and creators.
    - **Data visualization**: Display review score distributions and highlight patterns between critics' and creators' reviews.
@@ -102,18 +113,22 @@ The initial MVP focuses on building the essential features of the platform, allo
 Once the MVP is built and tested, we aim to enhance the platform with additional features:
 
 1. **Advanced AI Features**:
+
    - Enhance sentiment analysis with more sophisticated NLP models to detect nuanced emotions in reviews.
    - Implement **bias prediction algorithms** that show users how likely a reviewer's opinion is to be swayed by factors like personal preferences or affiliations.
 
 2. **Bias Analytics**:
+
    - Use machine learning to analyze trends in reviewer behavior and highlight potential biases across different platforms, such as gaming publications vs. YouTube creators.
    - **Algorithmic Review Score**: Develop a scoring system that combines **critic reviews** and **creator reviews** into a single unbiased score, factoring in reviewer bias, score distribution, and sentiment.
 
 3. **User Profiles & Personalization**:
+
    - Allow users to create profiles, follow critics or creators, and track their own personal review feeds.
    - Enable users to see how their preferences align with reviewers, and get personalized recommendations based on historical review data.
 
 4. **External API Integrations**:
+
    - Integrate with platforms like **Twitch** and **YouTube** to fetch creator reviews directly, and provide an expanded, real-time view of what creators are saying about games.
    - Partner with gaming platforms (e.g., **Steam** or **Epic Games**) for up-to-date game data and official reviews.
 
@@ -134,47 +149,50 @@ Once the MVP is built and tested, we aim to enhance the platform with additional
 
 1. **Clone the repository:**
 
-    ```bash
-    git clone <repository-url>
-    cd scorelytic
-    ```
+   ```bash
+   git clone <repository-url>
+   cd scorelytic
+   ```
 
 2. **Install dependencies:**
 
-    - Root dependencies:
-      ```bash
-      npm install
-      ```
+   - Root dependencies:
 
-    - Client dependencies:
-      ```bash
-      cd client
-      npm install
-      ```
+     ```bash
+     npm install
+     ```
 
-    - Server dependencies:
-      ```bash
-      cd ../server
-      npm install
-      ```
+   - Client dependencies:
+
+     ```bash
+     cd client
+     npm install
+     ```
+
+   - Server dependencies:
+     ```bash
+     cd ../server
+     npm install
+     ```
 
 3. **Environment configuration:**
 
-    Create a `.env` file in the `server` directory with your Supabase credentials:
-    ```plaintext
-    SUPABASE_URL=your-supabase-url
-    SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-    ```
+   Create a `.env` file in the `server` directory with your Supabase credentials:
+
+   ```plaintext
+   SUPABASE_URL=your-supabase-url
+   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+   ```
 
 4. **Run the development servers:**
 
-    From the root directory, run:
+   From the root directory, run:
 
-    ```bash
-    npm run dev
-    ```
+   ```bash
+   npm run dev
+   ```
 
-    This will start both the client (http://localhost:3000) and server (http://localhost:5000) development servers concurrently.
+   This will start both the client (http://localhost:4000) and server (http://localhost:5000) development servers concurrently.
 
 ## Project Structure
 
@@ -216,6 +234,7 @@ npm run migrate -- <table> <column>
 ```
 
 Example:
+
 ```
 npm run migrate -- reviews transcript
 ```
@@ -260,8 +279,22 @@ npx ts-node scripts/youtube-caption-ingest.ts --file video_ids.txt --gameSlug el
 
 ```json
 [
-  { "videoId": "QkkoHAzjnUs", "gameSlug": "elden-ring", "creatorSlug": "skill-up", "gameTitle": "Elden Ring", "creatorName": "Skill Up", "channelUrl": "https://youtube.com/skillup" },
-  { "videoId": "abc123", "gameSlug": "witcher-3", "creatorSlug": "angryjoe", "gameTitle": "The Witcher 3", "creatorName": "AngryJoeShow", "channelUrl": "https://youtube.com/angryjoe" }
+  {
+    "videoId": "QkkoHAzjnUs",
+    "gameSlug": "elden-ring",
+    "creatorSlug": "skill-up",
+    "gameTitle": "Elden Ring",
+    "creatorName": "Skill Up",
+    "channelUrl": "https://youtube.com/skillup"
+  },
+  {
+    "videoId": "abc123",
+    "gameSlug": "witcher-3",
+    "creatorSlug": "angryjoe",
+    "gameTitle": "The Witcher 3",
+    "creatorName": "AngryJoeShow",
+    "channelUrl": "https://youtube.com/angryjoe"
+  }
 ]
 ```
 
@@ -272,6 +305,7 @@ npx ts-node scripts/youtube-caption-ingest.ts --file batch.json
 ## YouTube Data v3 API Integration
 
 ### New Features
+
 - **Automatic metadata extraction** from YouTube videos
 - **Smart game title detection** using regex patterns
 - **Enhanced video processing** with thumbnails, descriptions, and tags
@@ -280,6 +314,7 @@ npx ts-node scripts/youtube-caption-ingest.ts --file batch.json
 ### API Endpoints
 
 #### Process YouTube Video
+
 ```http
 POST /api/youtube/process
 Content-Type: application/json
@@ -290,6 +325,7 @@ Content-Type: application/json
 ```
 
 Processes a complete YouTube video:
+
 1. Fetches metadata from YouTube Data v3 API
 2. Extracts captions using existing pipeline
 3. Analyzes sentiment with LLM
@@ -297,17 +333,20 @@ Processes a complete YouTube video:
 5. Saves enriched review to database
 
 #### Get Video Metadata Only
+
 ```http
 GET /api/youtube/metadata/QkkoHAzjnUs
 ```
 
 Returns YouTube metadata without processing:
+
 - Video title, description, thumbnails
 - Channel information
 - Extracted game title suggestions
 - Suggested database slugs
 
 #### Check Existing Review
+
 ```http
 GET /api/youtube/video/QkkoHAzjnUs
 ```
@@ -317,6 +356,7 @@ Checks if a video has already been processed and returns existing review data.
 ### Environment Setup
 
 Add to your `.env` file:
+
 ```env
 YOUTUBE_API_KEY=your_youtube_data_v3_api_key
 ```
@@ -326,6 +366,7 @@ Get your API key from [Google Cloud Console](https://console.cloud.google.com/ap
 ### Game Title Detection
 
 The system automatically extracts game titles from video metadata using patterns like:
+
 - "Elden Ring Review - Amazing Game!" → "Elden Ring"
 - "Cyberpunk 2077 Gameplay Walkthrough" → "Cyberpunk 2077"
 - "Game Title - Channel Name" → "Game Title"
@@ -333,6 +374,7 @@ The system automatically extracts game titles from video metadata using patterns
 Falls back to video tags if title patterns don't match.
 
 ## Features
+
 - Dynamically looks up or auto-creates games and creators by slug/channel/title
 - Deduplicates reviews by video URL
 - Logs errors to `errors.log`
@@ -340,6 +382,7 @@ Falls back to video tags if title patterns don't match.
 - **NEW**: Rich metadata integration with thumbnails, descriptions, and auto-detection
 
 ## Troubleshooting
+
 - **Permission denied for schema public**: Run the GRANTs from the Supabase docs to ensure API roles have access
 - **Foreign key constraint errors**: Make sure referenced games/creators exist or let the script auto-create them
 - **Duplicate key errors**: The script skips reviews that already exist for a video
@@ -348,6 +391,7 @@ Falls back to video tags if title patterns don't match.
 - **Invalid API key**: Verify your `YOUTUBE_API_KEY` environment variable
 
 ## Example Output
+
 ```
 [YT] Fetching captions for videoId: QkkoHAzjnUs
 [API] Processing YouTube video: QkkoHAzjnUs
@@ -393,17 +437,20 @@ This is an internal tool for reviewing, validating, and overriding LLM sentiment
 - The same data powers the public-facing game/creator pages and analytics.
 
 ## Multi-Layered Bias Report Output
+
 - See `shared/types/biasReport.ts` for all output types
 - API: `POST /api/review/bias-report` (input: sentimentScore, biasIndicators)
 - React: `BiasReportViewer` (collapsible UI for all output layers)
 
 ### Output Layers
+
 - **Summary:** User-facing, quick verdict and score, with confidence and bias summary
 - **Bias Details:** List of all detected biases, their severity, score impact, and qualitative effect
 - **Cultural Context:** Explains how cultural/ideological context may affect perception and score
 - **Full Report:** Internal, diagnostic output for transparency and audit
 
 ### Sample Output
+
 ```json
 {
   "summary": {
@@ -438,18 +485,19 @@ This is an internal tool for reviewing, validating, and overriding LLM sentiment
       "neutral": "mixed",
       "opposed": "negative"
     },
-    "biasDetails": [/* ... */]
+    "biasDetails": [
+      /* ... */
+    ]
   },
   "fullReport": {
     "score_analysis_engine": {
       "input_review_score": 8.5,
-      "ideological_biases_detected": [/* ... */],
+      "ideological_biases_detected": [
+        /* ... */
+      ],
       "bias_adjusted_score": 7.1,
       "score_context_note": "This adjustment is a contextual calibration, not a value judgment."
     }
   }
 }
 ```
-
-
-
