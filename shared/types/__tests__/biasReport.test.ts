@@ -1,4 +1,9 @@
-import type { ReviewSummary, BiasDetail, CulturalContext, FullBiasReport } from '../biasReport';
+import type {
+  ReviewSummary,
+  BiasDetail,
+  CulturalContext,
+  FullBiasReport,
+} from '@/types/biasReport';
 
 describe('BiasReport types', () => {
   it('accepts valid ReviewSummary', () => {

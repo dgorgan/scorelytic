@@ -12,6 +12,7 @@
   "dependencies": {
     "@radix-ui/react-tooltip": "^1.2.7",
     "@scorelytic/shared": "*",
+    "@sentry/nextjs": "^9.23.0",
     "@supabase/supabase-js": "^2.49.8",
     "@types/papaparse": "^5.3.16",
     "autoprefixer": "^10.4.20",

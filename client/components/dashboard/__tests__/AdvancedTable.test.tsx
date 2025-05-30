@@ -1,8 +1,8 @@
 import React from 'react';
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent } from '@testing-library/react';
-import AdvancedTable from '../AdvancedTable';
-import { Result } from '../utils';
+import AdvancedTable from '@/components/dashboard/AdvancedTable';
+import { Result } from '@/components/dashboard/utils';
 
 // Mock Radix UI Tooltip
 jest.mock('@radix-ui/react-tooltip', () => ({

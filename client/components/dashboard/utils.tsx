@@ -35,8 +35,10 @@ export interface SweepSummaryRow {
 export const prettyTooltip = (val: unknown) => {
   if (val === undefined || val === null) return '';
   if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if (!trimmed) return '';
     try {
-      const parsed = JSON.parse(val);
+      const parsed = JSON.parse(trimmed);
       if (Array.isArray(parsed)) return parsed.join(', ');
       if (typeof parsed === 'object') return JSON.stringify(parsed, null, 2);
       return parsed.toString();
@@ -60,10 +62,15 @@ export const displayCell = (val: unknown): string | React.ReactElement => {
   }
 
   if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if (!trimmed) return '';
     // Try to parse as array, even if not perfectly stringified
-    if ((val.startsWith('[') && val.endsWith(']')) || (val.startsWith('{') && val.endsWith('}'))) {
+    if (
+      (trimmed.startsWith('[') && trimmed.endsWith(']')) ||
+      (trimmed.startsWith('{') && trimmed.endsWith('}'))
+    ) {
       try {
-        const parsed = JSON.parse(val);
+        const parsed = JSON.parse(trimmed);
         if (Array.isArray(parsed)) {
           return parsed.join(', ');
         }

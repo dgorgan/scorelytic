@@ -1,5 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import YouTubeProcessor from '../YouTubeProcessor';
+import YouTubeProcessor from '@/components/dashboard/YouTubeProcessor';
+import { Result } from '@/components/dashboard/utils';
 
 global.fetch = jest.fn();
 

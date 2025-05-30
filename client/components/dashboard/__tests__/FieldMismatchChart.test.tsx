@@ -1,7 +1,8 @@
 import React from 'react';
 import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
-import FieldMismatchChart from '../FieldMismatchChart';
+import FieldMismatchChart from '@/components/dashboard/FieldMismatchChart';
+import { Result } from '@/components/dashboard/utils';
 
 // Mock Recharts components
 jest.mock('recharts', () => ({

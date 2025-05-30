@@ -1,7 +1,8 @@
 import React from 'react';
 import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
-import RowColorLegend from '../RowColorLegend';
+import RowColorLegend from '@/components/dashboard/RowColorLegend';
+import { Result } from '@/components/dashboard/utils';
 
 // Mock Radix UI Tooltip
 jest.mock('@radix-ui/react-tooltip', () => ({

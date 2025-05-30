@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Result } from './utils';
+import { Result } from '@/components/dashboard/utils';
 
 interface EditResultModalProps {
   isOpen: boolean;

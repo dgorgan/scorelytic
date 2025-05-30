@@ -1,9 +1,9 @@
 import request from 'supertest';
-import app from '../../app';
-import * as hybridService from '../../services/youtube/hybridTranscriptService';
-const { upsertReviewToSupabase } = require('../../config/database');
+import app from '@/app';
+import * as hybridService from '@/services/youtube/hybridTranscriptService';
+const { upsertReviewToSupabase } = require('@/config/database');
 
-jest.mock('../../config/database', () => ({
+jest.mock('@/config/database', () => ({
   supabase: {
     from: () => ({
       select: () => ({
@@ -29,7 +29,7 @@ jest.mock('../../config/database', () => ({
   upsertReviewToSupabase: jest.fn(),
 }));
 
-jest.mock('../../services/youtube/youtubeApiService', () => ({
+jest.mock('@/services/youtube/youtubeApiService', () => ({
   fetchYouTubeVideoMetadata: jest.fn(() => ({
     title: 'Test Title',
     channelTitle: 'Test Channel',
@@ -43,7 +43,7 @@ jest.mock('../../services/youtube/youtubeApiService', () => ({
   createSlug: jest.fn((str) => str.toLowerCase().replace(/\s+/g, '-')),
 }));
 
-jest.mock('../../services/sentiment', () => ({
+jest.mock('@/services/sentiment', () => ({
   analyzeTextWithBiasAdjustmentFull: jest.fn(() => ({
     summary: 'Test summary',
     sentimentScore: 5,

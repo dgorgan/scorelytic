@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
+import logger from '@/logger';
 
 export type SentimentResult = {
   summary: string | null;
@@ -19,7 +20,7 @@ export const getEmbedding = async (
 ): Promise<number[]> => {
   // Kill switch to prevent OpenAI costs
   if (process.env.DISABLE_OPENAI === 'true') {
-    console.log('[LLM] OpenAI embeddings disabled via DISABLE_OPENAI env var');
+    logger.info('[LLM] OpenAI embeddings disabled via DISABLE_OPENAI env var');
     return new Array(1536).fill(0); // Return zero vector
   }
 
@@ -207,10 +208,10 @@ export const analyzeText = async (
   creatorName?: string,
 ): Promise<SentimentResult> => {
   if (process.env.NODE_ENV !== 'production') {
-    console.debug('[TRANSCRIPT] First 500 chars:\n', text.slice(0, 500));
+    logger.info('[TRANSCRIPT] First 500 chars:\n', text.slice(0, 500));
   }
   if (process.env.DISABLE_OPENAI === 'true') {
-    console.log('[LLM] OpenAI disabled via DISABLE_OPENAI env var');
+    logger.info('[LLM] OpenAI disabled via DISABLE_OPENAI env var');
     return {
       summary: 'No clear summary detected.',
       sentimentScore: 5,
@@ -273,7 +274,7 @@ export const analyzeText = async (
       });
       const raw = completion.choices[0]?.message?.content?.trim() || '{}';
       if (process.env.LOG_LLM_OUTPUT === 'true') {
-        console.debug('[LLM] Raw response:', raw);
+        logger.info('[LLM] Raw response:', raw);
       }
       return tryParseJson(raw);
     } catch (err) {
@@ -291,7 +292,7 @@ export const analyzeText = async (
       !shouldUseAlternativePrompt &&
       !customPrompt // only retry if not using a custom prompt
     ) {
-      console.warn(
+      logger.warn(
         '[LLM] Primary prompt failed or missing summary — retrying with alternative prompt.',
       );
       result = await processChunk(chunk, UPDATED_LLM_PROMPT_ALTERNATIVE);
@@ -347,9 +348,7 @@ export const analyzeText = async (
     reviewSummary: toStringOrNull(reviewSummary) || 'No review summary available.',
   };
   if (!result.summary || result.summary === 'No clear summary detected.') {
-    console.warn(
-      '[LLM] Warning: summary is missing, using fallback (sentimentSummary or default).',
-    );
+    logger.warn('[LLM] Warning: summary is missing, using fallback (sentimentSummary or default).');
   }
 
   // Log a warning if the LLM output was mostly empty
@@ -357,7 +356,7 @@ export const analyzeText = async (
     (v) => v === null || (Array.isArray(v) && v.length === 0),
   );
   if (allEmpty) {
-    console.warn('[LLM] Warning: LLM returned mostly empty result, using safe defaults.', result);
+    logger.warn('[LLM] Warning: LLM returned mostly empty result, using safe defaults.', result);
   }
 
   return result;
@@ -548,7 +547,7 @@ export const analyzeBiasImpact = async (
       result = JSON.parse(content);
     } catch (err) {
       biasAdjustmentFallbackCount++;
-      console.warn('[LLM] Bias adjustment JSON parse error:', err);
+      logger.warn('[LLM] Bias adjustment JSON parse error:', err);
       // Fallback: do a simple adjustment based on mapped bias objects
       const biasObjs = mapBiasLabelsToObjects(
         payload.biasIndicators,
@@ -575,7 +574,7 @@ export const analyzeBiasImpact = async (
     return result;
   } catch (err) {
     biasAdjustmentApiErrorCount++;
-    console.error('[LLM] Bias adjustment error:', err);
+    logger.error('[LLM] Bias adjustment error:', err);
     // Fallback: do a simple adjustment based on mapped bias objects
     const biasObjs = mapBiasLabelsToObjects(
       payload.biasIndicators,

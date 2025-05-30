@@ -501,3 +501,67 @@ This is an internal tool for reviewing, validating, and overriding LLM sentiment
   }
 }
 ```
+
+## Logging & Error Tracking
+
+- **Sentry** is used for error and performance monitoring in both backend (Express) and frontend (Next.js).
+- **Logtail** is used for structured backend logging (JSON in prod, pretty in dev), powered by **Pino**.
+- All backend logs are structured (JSON), enabling log search, filtering, and analytics in Logtail.
+- Errors and exceptions are sent to Sentry with full context.
+- Example backend log (JSON):
+  ```json
+  {
+    "level": "info",
+    "service": "backend-api",
+    "msg": "Request completed",
+    "method": "POST",
+    "url": "/api/youtube/process",
+    "status": 200,
+    "durationMs": 12.49
+  }
+  ```
+- See `.cursorrules` for logging and error tracking policies.
+
+## Commit Message & Code Quality Enforcement
+
+- **Commit messages** are enforced via [commitlint](https://commitlint.js.org/) and [Husky](https://typicode.github.io/husky/):
+  - Conventional commit style (e.g. `feat:`, `fix:`, `chore:`)
+  - Max 100 characters
+  - No empty type or subject
+  - Enforced locally on every commit (see `.husky/commit-msg`)
+- **Code style** is enforced by ESLint (see `.eslintrc.json`), including alias import rules and no unused vars.
+- **Test coverage** is enforced (see `.cursorrules` for thresholds and policy).
+- **Tests** are colocated in `__tests__` folders and run via root `npm test` (monorepo Jest config).
+- See `.cursorrules` for all code quality and enforcement policies.
+
+## RESTful API Conventions
+
+- All backend routes follow RESTful naming (e.g. `/api/games`, `/api/reviews`).
+- See `DOCUMENTATION.MD` for full API spec.
+
+## Local CI Parity: Pre-Push Hook
+
+- Every push runs a Husky `pre-push` hook that executes your full CI suite locally (`npm run check:all`).
+- This gives fast feedback, blocks pushes that would fail CI, and is easy to maintain.
+- Example `.husky/pre-push`:
+  ```sh
+  #!/usr/bin/env sh
+  npm run check:all
+  ```
+- For even closer CI parity, use [act](https://github.com/nektos/act) to run GitHub Actions locally.
+- With this setup, you'll almost never be surprised by a CI failure after opening a PR.
+
+## Environment Variables & CI
+
+- All required environment variables are listed in `.env.example` (copy and fill for local dev).
+- Never commit real secrets! Use dummy/test values for PRs and CI.
+- CI workflows inject all required env vars for both client and server before build/test.
+- The app fails fast if a required env var is missing.
+- For production, use CI secrets or your deployment platform's env management.
+- See `.env.example` for the canonical list.
+
+## Environment Variable Validation
+
+- All required env vars are validated at startup using [envalid](https://github.com/af/envalid) (both client and server).
+- If any required variable is missing or invalid, the app fails fast with a clear error.
+- See `.env.example` for the canonical list of required variables.

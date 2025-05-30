@@ -27,9 +27,9 @@ jest.mock('openai', () => ({
   })),
 }));
 
-import { analyzeReviewText } from '../llmSentiment';
+import { analyzeReviewText } from '@/utils/llmSentiment';
 
-jest.mock('../../config/database', () => ({
+jest.mock('@/config/database', () => ({
   supabase: { from: fromMock },
 }));
 

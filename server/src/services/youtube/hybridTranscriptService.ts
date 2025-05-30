@@ -1,6 +1,7 @@
 import { fetchYoutubeCaptions } from './captionIngestService';
 import * as audioService from './audioTranscriptionService';
 import { TranscriptionOptions } from './audioTranscriptionService';
+import logger from '@/logger';
 
 export interface HybridTranscriptResult {
   transcript: string;
@@ -123,13 +124,13 @@ export const getHybridTranscriptBatch = async (
   let totalCost = 0;
   const maxBatchCost = options.maxCostUSD || 10.0; // Default $10 max per batch
 
-  console.log(
+  logger.info(
     `[HYBRID] Starting batch processing for ${videoIds.length} videos (max cost: $${maxBatchCost})`,
   );
 
   for (const videoId of videoIds) {
     if (totalCost >= maxBatchCost) {
-      console.log(`[HYBRID] Batch cost limit reached: $${totalCost.toFixed(3)}`);
+      logger.info(`[HYBRID] Batch cost limit reached: $${totalCost.toFixed(3)}`);
       results[videoId] = {
         transcript: '',
         method: 'none',
@@ -147,7 +148,7 @@ export const getHybridTranscriptBatch = async (
       results[videoId] = result;
       totalCost += result.cost || 0;
 
-      console.log(
+      logger.info(
         `[HYBRID] ${videoId}: ${result.method} (cost: $${(result.cost || 0).toFixed(3)}, total: $${totalCost.toFixed(3)})`,
       );
     } catch (error: any) {
@@ -159,6 +160,6 @@ export const getHybridTranscriptBatch = async (
     }
   }
 
-  console.log(`[HYBRID] Batch complete. Total cost: $${totalCost.toFixed(3)}`);
+  logger.info(`[HYBRID] Batch complete. Total cost: $${totalCost.toFixed(3)}`);
   return results;
 };

@@ -1,7 +1,7 @@
-import { seedSupabase } from '../seedSupabase';
-import { supabase } from '../../config/database';
+import { seedSupabase } from '@/utils/seedSupabase';
+import { supabase } from '@/config/database';
 
-jest.mock('../../config/database', () => {
+jest.mock('@/config/database', () => {
   const chain: any = {
     upsert: jest.fn(() => ({
       error: null,

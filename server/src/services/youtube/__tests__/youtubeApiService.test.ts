@@ -4,7 +4,7 @@ import {
   extractGameFromMetadata,
   createSlug,
   YouTubeVideoMetadata,
-} from '../youtubeApiService';
+} from '@/services/youtube/youtubeApiService';
 
 // Mock axios
 jest.mock('axios');

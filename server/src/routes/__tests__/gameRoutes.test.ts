@@ -1,7 +1,7 @@
 import request from 'supertest';
-import app from '../../app';
+import app from '@/app';
 
-jest.mock('../../config/database', () => {
+jest.mock('@/config/database', () => {
   const chain: any = {
     select: jest.fn().mockReturnThis(),
     eq: jest.fn().mockReturnThis(),
@@ -20,7 +20,7 @@ jest.mock('../../config/database', () => {
     },
   };
 });
-const db = require('../../config/database');
+const db = require('@/config/database');
 
 describe('GET /api/games/:id', () => {
   const gameId = 'test-game-id';
