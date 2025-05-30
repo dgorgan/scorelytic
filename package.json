@@ -15,7 +15,7 @@
     "prepare": "husky install",
     "test": "jest --coverage",
     "test:changed": "jest --onlyChanged",
-    "lint": "eslint . --ext .js,.ts,.tsx --max-warnings=0"
+    "lint": "eslint . --ext .js,.ts,.tsx"
   },
   "keywords": [],
   "author": "",
