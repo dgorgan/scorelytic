@@ -141,3 +141,9 @@ aliasing:
   allow_relative_in_shared_tests: true  # For Jest compatibility in shared/__tests__
   # Enforced by eslint-plugin-import/no-relative-parent-imports
   
+# Enforce unused variable and parameter conventions
+unused_vars:
+  - "Prefix intentionally unused function parameters with _ (underscore)"
+  - "Never remove variables used in JSX or logic, even if flagged by linter"
+  - "Only remove variables that are truly unused everywhere in the file (interface, function, JSX, logic)"
+  - "Always review auto-fixes before applying; do not trust --fix blindly"
