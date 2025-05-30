@@ -1,4 +1,4 @@
-import * as audioService from '../audioTranscriptionService';
+import * as audioService from '@/services/youtube/audioTranscriptionService';
 
 describe('transcribeYouTubeAudio', () => {
   let helpers: any;

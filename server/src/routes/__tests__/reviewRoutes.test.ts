@@ -27,10 +27,10 @@ jest.mock('@/config/database', () => ({
   },
 }));
 
-import reviewRoutes from '../review';
-import { analyzeSentiment } from '../../services/sentiment';
-import { supabase } from '../../config/database';
-import { getReviewMetadata } from '../../services/youtube/reviewMetadataService';
+import reviewRoutes from '@/routes/review';
+import { analyzeSentiment } from '@/services/sentiment';
+import { supabase } from '@/config/database';
+import { getReviewMetadata } from '@/services/youtube/reviewMetadataService';
 
 describe('reviewRoutes', () => {
   const app = express();
@@ -61,7 +61,7 @@ describe('reviewRoutes', () => {
 
   it('404s if review not found', async () => {
     jest
-      .spyOn(require('../../services/youtube/reviewMetadataService'), 'getReviewMetadata')
+      .spyOn(require('@/services/youtube/reviewMetadataService'), 'getReviewMetadata')
       .mockResolvedValueOnce(null);
     const res = await request(app).post('/api/review/analyze').send({ reviewId: '404' });
     expect(res.status).toBe(404);
@@ -70,7 +70,7 @@ describe('reviewRoutes', () => {
 
   it('400s if no transcript', async () => {
     jest
-      .spyOn(require('../../services/youtube/reviewMetadataService'), 'getReviewMetadata')
+      .spyOn(require('@/services/youtube/reviewMetadataService'), 'getReviewMetadata')
       .mockResolvedValueOnce({
         gameTitle: 'Sample Game',
         channelTitle: 'Game Reviewer',

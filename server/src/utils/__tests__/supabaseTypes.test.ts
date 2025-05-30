@@ -1,6 +1,6 @@
-import { Game } from '../../models/Game';
-import { Creator } from '../../models/Creator';
-import { Review } from '../../models/Review';
+import { Game } from '@/models/Game';
+import { Creator } from '@/models/Creator';
+import { Review } from '@/models/Review';
 
 describe('Supabase Model Types', () => {
   it('Game type should accept valid data', () => {

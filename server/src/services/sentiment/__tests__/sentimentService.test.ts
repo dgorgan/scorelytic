@@ -6,7 +6,7 @@ import {
   analyzeBiasImpact,
   setBiasAdjustmentEnabled,
   getBiasAdjustmentMetrics,
-} from '../sentimentService';
+} from '@/services/sentiment/sentimentService';
 import OpenAI from 'openai';
 
 const mockCreate = jest.fn();

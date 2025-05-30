@@ -9,6 +9,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "**/__tests__/**"]
+  "include": ["**/*.ts", "**/*.tsx", "**/__tests__/**/*.ts", "**/__tests__/**/*.tsx"],
+  "exclude": ["node_modules"]
 }

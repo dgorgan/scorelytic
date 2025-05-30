@@ -1,8 +1,12 @@
-import { normalizeYoutubeToReview, fetchYoutubeCaptions } from '../captionIngestService';
+import {
+  normalizeYoutubeToReview,
+  fetchYoutubeCaptions,
+} from '@/services/youtube/captionIngestService';
+import '@/config/database';
 import * as captionsScraper from 'youtube-captions-scraper';
 
 // Mock the database module with correct path
-jest.mock('../../../config/database', () => ({
+jest.mock('@/config/database', () => ({
   supabase: {
     from: jest.fn(() => ({
       select: jest.fn().mockReturnThis(),

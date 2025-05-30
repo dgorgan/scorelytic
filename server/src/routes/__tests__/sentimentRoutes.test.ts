@@ -1,7 +1,7 @@
 import express from 'express';
 import request from 'supertest';
 
-jest.mock('../../services/sentiment', () => ({
+jest.mock('@/services/sentiment', () => ({
   analyzeSentiment: jest.fn(async (text: string) => ({
     summary: 'S',
     sentimentScore: 1,
@@ -9,8 +9,8 @@ jest.mock('../../services/sentiment', () => ({
   })),
 }));
 
-import sentimentRoutes from '../sentiment';
-import { analyzeSentiment } from '../../services/sentiment';
+import sentimentRoutes from '@/routes/sentiment';
+import { analyzeSentiment } from '@/services/sentiment';
 
 describe('sentimentRoutes', () => {
   const app = express();

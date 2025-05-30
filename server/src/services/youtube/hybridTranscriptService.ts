@@ -1,7 +1,7 @@
 import { fetchYoutubeCaptions } from './captionIngestService';
 import * as audioService from './audioTranscriptionService';
 import { TranscriptionOptions } from './audioTranscriptionService';
-import logger from '../../logger';
+import logger from '@/logger';
 
 export interface HybridTranscriptResult {
   transcript: string;
