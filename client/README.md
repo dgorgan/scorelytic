@@ -34,3 +34,37 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Sentry Error Tracking
+
+This project uses [Sentry](https://sentry.io/) for error and performance monitoring.
+
+### Environment Variables
+
+- `SENTRY_DSN` (required)
+- `SENTRY_ENVIRONMENT` (optional, e.g. development, production)
+- `SENTRY_RELEASE` (optional, e.g. git SHA)
+- `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` (optional, for source maps)
+
+### Manual Error Logging Example
+
+```
+import * as Sentry from '@sentry/nextjs';
+
+try {
+  throw new Error('Manual test error');
+} catch (err) {
+  Sentry.captureException(err);
+  Sentry.addBreadcrumb({
+    category: 'custom',
+    message: 'Manual error thrown in layout',
+    level: 'error',
+  });
+}
+```
+
+### Notes
+
+- In development, Sentry logs are console-only.
+- In production, errors and performance data are sent to Sentry.
+- Sentry is initialized in both `sentry.client.config.ts` and `sentry.server.config.ts`.

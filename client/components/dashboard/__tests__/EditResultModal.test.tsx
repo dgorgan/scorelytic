@@ -1,8 +1,8 @@
 import React from 'react';
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import EditResultModal from '../EditResultModal';
-import { Result } from '../utils';
+import EditResultModal from '@/components/dashboard/EditResultModal';
+import { Result } from '@/components/dashboard/utils';
 
 describe('EditResultModal', () => {
   const mockResult: Result = {

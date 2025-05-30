@@ -7,14 +7,7 @@ import {
   ResponsiveContainer,
   Tooltip as RechartsTooltip,
 } from 'recharts';
-
-interface SweepSummaryRow {
-  model: string;
-  prompt: string;
-  field: string;
-  total_mismatches: string;
-  total_comparisons: string;
-}
+import { SweepSummaryRow } from '@/components/dashboard/utils';
 
 interface SweepSummaryChartProps {
   sweepSummary: SweepSummaryRow[];

@@ -1,4 +1,4 @@
-import { validateInput } from '../validateInput';
+import { validateInput } from '@/utils/validateInput';
 
 describe('validateInput', () => {
   it('returns true for valid text', () => {

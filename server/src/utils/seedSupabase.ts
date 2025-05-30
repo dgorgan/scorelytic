@@ -1,20 +1,21 @@
-import { supabase } from '../config/database';
-import { Game } from '../models/Game';
-import { Creator } from '../models/Creator';
-import { Review } from '../models/Review';
-import { toCamel, toSnake } from './caseMapping';
+import { supabase } from '@/config/database';
+import { Game } from '@/models/Game';
+import { Creator } from '@/models/Creator';
+import { Review } from '@/models/Review';
+import { toCamel, toSnake } from '@/utils/caseMapping';
 import { harmonizeBias } from '@/shared/utils/bias-harmonizer';
+import logger from '@/logger';
 
 async function resetTables() {
   if (process.env.NODE_ENV === 'production') {
-    console.warn('Reset skipped: running in production environment.');
+    logger.warn('Reset skipped: running in production environment.');
     return;
   }
-  console.log('Resetting tables...');
+  logger.info('Resetting tables...');
   await supabase.from('reviews').delete().neq('id', '');
   await supabase.from('creators').delete().neq('id', '');
   await supabase.from('games').delete().neq('id', '');
-  console.log('Tables reset.');
+  logger.info('Tables reset.');
 }
 
 export async function seedSupabase() {
@@ -41,14 +42,14 @@ export async function seedSupabase() {
       contentCriticScore: 90,
     },
   ];
-  console.log('Starting to upsert games');
+  logger.info('Starting to upsert games');
   const { error: gamesError } = await supabase
     .from('games')
     .upsert(toSnake(games), { onConflict: 'slug' });
   if (gamesError) {
-    console.error('Games insert error:', gamesError);
+    logger.error('Games insert error:', gamesError);
   }
-  console.log('Finished upserting games');
+  logger.info('Finished upserting games');
 
   // Fetch game IDs by slug
   const gameSlugs = games.map((g) => g.slug);
@@ -57,7 +58,7 @@ export async function seedSupabase() {
     .select('id,slug')
     .in('slug', gameSlugs);
   if (fetchGamesError) {
-    console.error('Error fetching games by slug:', fetchGamesError);
+    logger.error('Error fetching games by slug:', fetchGamesError);
     return;
   }
   const gamesFetched = rawGamesFetched ? toCamel(rawGamesFetched) : [];
@@ -80,14 +81,14 @@ export async function seedSupabase() {
       channelUrl: 'https://youtube.com/angryjoe',
     },
   ];
-  console.log('Starting to upsert creators');
+  logger.info('Starting to upsert creators');
   const { error: creatorsError } = await supabase
     .from('creators')
     .upsert(toSnake(creators), { onConflict: 'slug' });
   if (creatorsError) {
-    console.error('Creators insert error:', creatorsError);
+    logger.error('Creators insert error:', creatorsError);
   }
-  console.log('Finished upserting creators');
+  logger.info('Finished upserting creators');
 
   // Fetch creator IDs by slug
   const creatorSlugs = creators.map((c) => c.slug);
@@ -96,7 +97,7 @@ export async function seedSupabase() {
     .select('id,slug')
     .in('slug', creatorSlugs);
   if (fetchCreatorsError) {
-    console.error('Error fetching creators by slug:', fetchCreatorsError);
+    logger.error('Error fetching creators by slug:', fetchCreatorsError);
     return;
   }
   const creatorsFetched = rawCreatorsFetched ? toCamel(rawCreatorsFetched) : [];
@@ -277,19 +278,19 @@ export async function seedSupabase() {
     transcript: r.transcript || 'No transcript provided.',
     reviewSummary: r.reviewSummary || 'No summary provided.',
   }));
-  console.log('Starting to upsert reviews');
+  logger.info('Starting to upsert reviews');
   const { data: rawReviews, error: reviewsError } = await supabase
     .from('reviews')
     .upsert(toSnake(reviews), { onConflict: 'video_url' })
     .select();
   const insertedReviews = rawReviews ? toCamel(rawReviews) : null;
   if (reviewsError) {
-    console.error('Reviews insert error:', reviewsError);
+    logger.error('Reviews insert error:', reviewsError);
   } else {
-    console.log('Inserted reviews:', insertedReviews);
+    logger.info('Inserted reviews:', insertedReviews);
   }
-  console.log('Finished upserting reviews');
-  console.log('Seeding reviews complete.');
+  logger.info('Finished upserting reviews');
+  logger.info('Seeding reviews complete.');
 }
 
 seedSupabase();

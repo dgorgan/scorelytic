@@ -43,6 +43,7 @@ backend_framework:
   supabase:
     always_use_env_vars: true
     mask_sensitive_env_vars: true
+  env_validation: true  # All required env vars must be validated at startup (fail-fast, e.g. with envalid)
 
 # Testing
 # Colocate all test files with the nearest service, component, or feature folder.
@@ -100,6 +101,9 @@ docs:
   always_document_public_functions: true
   prefer_jsdoc_style: true
   no_todos_in_commits: true
+  # Commit messages should be conventional, concise, and summarize intent—not full diffs or file-by-file changes.
+  # Example: "fix(server): handle Sentry error edge case" or "chore(shared): enforce alias imports"
+  # Enforcement: Use commitlint + Husky commit-msg hook for actual enforcement.
 
 # Project management references
 project_management:
@@ -113,14 +117,33 @@ project_management:
     - 'Code coverage meets threshold'
     - 'No debug or console.log statements'
     - 'Documentation updated if needed'
+    - 'All required env vars are injected in all CI jobs (unit, e2e, etc.)—no reliance on local .env'
 
 # AI interaction preferences
 ai_assistant:
   ask_before_big_changes: true
   summarize_changes_in_commit: true
   avoid_suggestions_outside_scope: true
+  commit_message_max_length: 100
+  commit_message_style: "conventional, concise, and descriptive (no full diffs or file lists)"
+  # Enforced by commitlint + Husky commit-msg hook if enabled
 
 # Aliases (optional, if you want to add for your imports)
 aliases:
   "@/": "src/"
   
+# Aliasing & Internal Imports
+aliasing:
+  enforce_alias_imports: true
+  allowed_aliases:
+    - '@/'
+  disallow_relative_parent_imports: true
+  allow_relative_in_shared_tests: true  # For Jest compatibility in shared/__tests__
+  # Enforced by eslint-plugin-import/no-relative-parent-imports
+  
+# Enforce unused variable and parameter conventions
+unused_vars:
+  - "Prefix intentionally unused function parameters with _ (underscore)"
+  - "Never remove variables used in JSX or logic, even if flagged by linter"
+  - "Only remove variables that are truly unused everywhere in the file (interface, function, JSX, logic)"
+  - "Always review auto-fixes before applying; do not trust --fix blindly"

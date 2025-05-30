@@ -26,6 +26,14 @@
 - [x] Component structure and base layout
 - [x] Robust backend test infra (Jest, supabase mocks)
 - [x] Monorepo test runner (root-level npm test runs all)
+- [x] Logging: Sentry + Logtail integration, unified backend logging
+- [x] Commit message enforcement: commitlint + Husky v10+, conventional style, max 100 chars
+- [x] Test colocation and alias import enforcement
+- [x] Type-aware linting in shared
+- [x] Monorepo Jest config (root npm test runs all)
+- [x] All policies documented in .cursorrules and DOCUMENTATION.MD
+- [x] Env var validation at startup (fail-fast, envalid in client/server)
+- [x] .env.example policy and documentation
 
 ---
 

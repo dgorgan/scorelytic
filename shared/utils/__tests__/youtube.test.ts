@@ -3,7 +3,7 @@ import {
   isValidVideoId,
   createYouTubeUrl,
   createThumbnailUrl,
-} from '@/shared/utils/youtube';
+} from '@/utils/youtube';
 
 describe('extractVideoId', () => {
   it('returns null for empty or invalid input', () => {

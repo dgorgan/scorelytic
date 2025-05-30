@@ -3,21 +3,21 @@ import { useState, useEffect, useMemo } from 'react';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import Papa from 'papaparse';
 import { supabase } from '@/services/supabase';
-import FieldMismatchChart from '../../components/dashboard/FieldMismatchChart';
-import SweepSummaryChart from '../../components/dashboard/SweepSummaryChart';
-import DashboardControls from '../../components/dashboard/DashboardControls';
-import GroupedTable from '../../components/dashboard/GroupedTable';
-import AdvancedTable from '../../components/dashboard/AdvancedTable';
-import RowColorLegend from '../../components/dashboard/RowColorLegend';
-import EditReviewModal from '../../components/dashboard/EditReviewModal';
-import EditResultModal from '../../components/dashboard/EditResultModal';
-import YouTubeProcessor from '../../components/dashboard/YouTubeProcessor';
+import FieldMismatchChart from '@/components/dashboard/FieldMismatchChart';
+import SweepSummaryChart from '@/components/dashboard/SweepSummaryChart';
+import DashboardControls from '@/components/dashboard/DashboardControls';
+import GroupedTable from '@/components/dashboard/GroupedTable';
+import AdvancedTable from '@/components/dashboard/AdvancedTable';
+import RowColorLegend from '@/components/dashboard/RowColorLegend';
+import EditReviewModal from '@/components/dashboard/EditReviewModal';
+import EditResultModal from '@/components/dashboard/EditResultModal';
+import YouTubeProcessor from '@/components/dashboard/YouTubeProcessor';
 import {
   Result,
   GroupedResult,
   BatchResultRow,
   SweepSummaryRow,
-} from '../../components/dashboard/utils';
+} from '@/components/dashboard/utils';
 
 export default function Dashboard() {
   const [results, setResults] = useState<Result[]>([]);

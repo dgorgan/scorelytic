@@ -1,7 +1,8 @@
 import React from 'react';
 import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
-import SweepSummaryChart from '../SweepSummaryChart';
+import SweepSummaryChart from '@/components/dashboard/SweepSummaryChart';
+import { SweepSummaryRow } from '@/components/dashboard/utils';
 
 // Mock Recharts components
 jest.mock('recharts', () => ({

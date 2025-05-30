@@ -1,5 +1,6 @@
 import * as Tooltip from '@radix-ui/react-tooltip';
-import { GroupedResult, Result, displayCell, prettyTooltip } from './utils';
+import { GroupedResult } from '@/components/dashboard/utils';
+import { Result, displayCell, prettyTooltip } from '@/components/dashboard/utils';
 
 interface GroupedTableProps {
   filteredGroupedResults: (GroupedResult & { hasMismatch: boolean })[];

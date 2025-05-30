@@ -1,7 +1,8 @@
 import React from 'react';
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent } from '@testing-library/react';
-import DashboardControls from '../DashboardControls';
+import DashboardControls from '@/components/dashboard/DashboardControls';
+import { GroupedResult } from '@/components/dashboard/utils';
 
 describe('DashboardControls', () => {
   const mockProps = {

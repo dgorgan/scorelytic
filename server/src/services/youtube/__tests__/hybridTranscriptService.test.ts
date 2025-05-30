@@ -1,20 +1,24 @@
-jest.mock('../audioTranscriptionService', () => ({
-  ...jest.requireActual('../audioTranscriptionService'),
+jest.mock('@/services/youtube/audioTranscriptionService', () => ({
+  ...jest.requireActual('@/services/youtube/audioTranscriptionService'),
   getVideoDuration: jest.fn(() => 10),
   estimateTranscriptionCost: jest.fn(() => 0.1),
   transcribeYouTubeAudio: jest.fn(),
 }));
 
-import { getHybridTranscript } from '../hybridTranscriptService';
-import * as captions from '../captionIngestService';
-import * as audioService from '../audioTranscriptionService';
+import { getHybridTranscript } from '@/services/youtube/hybridTranscriptService';
+import * as captions from '@/services/youtube/captionIngestService';
+import * as audioService from '@/services/youtube/audioTranscriptionService';
 
 describe('getHybridTranscript', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
     (audioService.getVideoDuration as jest.Mock).mockImplementation(() => 10);
     (audioService.estimateTranscriptionCost as jest.Mock).mockImplementation(() => 0.1);
     (audioService.transcribeYouTubeAudio as jest.Mock).mockReset();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('returns captions if available', async () => {
