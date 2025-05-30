@@ -26,7 +26,7 @@ jobs:
       SUPABASE_SERVICE_ROLE_KEY: dummy
       LOGTAIL_SOURCE_TOKEN: dummy
       OPENAI_API_KEY: dummy
-      DISABLE_OPENAI: true
+      DISABLE_OPENAI: false
       LLM_PROMPT_STYLE: DEFAULT
       PORT: 5000
       YOUTUBE_API_KEY: dummy
@@ -67,7 +67,7 @@ jobs:
       SUPABASE_SERVICE_ROLE_KEY: dummy
       LOGTAIL_SOURCE_TOKEN: dummy
       OPENAI_API_KEY: dummy
-      DISABLE_OPENAI: true
+      DISABLE_OPENAI: false
       LLM_PROMPT_STYLE: DEFAULT
       PORT: 5000
       YOUTUBE_API_KEY: dummy
