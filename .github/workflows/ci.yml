@@ -21,17 +21,22 @@ env:
   YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
   SENTRY_DSN_CLIENT: ${{ secrets.SENTRY_DSN_CLIENT }}
   SENTRY_DSN_SERVER: ${{ secrets.SENTRY_DSN_SERVER }}
+  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
   # Sentry and client/server-related secrets/vars
   NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
   NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
   NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
   SENTRY_PROJECT_CLIENT: ${{ vars.SENTRY_PROJECT_CLIENT }}
+  SENTRY_PROJECT_SERVER: ${{ vars.SENTRY_PROJECT_SERVER }}
+  SENTRY_ENVIRONMENT: ${{ vars.SENTRY_ENVIRONMENT }}
+  SENTRY_ORG: ${{ vars.SENTRY_ORG }}
   SUPABASE_URL: ${{ vars.SUPABASE_URL }}
 
   # Additional non-secret environment vars
   PORT: 5000
   DISABLE_OPENAI: false
+  LLM_PROMPT_STYLE: ${{ vars.LLM_PROMPT_STYLE }}
 
 jobs:
   # Setup job to install pnpm and cache dependencies
