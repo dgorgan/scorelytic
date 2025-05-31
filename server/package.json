@@ -10,7 +10,7 @@
     "start": "node dist/server.js",
     "format": "turbo run format --filter=server...",
     "type-check": "tsc --noEmit",
-    "test": "jest"
+    "test": "jest --detectOpenHandles --forceExit"
   },
   "keywords": [],
   "author": "",

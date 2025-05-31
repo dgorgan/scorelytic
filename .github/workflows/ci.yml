@@ -77,45 +77,10 @@ jobs:
         run: npm install -g pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Print all env vars (masking secrets)
-        run: env | sort | sed 's/\(SUPABASE\|SERVICE_ROLE\|KEY\|TOKEN\|SECRET\|API_KEY\|DSN\|PASSWORD\|PRIVATE\|ANON\)=.*/\1=***MASKED***/g'
-      - name: Print SUPABASE env vars
-        run: env | grep SUPABASE || true
-      - name: Print .env files (if any)
-        run: |
-          find . -name ".env*" -exec echo "--- {} ---" \; -exec cat {} \;
-      - name: Print env after install
-        run: env | grep SUPABASE || true
-      - name: Print .env files after install
-        run: |
-          find . -name ".env*" -exec echo "--- {} ---" \; -exec cat {} \;
-      - name: Print env before build
-        run: env | grep SUPABASE || true
-      - name: Print .env files before build
-        run: |
-          find . -name ".env*" -exec echo "--- {} ---" \; -exec cat {} \;
-
-      # - name: Write .env file for test environment
-      #   run: |
-      #     echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .env
-      #     echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" >> .env
-      - name: Run turbo pipeline (with reduced concurrency)
-        run: pnpm turbo run build lint type-check test --concurrency=2 --cache-dir=.turbo
-      - name: Print env before type-check
-        run: env | grep SUPABASE || true
-      - name: Print .env files before type-check
-        run: |
-          find . -name ".env*" -exec echo "--- {} ---" \; -exec cat {} \;
-      - name: Print env before test
-        run: env | grep SUPABASE || true
-      - name: Print .env files before test
-        run: |
-          find . -name ".env*" -exec echo "--- {} ---" \; -exec cat {} \;
-      - name: Echo all secrets and vars (masked)
-        run: |
-          echo '--- ENV VARS ---'
-          env | sort | sed 's/\(SUPABASE\|SERVICE_ROLE\|KEY\|TOKEN\|SECRET\|API_KEY\|DSN\|PASSWORD\|PRIVATE\|ANON\)=.*/\1=***MASKED***/g'
-          echo '--- END ENV VARS ---'
+      - name: Run turbo pipeline (with reduced concurrency and timeout)
+        run: timeout 10m pnpm turbo run build lint type-check test --concurrency=2 --cache-dir=.turbo
+      - name: List running processes after turbo run
+        run: ps aux
 
   # E2E tests job
   e2e:
