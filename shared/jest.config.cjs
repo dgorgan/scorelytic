@@ -5,7 +5,7 @@ module.exports = {
   preset: 'ts-jest',
   testMatch: ['<rootDir>/**/*.test.ts'],
   testEnvironment: 'node',
-  setupFilesAfterEnv: ['<rootDir>/../jest.setup.server.js'],
+  setupFilesAfterEnv: ['<rootDir>/../server/jest.setup.server.js'],
   testPathIgnorePatterns: ['/node_modules/', '/dist/'],
   moduleNameMapper: {
     '^@/shared/(.*)$': '<rootDir>/../shared/$1',

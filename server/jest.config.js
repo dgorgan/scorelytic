@@ -5,7 +5,7 @@ module.exports = {
   preset: 'ts-jest',
   testMatch: ['<rootDir>/**/*.test.ts'],
   testEnvironment: 'node',
-  setupFilesAfterEnv: ['<rootDir>/../jest.setup.server.js'],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.server.js'],
   testPathIgnorePatterns: ['/node_modules/', '/dist/'],
   moduleNameMapper: {
     '^@scorelytic/shared(.*)$': '<rootDir>/../shared/src$1',
@@ -23,7 +23,6 @@ module.exports = {
       statements: 85,
     },
   },
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.server.js'],
   snapshotSerializers: ['@emotion/jest/serializer'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   moduleDirectories: ['node_modules', 'src'],

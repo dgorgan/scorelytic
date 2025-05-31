@@ -88,6 +88,11 @@ jobs:
       - name: Print .env files before build
         run: |
           find . -name ".env*" -exec echo "--- {} ---" \; -exec cat {} \;
+
+      # - name: Write .env file for test environment
+      #   run: |
+      #     echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .env
+      #     echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" >> .env
       - name: Run turbo pipeline (with reduced concurrency)
         run: pnpm turbo run build lint type-check test --concurrency=2 --cache-dir=.turbo
       - name: Print env before type-check

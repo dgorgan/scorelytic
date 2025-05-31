@@ -1,8 +1,17 @@
-const dotenv = require('dotenv');
-dotenv.config();
-require('openai/shims/node');
+import '@testing-library/jest-dom';
 
-// Mock supabase client everywhere
+(async () => {
+  const { default: dotenv } = await import('dotenv');
+  await dotenv.config();
+  await import('openai/shims/node');
+})();
+
+global.ResizeObserver = jest.fn().mockImplementation(() => ({
+  observe: jest.fn(),
+  unobserve: jest.fn(),
+  disconnect: jest.fn(),
+}));
+
 jest.mock('@supabase/supabase-js', () => {
   const actual = jest.requireActual('@supabase/supabase-js');
   return {
