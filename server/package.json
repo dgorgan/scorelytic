@@ -11,7 +11,7 @@
     "lint": "turbo run lint --filter=server...",
     "format": "turbo run format --filter=server...",
     "type-check": "turbo run type-check --filter=server...",
-    "test": "jest --passWithNoTests"
+    "test": "jest"
   },
   "keywords": [],
   "author": "",

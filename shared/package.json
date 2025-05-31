@@ -8,7 +8,7 @@
     "lint": "turbo run lint --filter=shared...",
     "format": "turbo run format --filter=shared...",
     "type-check": "turbo run type-check --filter=shared...",
-    "test": "jest --passWithNoTests"
+    "test": "jest"
   },
   "private": true,
   "exports": {
