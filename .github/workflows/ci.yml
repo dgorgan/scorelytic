@@ -12,76 +12,46 @@ on:
       - '**.md'
       - '**/docs/**'
 
-# Environment variables for all jobs
-# Use secrets for sensitive values, vars for non-sensitive config
-# See: https://docs.github.com/en/actions/learn-github-actions/variables
-
 env:
-  # Server secrets from GitHub secrets
+  # Environment variables for your jobs
   SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
   SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
   OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-  SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
   LOGTAIL_SOURCE_TOKEN: ${{ secrets.LOGTAIL_SOURCE_TOKEN }}
   YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+  SENTRY_DSN_CLIENT: ${{ secrets.SENTRY_DSN_CLIENT }}
+  SENTRY_DSN_SERVER: ${{ secrets.SENTRY_DSN_SERVER }}
 
-  # Server non-secret environment vars (from GitHub environment variables)
-  PORT: ${{ vars.PORT }}
-  DISABLE_OPENAI: ${{ vars.DISABLE_OPENAI }}
-  LLM_PROMPT_STYLE: ${{ vars.LLM_PROMPT_STYLE }}
-
-  # Client secrets (if any)
-  # (If you want these to be secrets, move to secrets context)
+  # Sentry and client/server-related secrets/vars
+  NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
   NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
   NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-  NEXT_PUBLIC_SENTRY_DSN: ${{ vars.NEXT_PUBLIC_SENTRY_DSN }}
-
-  # Client non-secret environment vars
-  NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
-  NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${{ vars.SENTRY_ENVIRONMENT }}
-  NEXT_PUBLIC_SENTRY_RELEASE: ${{ github.sha }}
-
-  # Sentry org/project (non-secret)
-  SENTRY_ORG: ${{ vars.SENTRY_ORG }}
-  SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
-
-  # Sentry project and DSN for client
   SENTRY_PROJECT_CLIENT: ${{ vars.SENTRY_PROJECT_CLIENT }}
-  SENTRY_DSN_CLIENT: ${{ vars.SENTRY_DSN_CLIENT }}
 
-  # Sentry project and DSN for server
-  SENTRY_PROJECT_SERVER: ${{ vars.SENTRY_PROJECT_SERVER }}
-  SENTRY_DSN_SERVER: ${{ vars.SENTRY_DSN_SERVER }}
-
-  # Sentry release information for both client and server
-  # Set to the commit SHA (github.sha) to uniquely track errors against the specific commit version.
-  # This ensures both client and server share the same release version and can correlate errors across the stack.
-  SENTRY_RELEASE: ${{ github.sha }} # Uses commit SHA as the release version
+  # Additional non-secret environment vars
+  PORT: 5000
+  DISABLE_OPENAI: false
 
 jobs:
+  # Setup job to install pnpm and cache dependencies
   setup:
     runs-on: ubuntu-latest
-    outputs:
-      cache-hit: ${{ steps.cache.outputs.cache-hit }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Cache pnpm store for faster installs
-        id: cache
+      - name: Cache pnpm store
         uses: actions/cache@v4
         with:
           path: ~/.pnpm-store
           key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
-      - name: Install pnpm package manager globally
-        run: npm i -g pnpm
-      - name: Install all dependencies using pnpm (frozen lockfile for consistency)
+      - name: Install pnpm globally
+        run: npm install -g pnpm
+      - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+  # Turbo pipeline job with reduced concurrency
   turbo-pipeline:
     needs: setup
     runs-on: ubuntu-latest
@@ -95,15 +65,14 @@ jobs:
         with:
           path: ~/.pnpm-store
           key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
-      - name: Install pnpm
-        run: npm i -g pnpm
+      - name: Install pnpm globally
+        run: npm install -g pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Run turbo pipeline (build, lint, type-check, test)
-        run: pnpm turbo run build lint type-check test --cache-dir=.turbo
+      - name: Run turbo pipeline (with reduced concurrency)
+        run: pnpm turbo run build lint type-check test --concurrency=2 --cache-dir=.turbo
 
+  # E2E tests job
   e2e:
     needs: turbo-pipeline
     runs-on: ubuntu-latest
@@ -117,10 +86,8 @@ jobs:
         with:
           path: ~/.pnpm-store
           key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
-      - name: Install pnpm
-        run: npm i -g pnpm
+      - name: Install pnpm globally
+        run: npm install -g pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Install system dependencies (ffmpeg, jq)

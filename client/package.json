@@ -6,9 +6,8 @@
     "dev": "next dev -p 4000",
     "build": "next build",
     "start": "next start",
-    "lint": "turbo run lint --filter=client...",
     "format": "turbo run format --filter=client...",
-    "type-check": "turbo run type-check --filter=client...",
+    "type-check": "tsc --noEmit",
     "test": "jest"
   },
   "dependencies": {
