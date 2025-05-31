@@ -1,11 +1,5 @@
 import '@testing-library/jest-dom';
 
-(async () => {
-  const { default: dotenv } = await import('dotenv');
-  await dotenv.config();
-  await import('openai/shims/node');
-})();
-
 global.ResizeObserver = jest.fn().mockImplementation(() => ({
   observe: jest.fn(),
   unobserve: jest.fn(),

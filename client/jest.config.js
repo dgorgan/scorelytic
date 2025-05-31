@@ -7,6 +7,7 @@ const customConfig = {
   displayName: 'client',
   rootDir: '.',
   testMatch: ['<rootDir>/**/*.test.{ts,tsx,js,jsx}'],
+  setupFiles: ['<rootDir>/../jest.setup-envs.js'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.client.ts'],
   testEnvironment: 'jsdom',
   moduleNameMapper: {
