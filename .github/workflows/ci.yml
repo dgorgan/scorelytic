@@ -12,6 +12,10 @@ on:
       - '**.md'
       - '**/docs/**'
 
+# Environment variables for all jobs
+# Use secrets for sensitive values, vars for non-sensitive config
+# See: https://docs.github.com/en/actions/learn-github-actions/variables
+
 env:
   # Server secrets from GitHub secrets
   SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -19,27 +23,41 @@ env:
   OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
   SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-  SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-  SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
   LOGTAIL_SOURCE_TOKEN: ${{ secrets.LOGTAIL_SOURCE_TOKEN }}
+  YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
 
-  # Server non-secret environment vars
-  PORT: 5000
-  DISABLE_OPENAI: false
-  LLM_PROMPT_STYLE: DEFAULT
+  # Server non-secret environment vars (from GitHub environment variables)
+  PORT: ${{ vars.PORT }}
+  DISABLE_OPENAI: ${{ vars.DISABLE_OPENAI }}
+  LLM_PROMPT_STYLE: ${{ vars.LLM_PROMPT_STYLE }}
 
-  # Client secrets
-  NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-  NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
+  # Client secrets (if any)
+  # (If you want these to be secrets, move to secrets context)
+  NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+  NEXT_PUBLIC_SENTRY_DSN: ${{ vars.NEXT_PUBLIC_SENTRY_DSN }}
 
   # Client non-secret environment vars
-  NEXT_PUBLIC_API_URL: http://localhost:5000
-  NEXT_PUBLIC_SENTRY_ENVIRONMENT: ci
-  NEXT_PUBLIC_SENTRY_RELEASE: ci
+  NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+  NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${{ vars.SENTRY_ENVIRONMENT }}
+  NEXT_PUBLIC_SENTRY_RELEASE: ${{ github.sha }}
 
-  # Shared or other keys
-  YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+  # Sentry org/project (non-secret)
+  SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+  SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+
+  # Sentry project and DSN for client
+  SENTRY_PROJECT_CLIENT: ${{ vars.SENTRY_PROJECT_CLIENT }}
+  SENTRY_DSN_CLIENT: ${{ vars.SENTRY_DSN_CLIENT }}
+
+  # Sentry project and DSN for server
+  SENTRY_PROJECT_SERVER: ${{ vars.SENTRY_PROJECT_SERVER }}
+  SENTRY_DSN_SERVER: ${{ vars.SENTRY_DSN_SERVER }}
+
+  # Sentry release information for both client and server
+  # Set to the commit SHA (github.sha) to uniquely track errors against the specific commit version.
+  # This ensures both client and server share the same release version and can correlate errors across the stack.
+  SENTRY_RELEASE: ${{ github.sha }} # Uses commit SHA as the release version
 
 jobs:
   setup:

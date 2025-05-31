@@ -20,7 +20,7 @@ const nextConfig: NextConfig = {
 
 export default withSentryConfig(nextConfig, {
   org: process.env.SENTRY_ORG || 'scorelytic',
-  project: process.env.SENTRY_PROJECT || 'javascript-nextjs',
+  project: process.env.SENTRY_PROJECT_CLIENT || 'javascript-nextjs',
   authToken: process.env.SENTRY_AUTH_TOKEN,
   widenClientFileUpload: true,
   disableLogger: true,

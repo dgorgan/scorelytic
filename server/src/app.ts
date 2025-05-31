@@ -15,7 +15,7 @@ import creatorRoutes from '@/routes/creator';
 const app: express.Application = express();
 
 Sentry.init({
-  dsn: process.env.SENTRY_DSN,
+  dsn: process.env.SENTRY_DSN_SERVER,
   integrations: [Sentry.expressIntegration()],
   tracesSampleRate: 1.0,
   environment: process.env.NODE_ENV,
