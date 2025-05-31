@@ -11,10 +11,10 @@ on:
     paths-ignore:
       - '**.md'
       - '**/docs/**'
+  workflow_dispatch:
 
 env:
   # Environment variables for your jobs
-  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
   SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
   OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
   LOGTAIL_SOURCE_TOKEN: ${{ secrets.LOGTAIL_SOURCE_TOKEN }}
@@ -27,6 +27,7 @@ env:
   NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
   NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
   SENTRY_PROJECT_CLIENT: ${{ vars.SENTRY_PROJECT_CLIENT }}
+  SUPABASE_URL: ${{ vars.SUPABASE_URL }}
 
   # Additional non-secret environment vars
   PORT: 5000
@@ -105,6 +106,11 @@ jobs:
       - name: Print .env files before test
         run: |
           find . -name ".env*" -exec echo "--- {} ---" \; -exec cat {} \;
+      - name: Echo all secrets and vars (masked)
+        run: |
+          echo '--- ENV VARS ---'
+          env | sort | sed 's/\(SUPABASE\|SERVICE_ROLE\|KEY\|TOKEN\|SECRET\|API_KEY\|DSN\|PASSWORD\|PRIVATE\|ANON\)=.*/\1=***MASKED***/g'
+          echo '--- END ENV VARS ---'
 
   # E2E tests job
   e2e:

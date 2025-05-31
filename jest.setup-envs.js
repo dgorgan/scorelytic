@@ -1,3 +1,2 @@
-const dotenv = require('dotenv');
-dotenv.config();
+require('dotenv').config();
 require('openai/shims/node');
