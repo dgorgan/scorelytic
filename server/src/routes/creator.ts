@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-const router = Router();
+const router: ReturnType<typeof Router> = Router();
 
 // TODO: Implement creator routes
 

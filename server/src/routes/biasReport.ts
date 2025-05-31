@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { biasReportController } from '@/controllers/biasReportController';
 
-const router = Router();
+const router: ReturnType<typeof Router> = Router();
 
 router.post('/generate', biasReportController.generateReport);
 

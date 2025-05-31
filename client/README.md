@@ -1,17 +1,29 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Scorelytic Client
+
+## Environment Variables
+
+Copy `.env.example` to `.env` and fill in:
+
+- NEXT_PUBLIC_SUPABASE_URL
+- NEXT_PUBLIC_SUPABASE_ANON_KEY
+- NEXT_PUBLIC_API_URL
+- NEXT_PUBLIC_SENTRY_DSN
+- NEXT_PUBLIC_SENTRY_ENVIRONMENT
+- NEXT_PUBLIC_SENTRY_RELEASE
+
+## Setup
+
+1. Install dependencies: `pnpm install`
+2. Start dev server: `pnpm --filter client dev`
+
+This is a [Next.js](https://nextjs.org) project in a pnpm monorepo. Use pnpm workspace commands for all operations.
 
 ## Getting Started
 
 First, run the development server:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm --filter client dev
 ```
 
 Open [http://localhost:4000](http://localhost:4000) with your browser to see the result.

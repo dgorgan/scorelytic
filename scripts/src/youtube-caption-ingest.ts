@@ -6,9 +6,9 @@ import {
   fetchYoutubeCaptions,
   normalizeYoutubeToReview,
   upsertReviewToSupabase,
-} from '../server/src/services/youtube/captionIngestService.ts';
+  supabase,
+} from '@scorelytic/server';
 import fs from 'fs';
-import { supabase } from '../server/src/config/database.ts';
 
 const argv = yargs(hideBin(process.argv))
   .option('ids', {

@@ -6,7 +6,7 @@ import type {
   BiasDetail,
   CulturalContext,
   FullBiasReport,
-} from '@/shared/types/biasReport';
+} from '@scorelytic/shared';
 
 type BiasReport = {
   summary: ReviewSummary;

@@ -1,4 +1,4 @@
-import { Review } from '@/shared/types/Review';
+import { Review } from '@scorelytic/shared';
 import { getSubtitles } from 'youtube-captions-scraper';
 import { supabase } from '@/config/database';
 import { toSnake } from '@/utils/caseMapping';

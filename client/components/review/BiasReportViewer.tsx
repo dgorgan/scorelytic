@@ -1,10 +1,5 @@
 import { useState } from 'react';
-import {
-  ReviewSummary,
-  BiasDetail,
-  CulturalContext,
-  FullBiasReport,
-} from '@/shared/types/biasReport';
+import { ReviewSummary, BiasDetail, CulturalContext, FullBiasReport } from '@scorelytic/shared';
 
 type BiasReport = {
   summary: ReviewSummary;

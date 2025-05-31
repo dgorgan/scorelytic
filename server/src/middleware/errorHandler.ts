@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { ApiResponse } from '@/shared/types/api';
+import { ApiResponse } from '@scorelytic/shared';
 import logger from '@/logger';
 import Sentry from '@/sentry';
 

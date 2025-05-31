@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { gameController } from '@/controllers/gameController';
 
-const router = Router();
+const router: ReturnType<typeof Router> = Router();
 
 router.get('/', gameController.getGames);
 router.get('/:id', gameController.getGameById);

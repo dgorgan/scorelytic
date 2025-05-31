@@ -1,28 +1,27 @@
 {
   "compilerOptions": {
-    "target": "es2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
-    "allowImportingTsExtensions": true,
-    "baseUrl": ".",
+    "target": "ES2020", // Good default for compatibility with modern JS
+    "module": "NodeNext", // For using Node.js ESM syntax (import/export)
+    "moduleResolution": "NodeNext", // Ensure correct module resolution (important for ESM)
+    "esModuleInterop": true, // To allow commonJS modules in ESM
+    "forceConsistentCasingInFileNames": true, // Prevent errors related to file casing issues
+    "strict": true, // Strict mode enabled to catch more potential bugs
+    "skipLibCheck": true, // Skip library checking for faster build times
+    "resolveJsonModule": true, // Allow importing JSON files as modules
+    "isolatedModules": true, // Enable for TypeScript to support isolated builds (important for Next.js)
+    "allowJs": true, // Allow JS files to be part of the build
+    "jsx": "preserve", // For JSX support (useful for React and Next.js)
+    "baseUrl": ".", // Base directory for resolving paths
+    "incremental": true, // Enable incremental builds
+    "declaration": true, // Emit declaration files (helpful for sharing types across projects)
+    "declarationMap": true, // Generate declaration maps for debugging
+    "outDir": "./dist", // Output directory for compiled files
     "paths": {
-      "shared/*": ["shared/*"],
-      "@/server/*": ["server/src/*"],
-      "@/client/*": ["client/*"],
-      "@/shared/*": ["shared/*"]
+      "@scorelytic/shared/*": ["shared/src/*"], // Path alias for the shared module
+      "@scorelytic/server/*": ["server/src/*"], // Path alias for the server module
+      "@scorelytic/scripts/*": ["scripts/src/*"], // Path alias for the scripts module
+      "@scorelytic/client/*": ["client/src/*"], // Path alias for the client module
+      "@/*": ["src/*"] // Default path alias for shared resources
     }
-  },
-  "exclude": ["node_modules"],
-  "include": ["**/*.ts", "**/*.tsx"]
+  }
 }

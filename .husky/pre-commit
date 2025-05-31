@@ -1,19 +1,22 @@
 #!/usr/bin/env sh
+
+# Build shared first (to make sure dist/.d.ts files are available)
+pnpm build -F @scorelytic/shared
+
+# Continue with other checks
 npx lint-staged
-
 npm run test:changed
+npm run check:all
 
-npm run check:all 
-
-# Block accidental JS artifacts in source
-if find server/src client/services client/test -type f \( -name '*.js' -o -name '*.js.map' -o -name '*.d.ts' \) ! -path '*/dist-server/*' ! -path '*/.next/*' | grep .; then
+# Block accidental JS artifacts in source (exclude dist/ directories)
+if find server/src client/services client/test -type f \( -name '*.js' -o -name '*.js.map' -o -name '*.d.ts' \) ! -path '*/dist-server/*' ! -path '*/.next/*' ! -path '*/dist/*' | grep .; then
   echo '❌ JS artifacts found in source! Clean up before committing.'
   exit 1
 fi 
 
-# Block commits if any .js files exist in shared/ (excluding node_modules)
-if find ./shared -type f -name '*.js' | grep -v node_modules | grep -q .; then
+# Block commits if any .js files exist in shared/ (excluding node_modules and dist/)
+if find ./shared -type f -name '*.js' | grep -v node_modules | grep -v 'dist/' | grep -q .; then
   echo '❌ JS artifacts found in shared/. Commit blocked.'
-  find ./shared -type f -name '*.js' | grep -v node_modules
+  find ./shared -type f -name '*.js' | grep -v node_modules | grep -v 'dist/'
   exit 1
-fi 
+fi

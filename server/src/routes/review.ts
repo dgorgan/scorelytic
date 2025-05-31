@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { reviewController } from '@/controllers/reviewController';
 
-const router = Router();
+const router: ReturnType<typeof Router> = Router();
 
 router.post('/analyze', reviewController.analyzeReview);
 

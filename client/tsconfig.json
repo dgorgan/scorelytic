@@ -1,42 +1,35 @@
 {
-  "extends": "./tsconfig.base.json",
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./*"],
-      "@/shared/*": ["../shared/*"],
-      "@/services/*": ["services/*"],
-      "shared/*": ["../shared/*", "../shared/*.ts"]
-    },
-    "jsx": "preserve",
+    "target": "esnext",
+    "module": "esnext",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
-    "noEmit": true,
-    "incremental": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": false,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "rootDir": "../",
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": {
+      "@scorelytic/shared": ["../shared/src/index.ts"],
+      "@scorelytic/shared/*": ["../shared/src/*"],
+      "@/*": ["*"]
+    },
+    "types": ["node", "jest"],
     "plugins": [
       {
         "name": "next"
       }
-    ],
-    "esModuleInterop": true,
-    "allowImportingTsExtensions": true,
-    "types": ["jest"]
+    ]
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    "../shared/types/**/*.ts",
-    "../shared/constants/**/*.ts",
-    "../shared/utils/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "../shared/**/*.test.ts",
-    "../shared/**/__tests__/**",
-    "../shared/**/nodeOnly/**",
-    "../shared/**/serverOnly/**"
-  ]
+  "include": ["**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules", ".next", "dist"]
 }

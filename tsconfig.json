@@ -1,4 +1,12 @@
 {
   "files": [],
-  "references": [{ "path": "./client" }, { "path": "./server" }]
+  "compilerOptions": {
+    "types": ["node"]
+  },
+  "references": [
+    { "path": "./shared" },
+    { "path": "./client" },
+    { "path": "./server" },
+    { "path": "./scripts" }
+  ]
 }

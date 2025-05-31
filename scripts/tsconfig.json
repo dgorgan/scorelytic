@@ -1,5 +1,23 @@
 {
   "extends": "../tsconfig.base.json",
-  "include": ["*.ts"],
-  "exclude": ["node_modules"]
+  "compilerOptions": {
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "dist",
+    "baseUrl": "src",
+    "paths": {
+      "@/*": ["*"],
+      "@scorelytic/shared/*": ["../../shared/src/*"],
+      "@scorelytic/server": ["../../server/src/index.ts"],
+      "@scorelytic/server/*": ["../../server/src/*"]
+    },
+
+    "types": ["node", "jest"],
+    "noEmit": false,
+    "allowImportingTsExtensions": false
+  },
+  "include": ["src"],
+  "exclude": ["node_modules"],
+  "references": [{ "path": "../server" }, { "path": "../shared" }]
 }

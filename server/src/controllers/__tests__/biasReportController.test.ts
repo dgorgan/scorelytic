@@ -31,7 +31,7 @@ describe('biasReportController', () => {
 
   it('should return 500 on internal error', async () => {
     jest.resetModules();
-    jest.doMock('@/shared/utils/biasAdjustment', () => ({
+    jest.doMock('@scorelytic/shared', () => ({
       generateBiasReport: () => {
         throw new Error('fail');
       },

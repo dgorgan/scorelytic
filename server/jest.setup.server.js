@@ -1,8 +1,3 @@
-const dotenv = require('dotenv');
-dotenv.config();
-require('openai/shims/node');
-
-// Mock supabase client everywhere
 jest.mock('@supabase/supabase-js', () => {
   const actual = jest.requireActual('@supabase/supabase-js');
   return {
