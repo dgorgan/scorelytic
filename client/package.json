@@ -9,7 +9,7 @@
     "lint": "turbo run lint --filter=client...",
     "format": "turbo run format --filter=client...",
     "type-check": "turbo run type-check --filter=client...",
-    "test": "turbo run test --filter=client..."
+    "test": "jest --passWithNoTests"
   },
   "dependencies": {
     "@radix-ui/react-tooltip": "^1.2.7",
