@@ -1,0 +1,20 @@
+{
+  "name": "@scorelytic/scripts",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo 'No dev server for scripts'",
+    "build": "tsc -p tsconfig.json",
+    "lint": "turbo run lint --filter=scripts...",
+    "format": "turbo run format --filter=scripts...",
+    "type-check": "turbo run type-check --filter=scripts...",
+    "test": "turbo run test --filter=scripts..."
+  },
+  "dependencies": {
+    "@scorelytic/server": "workspace:*",
+    "@scorelytic/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

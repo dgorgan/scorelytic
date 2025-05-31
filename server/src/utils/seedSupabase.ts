@@ -1,9 +1,8 @@
 import { supabase } from '@/config/database';
 import { Game } from '@/models/Game';
 import { Creator } from '@/models/Creator';
-import { Review } from '@/models/Review';
+import { Review, harmonizeBias } from '@scorelytic/shared';
 import { toCamel, toSnake } from '@/utils/caseMapping';
-import { harmonizeBias } from '@/shared/utils/bias-harmonizer';
 import logger from '@/logger';
 
 async function resetTables() {

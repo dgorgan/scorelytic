@@ -1,7 +1,6 @@
 import 'module-alias/register';
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import * as Sentry from '@sentry/node';
 import { errorHandler } from '@/middleware/errorHandler';
 import requestLogger from '@/middleware/requestLogger';
@@ -12,8 +11,6 @@ import reviewRoutes from '@/routes/review';
 import gameRoutes from '@/routes/game';
 import youtubeRoutes from '@/routes/youtube';
 import creatorRoutes from '@/routes/creator';
-
-dotenv.config();
 
 const app: express.Application = express();
 

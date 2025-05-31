@@ -9,7 +9,8 @@ const nextConfig: NextConfig = {
   webpack: (config) => {
     config.resolve.alias = {
       ...(config.resolve.alias || {}),
-      shared: path.resolve(__dirname, '../shared'),
+      '@': path.resolve(__dirname),
+      // remove shared alias here
     };
     return config;
   },

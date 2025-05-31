@@ -1,10 +1,6 @@
 import '@testing-library/jest-dom';
-
-(async () => {
-  const { default: dotenv } = await import('dotenv');
-  await dotenv.config();
-  await import('openai/shims/node');
-})();
+require('dotenv').config();
+require('openai/shims/node');
 
 // Add ResizeObserver polyfill for Recharts
 global.ResizeObserver = jest.fn().mockImplementation(() => ({

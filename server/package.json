@@ -1,18 +1,17 @@
 {
-  "name": "server",
+  "name": "@scorelytic/server",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
-  "_moduleAliases": {
-    "@": "dist"
-  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "test": "jest --config jest.config.ts --passWithNoTests",
-    "test:watch": "jest --config jest.config.ts --watchAll",
+    "dev": "ts-node-dev -r tsconfig-paths/register src/server.ts",
+    "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
-    "dev": "ts-node-dev -r tsconfig-paths/register server.ts",
-    "clean": "rm -rf dist node_modules/.cache",
-    "build": "tsc -p tsconfig.json"
+    "lint": "turbo run lint --filter=server...",
+    "format": "turbo run format --filter=server...",
+    "type-check": "turbo run type-check --filter=server...",
+    "test": "turbo run test --filter=server..."
   },
   "keywords": [],
   "author": "",
@@ -20,7 +19,7 @@
   "dependencies": {
     "@logtail/node": "^0.5.5",
     "@logtail/pino": "^0.5.5",
-    "@scorelytic/shared": "*",
+    "@scorelytic/shared": "workspace:*",
     "@sentry/node": "^8.19.0",
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",

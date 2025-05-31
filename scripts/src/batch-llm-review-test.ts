@@ -1,14 +1,14 @@
-import { supabase } from '../server/src/config/database.ts';
 import {
+  supabase,
   analyzeText,
   getEmbedding,
   UPDATED_LLM_PROMPT as DEFAULT_LLM_PROMPT,
   FEW_SHOT_EXAMPLES,
-} from '../server/src/services/sentiment/sentimentService.ts';
-import { toCamel } from '../server/src/utils/caseMapping.ts';
+  toCamel,
+} from '@scorelytic/server';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
-import { harmonizeBias } from '../shared/utils/bias-harmonizer.ts';
+import { harmonizeBias } from '@scorelytic/shared';
 import { createObjectCsvWriter } from 'csv-writer';
 
 const argv = yargs(hideBin(process.argv))

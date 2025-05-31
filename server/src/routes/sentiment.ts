@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { sentimentController } from '@/controllers/sentimentController';
 
-const router = Router();
+const router: ReturnType<typeof Router> = Router();
 
 router.post('/analyze', sentimentController.analyze);
 
