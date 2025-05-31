@@ -23,6 +23,7 @@ module.exports = {
       statements: 85,
     },
   },
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.server.js'],
   snapshotSerializers: ['@emotion/jest/serializer'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   moduleDirectories: ['node_modules', 'src'],
