@@ -1,7 +1,7 @@
 import 'module-alias/register';
 import express from 'express';
 import cors from 'cors';
-import * as Sentry from '@sentry/node';
+const Sentry = require('@sentry/node');
 import { errorHandler } from '@/middleware/errorHandler';
 import requestLogger from '@/middleware/requestLogger';
 import { env } from './config/env';
@@ -16,7 +16,7 @@ import creatorRoutes from '@/routes/creator';
 const app: express.Application = express();
 
 Sentry.init({
-  dsn: env.SENTRY_DSN,
+  dsn: env.SENTRY_DSN_SERVER,
   integrations: [Sentry.expressIntegration()],
   tracesSampleRate: 1.0,
   environment: env.SENTRY_ENVIRONMENT,

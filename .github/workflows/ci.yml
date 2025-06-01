@@ -32,6 +32,9 @@ env:
   PORT: 5000
   DISABLE_OPENAI: false
   LLM_PROMPT_STYLE: ${{ vars.LLM_PROMPT_STYLE }}
+  LOG_LLM_OUTPUT: false
+  NODE_ENV: production
+  SENTRY_RELEASE: ${{ github.sha }}
 
 jobs:
   setup:
