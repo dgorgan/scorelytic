@@ -142,12 +142,16 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Install system dependencies (ffmpeg, jq)
         run: sudo apt-get update && sudo apt-get install -y ffmpeg jq
+      - name: Build client
+        run: pnpm --filter client run build
+      - name: Build server
+        run: pnpm --filter server run build
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps
       - name: Start Next.js app
-        run: pnpm --filter client start &
+        run: pnpm --filter client run start &
       - name: Start Express server
-        run: pnpm --filter server start &
+        run: pnpm --filter server run start &
       - name: Wait for apps
         run: npx wait-on http://localhost:4000 http://localhost:3001
       - name: Seed DB
