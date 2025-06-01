@@ -34,8 +34,7 @@
   "workspaces": [
     "client",
     "server",
-    "shared",
-    "scripts"
+    "shared"
   ],
   "keywords": [],
   "author": "",
