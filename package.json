@@ -28,7 +28,8 @@
     "lint": "eslint . --ext .ts,.tsx",
     "format": "turbo run format",
     "type-check": "turbo run type-check",
-    "build": "turbo run build"
+    "build": "turbo run build",
+    "prune": "pnpm turbo prune --out-dir .pruned"
   },
   "workspaces": [
     "client",

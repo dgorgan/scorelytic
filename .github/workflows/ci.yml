@@ -22,6 +22,7 @@ env:
   SENTRY_DSN_CLIENT: ${{ secrets.SENTRY_DSN_CLIENT }}
   SENTRY_DSN_SERVER: ${{ secrets.SENTRY_DSN_SERVER }}
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
 
   # Sentry and client/server-related secrets/vars
   NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
@@ -32,6 +33,7 @@ env:
   SENTRY_ENVIRONMENT: ${{ vars.SENTRY_ENVIRONMENT }}
   SENTRY_ORG: ${{ vars.SENTRY_ORG }}
   SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
 
   # Additional non-secret environment vars
   PORT: 5000
@@ -63,11 +65,15 @@ jobs:
     needs: setup
     environment: CI
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        node-version: [18, 20]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ matrix.node-version }}
       - name: Restore pnpm store cache
         uses: actions/cache@v4
         with:
@@ -77,10 +83,25 @@ jobs:
         run: npm install -g pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Run turbo pipeline (with reduced concurrency and timeout)
-        run: timeout 10m pnpm turbo run build lint type-check test --concurrency=2 --cache-dir=.turbo
+      - name: Setup Turbo Remote Caching
+        run: |
+          pnpm turbo login --token ${{ secrets.TURBO_TOKEN }} || echo 'Turbo login skipped (no token)'
+      - name: Run turbo pipeline (no manual timeout)
+        run: pnpm turbo run build lint type-check test e2e --concurrency=2 --cache-dir=.turbo
       - name: List running processes after turbo run
         run: ps aux
+      - name: Prune turbo cache
+        run: pnpm prune
+      - name: Upload .turbo and coverage as artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: turbo-and-coverage
+          path: |
+            .turbo
+            coverage
+      # TODO: Enable Turbo smart change detection (dependsOn, outputs) in turbo.json for even faster CI
+      # VSCode: Suggest adding .vscode/tasks.json for one-click dev/test/lint/type-check
 
   # E2E tests job
   e2e:
@@ -105,3 +126,9 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ffmpeg jq
       - name: Run Playwright E2E tests
         run: pnpm test:e2e
+      - name: Upload Playwright traces on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: client/test-results

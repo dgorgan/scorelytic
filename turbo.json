@@ -1,17 +1,28 @@
 {
-  "$schema": "https://turbo.build/schema.json",
+  "$schema": "https://turborepo.org/schema.json",
   "pipeline": {
     "build": {
-      "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**", "coverage/**"]
+      "outputs": ["dist/**", ".next/**", "build/**"],
+      "dependsOn": ["^build"]
     },
-    "lint": {},
-    "format": {},
+    "lint": {
+      "outputs": [],
+      "dependsOn": ["^lint"]
+    },
     "type-check": {
-      "dependsOn": ["build"]
+      "outputs": [],
+      "dependsOn": ["^type-check"]
     },
     "test": {
-      "dependsOn": ["build"]
+      "outputs": ["coverage/**"],
+      "dependsOn": ["^build", "^type-check", "^test"]
+    },
+    "format": {
+      "outputs": ["**/*.{js,ts,tsx,jsx,json,md,css,scss,html}"]
+    },
+    "e2e": {
+      "outputs": ["client/test-results/**"],
+      "dependsOn": ["^build", "^test"]
     },
     "dev": {
       "cache": false
