@@ -22,9 +22,6 @@ env:
   SENTRY_DSN_CLIENT: ${{ secrets.SENTRY_DSN_CLIENT }}
   SENTRY_DSN_SERVER: ${{ secrets.SENTRY_DSN_SERVER }}
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-
-  # Sentry and client/server-related secrets/vars
   NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
   NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
   NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
@@ -33,17 +30,12 @@ env:
   SENTRY_ENVIRONMENT: ${{ vars.SENTRY_ENVIRONMENT }}
   SENTRY_ORG: ${{ vars.SENTRY_ORG }}
   SUPABASE_URL: ${{ vars.SUPABASE_URL }}
-  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
-
-  # Additional non-secret environment vars
   PORT: 5000
   DISABLE_OPENAI: false
   LLM_PROMPT_STYLE: ${{ vars.LLM_PROMPT_STYLE }}
 
 jobs:
-  # Setup job to install pnpm and cache dependencies
   setup:
-    environment: CI
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -59,65 +51,87 @@ jobs:
         run: npm install -g pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-  # Turbo pipeline job with reduced concurrency
-  turbo-pipeline:
-    needs: setup
-    environment: CI
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    strategy:
-      matrix:
-        node-version: [18, 20]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-      - name: Restore pnpm store cache
+      - name: Cache turbo, next, dist
         uses: actions/cache@v4
         with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
-      - name: Install pnpm globally
-        run: npm install -g pnpm
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Setup Turbo Remote Caching
-        run: |
-          pnpm turbo login --token ${{ secrets.TURBO_TOKEN }} || echo 'Turbo login skipped (no token)'
-      - name: Run turbo pipeline (no manual timeout)
-        run: pnpm turbo run build lint type-check test e2e --concurrency=2 --cache-dir=.turbo
-      - name: List running processes after turbo run
-        run: ps aux
-      - name: Prune turbo cache
-        run: pnpm prune
-      - name: Upload .turbo and coverage as artifacts on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: turbo-and-coverage
           path: |
             .turbo
-            coverage
-      # TODO: Enable Turbo smart change detection (dependsOn, outputs) in turbo.json for even faster CI
-      # VSCode: Suggest adding .vscode/tasks.json for one-click dev/test/lint/type-check
+            client/.next
+            server/dist
+            shared/dist
+          key: ${{ runner.os }}-build-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+      - name: Print all env vars (masking secrets)
+        run: env | sort | sed 's/\(SUPABASE\|SERVICE_ROLE\|KEY\|TOKEN\|SECRET\|DSN\|PASSWORD\|PRIVATE\|ANON\)=.*/\1=***MASKED***/g'
 
-  # E2E tests job
-  e2e:
-    needs: turbo-pipeline
-    environment: CI
+  build-and-check:
+    needs: setup
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Restore pnpm store cache
+      - name: Restore turbo, next, dist cache
         uses: actions/cache@v4
         with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          path: |
+            .turbo
+            client/.next
+            server/dist
+            shared/dist
+          key: ${{ runner.os }}-build-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+      - name: Install pnpm globally
+        run: npm install -g pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build, lint, type-check
+        run: pnpm turbo run build lint type-check --concurrency=2 --cache-dir=.turbo
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            client/.next
+            server/dist
+            shared/dist
+
+  unit-tests:
+    needs: build-and-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+      - name: Install pnpm globally
+        run: npm install -g pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run unit tests
+        run: pnpm turbo run test --concurrency=2 --cache-dir=.turbo
+      - name: Upload coverage on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage
+
+  e2e:
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
       - name: Install pnpm globally
         run: npm install -g pnpm
       - name: Install dependencies
