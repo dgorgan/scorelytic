@@ -14,7 +14,6 @@ on:
   workflow_dispatch:
 
 env:
-  # Environment variables for your jobs
   SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
   OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
   LOGTAIL_SOURCE_TOKEN: ${{ secrets.LOGTAIL_SOURCE_TOKEN }}
@@ -51,7 +50,7 @@ jobs:
       - name: Install pnpm globally
         run: npm install -g pnpm
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --prefer-offline --frozen-lockfile
       - name: Cache turbo, next, dist
         uses: actions/cache@v4
         with:
@@ -62,6 +61,7 @@ jobs:
             shared/dist
           key: ${{ runner.os }}-build-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
       - name: Print all env vars (masking secrets)
+        shell: bash
         run: env | sort | sed 's/\(SUPABASE\|SERVICE_ROLE\|KEY\|TOKEN\|SECRET\|DSN\|PASSWORD\|PRIVATE\|ANON\)=.*/\1=***MASKED***/g'
 
   build-and-check:
@@ -85,7 +85,7 @@ jobs:
       - name: Install pnpm globally
         run: npm install -g pnpm
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --prefer-offline --frozen-lockfile
       - name: Build, lint, type-check
         run: pnpm turbo run build lint type-check --concurrency=2 --cache-dir=.turbo
       - name: Upload build artifacts
@@ -113,11 +113,10 @@ jobs:
       - name: Install pnpm globally
         run: npm install -g pnpm
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --prefer-offline --frozen-lockfile
       - name: Run unit tests
         run: pnpm turbo run test --concurrency=2 --cache-dir=.turbo
-      - name: Upload coverage on failure
-        if: failure()
+      - name: Upload coverage
         uses: actions/upload-artifact@v4
         with:
           name: coverage
@@ -139,7 +138,7 @@ jobs:
       - name: Install pnpm globally
         run: npm install -g pnpm
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --prefer-offline --frozen-lockfile
       - name: Install system dependencies (ffmpeg, jq)
         run: sudo apt-get update && sudo apt-get install -y ffmpeg jq
       - name: Build client
@@ -153,7 +152,26 @@ jobs:
       - name: Start Express server
         run: pnpm --filter server run start &
       - name: Wait for apps
-        run: npx wait-on http://localhost:4000 http://localhost:3001
+        run: npx wait-on http://localhost:4000 http://localhost:5000 --timeout 120000
+      - name: 'Debug: print running processes and open ports'
+        shell: bash
+        run: |
+          ps aux
+          netstat -tuln || ss -tuln || true
+          lsof -i :4000 || true
+          lsof -i :5000 || true
+      - name: 'Debug: print client logs'
+        shell: bash
+        run: |
+          find client/.next -type f -name '*.log' -exec tail -n 100 {} + || true
+          find client -type f -name '*.log' -exec tail -n 100 {} + || true
+          tail -n 100 client/.next/standalone/logs/* || true
+      - name: 'Debug: print server logs'
+        shell: bash
+        run: |
+          find server/dist -type f -name '*.log' -exec tail -n 100 {} + || true
+          find server -type f -name '*.log' -exec tail -n 100 {} + || true
+          tail -n 100 server/dist/logs/* || true
       - name: Seed DB
         run: pnpm run seed:server
       - name: Run Playwright E2E tests
