@@ -1,8 +1,9 @@
 import pino from 'pino';
 import { Logtail } from '@logtail/node';
+import { env } from '@/config/env';
 
-const isProd = process.env.NODE_ENV === 'production';
-const logtailToken = process.env.LOGTAIL_SOURCE_TOKEN;
+const isProd = env.NODE_ENV === 'production';
+const logtailToken = env.LOGTAIL_SOURCE_TOKEN;
 
 // Build transport targets array for pino v7+
 const targets: any[] = [];

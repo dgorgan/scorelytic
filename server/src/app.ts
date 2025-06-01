@@ -4,6 +4,7 @@ import cors from 'cors';
 import * as Sentry from '@sentry/node';
 import { errorHandler } from '@/middleware/errorHandler';
 import requestLogger from '@/middleware/requestLogger';
+import { env } from './config/env';
 
 import biasReportRoutes from '@/routes/biasReport';
 import sentimentRoutes from '@/routes/sentiment';
@@ -15,10 +16,10 @@ import creatorRoutes from '@/routes/creator';
 const app: express.Application = express();
 
 Sentry.init({
-  dsn: process.env.SENTRY_DSN_SERVER,
+  dsn: env.SENTRY_DSN,
   integrations: [Sentry.expressIntegration()],
   tracesSampleRate: 1.0,
-  environment: process.env.NODE_ENV,
+  environment: env.SENTRY_ENVIRONMENT,
 });
 
 app.use(cors());

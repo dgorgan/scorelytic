@@ -21,6 +21,7 @@ describe('YouTubeApiService', () => {
 
   afterEach(() => {
     process.env.YOUTUBE_API_KEY = originalYoutubeApiKey;
+    jest.resetModules();
   });
 
   describe('fetchYouTubeVideoMetadata', () => {
@@ -75,14 +76,16 @@ describe('YouTubeApiService', () => {
     });
 
     it('should throw error when API key is missing', async () => {
-      const prev = process.env.YOUTUBE_API_KEY;
       delete process.env.YOUTUBE_API_KEY;
-
-      await expect(fetchYouTubeVideoMetadata('test-video-id')).rejects.toThrow(
-        'YouTube API key not configured',
-      );
-
-      process.env.YOUTUBE_API_KEY = prev;
+      await jest.isolateModulesAsync(async () => {
+        jest.resetModules();
+        jest.clearAllMocks();
+        require('@/config/env');
+        const { fetchYouTubeVideoMetadata } = require('../youtubeApiService');
+        await expect(fetchYouTubeVideoMetadata('test-video-id')).rejects.toThrow(
+          'YouTube API key not configured',
+        );
+      });
     });
 
     it('should throw error when video not found', async () => {

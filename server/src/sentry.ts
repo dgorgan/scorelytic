@@ -1,11 +1,12 @@
 import * as Sentry from '@sentry/node';
+import { env } from './config/env';
 
 export const initSentry = () => {
-  if (process.env.SENTRY_DSN_SERVER) {
+  if (env.SENTRY_DSN) {
     Sentry.init({
-      dsn: process.env.SENTRY_DSN_SERVER,
+      dsn: env.SENTRY_DSN,
       tracesSampleRate: 1.0,
-      environment: process.env.NODE_ENV,
+      environment: env.SENTRY_ENVIRONMENT,
     });
   }
 };

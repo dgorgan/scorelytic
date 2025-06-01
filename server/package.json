@@ -10,7 +10,7 @@
     "start": "node dist/server.js",
     "format": "turbo run format --filter=server...",
     "type-check": "tsc --noEmit",
-    "test": "jest --detectOpenHandles --forceExit"
+    "test": "jest --detectOpenHandles --forceExit --runInBand"
   },
   "keywords": [],
   "author": "",
@@ -19,7 +19,7 @@
     "@logtail/node": "^0.5.5",
     "@logtail/pino": "^0.5.5",
     "@scorelytic/shared": "workspace:*",
-    "@sentry/node": "^8.19.0",
+    "@sentry/node": "^8.55.0",
     "@types/axios": "^0.14.4",
     "axios": "^1.9.0",
     "body-parser": "^1.20.3",
@@ -33,7 +33,7 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/jest": "^29.5.14",
-    "@types/node": "^22.9.3",
+    "@types/node": "^22.15.28",
     "@types/pino": "^7.0.4",
     "jest": "^29.7.0",
     "nodemon": "^3.1.7",
