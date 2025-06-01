@@ -10,14 +10,17 @@ import {
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
+let originalYoutubeApiKey: string | undefined;
+
 describe('YouTubeApiService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    originalYoutubeApiKey = process.env.YOUTUBE_API_KEY;
     process.env.YOUTUBE_API_KEY = 'test-api-key';
   });
 
   afterEach(() => {
-    delete process.env.YOUTUBE_API_KEY;
+    process.env.YOUTUBE_API_KEY = originalYoutubeApiKey;
   });
 
   describe('fetchYouTubeVideoMetadata', () => {
@@ -72,11 +75,14 @@ describe('YouTubeApiService', () => {
     });
 
     it('should throw error when API key is missing', async () => {
+      const prev = process.env.YOUTUBE_API_KEY;
       delete process.env.YOUTUBE_API_KEY;
 
       await expect(fetchYouTubeVideoMetadata('test-video-id')).rejects.toThrow(
         'YouTube API key not configured',
       );
+
+      process.env.YOUTUBE_API_KEY = prev;
     });
 
     it('should throw error when video not found', async () => {
