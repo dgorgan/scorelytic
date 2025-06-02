@@ -158,12 +158,6 @@ jobs:
         run: pnpm --filter client run build
       - name: Build server
         run: pnpm --filter server run build
-      - name: Install cross-env globally
-        run: pnpm add -g cross-env
-      - name: Print Playwright version and browser status
-        run: pnpm exec playwright --version
-      - name: Print pnpm-lock.yaml hash
-        run: sha256sum pnpm-lock.yaml
       # Install Playwright browsers in the client directory
       - name: Install Playwright browsers
         working-directory: client
@@ -172,10 +166,23 @@ jobs:
       - name: Print Playwright browser status
         working-directory: client
         run: pnpm exec playwright install --check
+      - name: Check for missing required env vars
+        run: node -e "require('./server/dist/config/env')"
+        continue-on-error: false
       # Run Playwright E2E tests from the client directory
       - name: Run Playwright E2E tests
         working-directory: client
         run: pnpm run test:e2e
+      - name: Print all logs on failure
+        if: failure()
+        shell: bash
+        run: |
+          echo '--- Client logs ---'
+          find client/.next -type f -name '*.log' -exec tail -n 100 {} + || true
+          echo '--- Server logs ---'
+          find server/dist -type f -name '*.log' -exec tail -n 100 {} + || true
+      - name: Clean up temp files
+        run: rm -rf /tmp/* client/.next/cache/tmp || true
       - name: Start Next.js app
         run: pnpm --filter client run start --port 4000 &
       - name: Start Express server
