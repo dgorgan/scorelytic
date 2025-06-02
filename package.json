@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "preinstall": "npx only-allow pnpm",
-    "clean": "rm -rf .turbo node_modules **/dist",
-    "clean:deep": "rm -rf .turbo node_modules **/dist **/tsconfig.tsbuildinfo",
+    "clean": "rm -rf .turbo node_modules **/dist **/tsconfig.tsbuildinfo .next coverage",
     "rebuild": "pnpm exec tsc -b --clean && pnpm exec tsc -b",
     "build:ts": "pnpm exec tsc -b",
     "check:types": "tsc --noEmit -p server/tsconfig.json && tsc --noEmit -p client/tsconfig.json",
