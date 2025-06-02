@@ -1,5 +1,6 @@
-import { env } from './config/env';
-import * as Sentry from '@sentry/node';
+require('dotenv').config();
+const Sentry = require('@sentry/node');
+import { env } from '@/config/env';
 import app from '@/app';
 import logger from '@/logger';
 

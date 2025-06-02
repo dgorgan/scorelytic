@@ -21,7 +21,7 @@ export const env = cleanEnv(
         LOG_LLM_OUTPUT: bool({ default: false }),
         PORT: port({ default: 5000 }),
         YOUTUBE_API_KEY: str({ default: 'test-api-key' }),
-        NODE_ENV: str({ default: 'test' }),
+        NODE_ENV: str({ default: 'development' }),
       }
     : {
         SUPABASE_URL: url(),
