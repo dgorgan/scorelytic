@@ -272,6 +272,9 @@ importers:
       ts-node-dev:
         specifier: ^2.0.0
         version: 2.0.0(@types/node@22.15.29)(typescript@5.8.3)
+      tsc-alias:
+        specifier: ^1.8.16
+        version: 1.8.16
       turbo:
         specifier: ^2.5.4
         version: 2.5.4
@@ -374,19 +377,6 @@ importers:
         version: 3.4.17(ts-node@10.9.2(@types/node@20.17.57)(typescript@5.8.3))
       typescript:
         specifier: ^5
-        version: 5.8.3
-
-  scripts:
-    dependencies:
-      '@scorelytic/server':
-        specifier: workspace:*
-        version: link:../server
-      '@scorelytic/shared':
-        specifier: workspace:*
-        version: link:../shared
-    devDependencies:
-      typescript:
-        specifier: ^5.0.0
         version: 5.8.3
 
   server:
