@@ -158,17 +158,15 @@ jobs:
         run: pnpm --filter client run build
       - name: Build server
         run: pnpm --filter server run build
-      # Install Playwright browsers in the client directory
+      # Install Playwright browsers in the repo root
       - name: Install Playwright browsers
-        working-directory: client
         run: pnpm exec playwright install --with-deps
+      # Run Playwright E2E tests from the repo root
+      - name: Run Playwright E2E tests
+        run: pnpm test:e2e
       - name: Check for missing required env vars
         run: node -e "require('./server/dist/config/env')"
         continue-on-error: false
-      # Run Playwright E2E tests from the client directory
-      - name: Run Playwright E2E tests
-        working-directory: client
-        run: pnpm run test:e2e
       - name: Print all logs on failure
         if: failure()
         shell: bash

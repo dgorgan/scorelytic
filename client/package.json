@@ -8,8 +8,7 @@
     "start": "next start",
     "format": "turbo run format --filter=client...",
     "type-check": "tsc --noEmit",
-    "test": "jest",
-    "test:e2e": "playwright test"
+    "test": "jest"
   },
   "dependencies": {
     "@radix-ui/react-tooltip": "^1.2.7",
