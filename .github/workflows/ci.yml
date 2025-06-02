@@ -162,10 +162,6 @@ jobs:
       - name: Install Playwright browsers
         working-directory: client
         run: pnpm exec playwright install --with-deps
-      # Print Playwright browser status for debugging
-      - name: Print Playwright browser status
-        working-directory: client
-        run: pnpm exec playwright install --check
       - name: Check for missing required env vars
         run: node -e "require('./server/dist/config/env')"
         continue-on-error: false
