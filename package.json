@@ -22,7 +22,7 @@
     "dev": "turbo run dev",
     "dev:server": "ts-node-dev --respawn --transpile-only server/src/server.ts",
     "migrate": "dotenv -e .env -- node scripts/check-and-migrate.js",
-    "seed:server": "dotenv -e server/.env -- ts-node -r tsconfig-paths/register server/src/utils/seedSupabase.ts",
+    "seed:server": "dotenv -e server/.env -- TS_NODE_PROJECT=server/tsconfig.json ts-node -r tsconfig-paths/register server/src/utils/seedSupabase.ts",
     "batch:llm-test": "dotenv -e server/.env -- npx ts-node -P scripts/tsconfig.json scripts/batch-llm-review-test.ts",
     "prepare": "husky install",
     "lint": "eslint . --ext .ts,.tsx",
