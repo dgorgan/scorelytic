@@ -73,6 +73,30 @@ jobs:
     needs: setup
     environment: CI
     runs-on: ubuntu-latest
+    env:
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'dummy' }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'dummy' }}
+      LOGTAIL_SOURCE_TOKEN: ${{ secrets.LOGTAIL_SOURCE_TOKEN || 'dummy' }}
+      YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY || 'dummy' }}
+      SENTRY_DSN_SERVER: ${{ secrets.SENTRY_DSN_SERVER || 'dummy' }}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN || 'dummy' }}
+      NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'http://localhost:5000' }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321' }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy' }}
+      SENTRY_PROJECT_CLIENT: ${{ vars.SENTRY_PROJECT_CLIENT || 'javascript-nextjs' }}
+      SENTRY_PROJECT_SERVER: ${{ vars.SENTRY_PROJECT_SERVER || 'node-express' }}
+      SENTRY_ENVIRONMENT: ${{ vars.SENTRY_ENVIRONMENT || 'production' }}
+      SENTRY_ORG: ${{ vars.SENTRY_ORG || 'scorelytic' }}
+      SUPABASE_URL: ${{ vars.SUPABASE_URL || 'http://localhost:54321' }}
+      PORT: 5000
+      DISABLE_OPENAI: false
+      LLM_PROMPT_STYLE: ${{ vars.LLM_PROMPT_STYLE || 'DEFAULT' }}
+      LOG_LLM_OUTPUT: false
+      NODE_ENV: production
+      SENTRY_RELEASE: ${{ github.sha }}
+      NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN_CLIENT || 'dummy' }}
+      NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${{ vars.NEXT_PUBLIC_SENTRY_ENVIRONMENT || vars.SENTRY_ENVIRONMENT || 'production' }}
+      NEXT_PUBLIC_SENTRY_RELEASE: ${{ github.sha }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -112,6 +136,30 @@ jobs:
     needs: build-and-check
     environment: CI
     runs-on: ubuntu-latest
+    env:
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'dummy' }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'dummy' }}
+      LOGTAIL_SOURCE_TOKEN: ${{ secrets.LOGTAIL_SOURCE_TOKEN || 'dummy' }}
+      YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY || 'dummy' }}
+      SENTRY_DSN_SERVER: ${{ secrets.SENTRY_DSN_SERVER || 'dummy' }}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN || 'dummy' }}
+      NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'http://localhost:5000' }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321' }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy' }}
+      SENTRY_PROJECT_CLIENT: ${{ vars.SENTRY_PROJECT_CLIENT || 'javascript-nextjs' }}
+      SENTRY_PROJECT_SERVER: ${{ vars.SENTRY_PROJECT_SERVER || 'node-express' }}
+      SENTRY_ENVIRONMENT: ${{ vars.SENTRY_ENVIRONMENT || 'test' }}
+      SENTRY_ORG: ${{ vars.SENTRY_ORG || 'scorelytic' }}
+      SUPABASE_URL: ${{ vars.SUPABASE_URL || 'http://localhost:54321' }}
+      PORT: 5000
+      DISABLE_OPENAI: false
+      LLM_PROMPT_STYLE: ${{ vars.LLM_PROMPT_STYLE || 'DEFAULT' }}
+      LOG_LLM_OUTPUT: false
+      NODE_ENV: test
+      SENTRY_RELEASE: ${{ github.sha }}
+      NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN_CLIENT || 'dummy' }}
+      NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${{ vars.NEXT_PUBLIC_SENTRY_ENVIRONMENT || vars.SENTRY_ENVIRONMENT || 'test' }}
+      NEXT_PUBLIC_SENTRY_RELEASE: ${{ github.sha }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
