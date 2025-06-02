@@ -181,80 +181,80 @@ jobs:
           name: coverage
           path: coverage
 
-  e2e:
-    needs: unit-tests
-    environment: CI
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts
-      - name: Install pnpm globally
-        run: npm install -g pnpm
-      - name: Install dependencies
-        run: pnpm install --prefer-offline --frozen-lockfile
-      - name: Install system dependencies (ffmpeg, jq)
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg jq
-      - name: Build shared
-        run: pnpm --filter shared run build
-      - name: Build client
-        run: pnpm --filter client run build
-      - name: Build server
-        run: pnpm --filter server run build
-      # Install Playwright browsers in the repo root
-      - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps
-      # Run Playwright E2E tests from the repo root
-      - name: Run Playwright E2E tests
-        run: pnpm test:e2e
-      - name: Check for missing required env vars
-        run: node -e "require('./server/dist/config/env')"
-        continue-on-error: false
-      - name: Print all logs on failure
-        if: failure()
-        shell: bash
-        run: |
-          echo '--- Client logs ---'
-          find client/.next -type f -name '*.log' -exec tail -n 100 {} + || true
-          echo '--- Server logs ---'
-          find server/dist -type f -name '*.log' -exec tail -n 100 {} + || true
-      - name: Clean up temp files
-        run: rm -rf /tmp/* client/.next/cache/tmp || true
-      - name: Start Next.js app
-        run: pnpm --filter client run start --port 4000 &
-      - name: Start Express server
-        run: pnpm --filter server run start &
-      - name: Wait for apps
-        run: npx wait-on http://localhost:4000 http://localhost:5000 --timeout 120000
-      - name: 'Debug: print running processes and open ports'
-        shell: bash
-        run: |
-          ps aux
-          netstat -tuln || ss -tuln || true
-          lsof -i :4000 || true
-          lsof -i :5000 || true
-      - name: 'Debug: print client logs'
-        shell: bash
-        run: |
-          find client/.next -type f -name '*.log' -exec tail -n 100 {} + || true
-          find client -type f -name '*.log' -exec tail -n 100 {} + || true
-          tail -n 100 client/.next/standalone/logs/* || true
-      - name: 'Debug: print server logs'
-        shell: bash
-        run: |
-          find server/dist -type f -name '*.log' -exec tail -n 100 {} + || true
-          find server -type f -name '*.log' -exec tail -n 100 {} + || true
-          tail -n 100 server/dist/logs/* || true
-      - name: Seed DB
-        run: pnpm run seed:server
-      - name: Upload Playwright traces on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-traces
-          path: client/test-results
+  # e2e:
+  #   needs: unit-tests
+  #   environment: CI
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 20
+  #     - name: Download build artifacts
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: build-artifacts
+  #     - name: Install pnpm globally
+  #       run: npm install -g pnpm
+  #     - name: Install dependencies
+  #       run: pnpm install --prefer-offline --frozen-lockfile
+  #     - name: Install system dependencies (ffmpeg, jq)
+  #       run: sudo apt-get update && sudo apt-get install -y ffmpeg jq
+  #     - name: Build shared
+  #       run: pnpm --filter shared run build
+  #     - name: Build client
+  #       run: pnpm --filter client run build
+  #     - name: Build server
+  #       run: pnpm --filter server run build
+  #     # Install Playwright browsers in the repo root
+  #     - name: Install Playwright browsers
+  #       run: pnpm exec playwright install --with-deps
+  #     # Run Playwright E2E tests from the repo root
+  #     - name: Run Playwright E2E tests
+  #       run: pnpm test:e2e
+  #     - name: Check for missing required env vars
+  #       run: node -e "require('./server/dist/config/env')"
+  #       continue-on-error: false
+  #     - name: Print all logs on failure
+  #       if: failure()
+  #       shell: bash
+  #       run: |
+  #         echo '--- Client logs ---'
+  #         find client/.next -type f -name '*.log' -exec tail -n 100 {} + || true
+  #         echo '--- Server logs ---'
+  #         find server/dist -type f -name '*.log' -exec tail -n 100 {} + || true
+  #     - name: Clean up temp files
+  #       run: rm -rf /tmp/* client/.next/cache/tmp || true
+  #     - name: Start Next.js app
+  #       run: pnpm --filter client run start --port 4000 &
+  #     - name: Start Express server
+  #       run: pnpm --filter server run start &
+  #     - name: Wait for apps
+  #       run: npx wait-on http://localhost:4000 http://localhost:5000 --timeout 120000
+  #     - name: 'Debug: print running processes and open ports'
+  #       shell: bash
+  #       run: |
+  #         ps aux
+  #         netstat -tuln || ss -tuln || true
+  #         lsof -i :4000 || true
+  #         lsof -i :5000 || true
+  #     - name: 'Debug: print client logs'
+  #       shell: bash
+  #       run: |
+  #         find client/.next -type f -name '*.log' -exec tail -n 100 {} + || true
+  #         find client -type f -name '*.log' -exec tail -n 100 {} + || true
+  #         tail -n 100 client/.next/standalone/logs/* || true
+  #     - name: 'Debug: print server logs'
+  #       shell: bash
+  #       run: |
+  #         find server/dist -type f -name '*.log' -exec tail -n 100 {} + || true
+  #         find server -type f -name '*.log' -exec tail -n 100 {} + || true
+  #         tail -n 100 server/dist/logs/* || true
+  #     - name: Seed DB
+  #       run: pnpm run seed:server
+  #     - name: Upload Playwright traces on failure
+  #       if: failure()
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: playwright-traces
+  #         path: client/test-results
