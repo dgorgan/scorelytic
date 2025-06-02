@@ -152,12 +152,12 @@ jobs:
         run: pnpm install --prefer-offline --frozen-lockfile
       - name: Install system dependencies (ffmpeg, jq)
         run: sudo apt-get update && sudo apt-get install -y ffmpeg jq
+      - name: Build shared
+        run: pnpm --filter shared run build
       - name: Build client
         run: pnpm --filter client run build
       - name: Build server
         run: pnpm --filter server run build
-      - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps
       - name: Start Next.js app
         run: pnpm --filter client run start --port 4000 &
       - name: Start Express server
