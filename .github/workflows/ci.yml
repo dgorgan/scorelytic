@@ -164,8 +164,18 @@ jobs:
         run: pnpm exec playwright --version
       - name: Print pnpm-lock.yaml hash
         run: sha256sum pnpm-lock.yaml
+      # Install Playwright browsers in the client directory
       - name: Install Playwright browsers
+        working-directory: client
         run: pnpm exec playwright install --with-deps
+      # Print Playwright browser status for debugging
+      - name: Print Playwright browser status
+        working-directory: client
+        run: pnpm exec playwright install --check
+      # Run Playwright E2E tests from the client directory
+      - name: Run Playwright E2E tests
+        working-directory: client
+        run: pnpm run test:e2e
       - name: Start Next.js app
         run: pnpm --filter client run start --port 4000 &
       - name: Start Express server
@@ -193,8 +203,6 @@ jobs:
           tail -n 100 server/dist/logs/* || true
       - name: Seed DB
         run: pnpm run seed:server
-      - name: Run Playwright E2E tests
-        run: pnpm test:e2e
       - name: Upload Playwright traces on failure
         if: failure()
         uses: actions/upload-artifact@v4
