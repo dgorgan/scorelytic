@@ -112,7 +112,8 @@
     "ts-node-dev": "^2.0.0",
     "turbo": "^2.5.4",
     "typescript": "^5.8.3",
-    "wait-on": "^8.0.3"
+    "wait-on": "^8.0.3",
+    "tsc-alias": "^1.8.16"
   },
   "dependencies": {
     "@logtail/node": "^0.5.5",

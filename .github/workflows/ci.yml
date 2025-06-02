@@ -18,7 +18,6 @@ env:
   OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
   LOGTAIL_SOURCE_TOKEN: ${{ secrets.LOGTAIL_SOURCE_TOKEN }}
   YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
-  SENTRY_DSN_CLIENT: ${{ secrets.SENTRY_DSN_CLIENT }}
   SENTRY_DSN_SERVER: ${{ secrets.SENTRY_DSN_SERVER }}
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
   NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
@@ -35,6 +34,9 @@ env:
   LOG_LLM_OUTPUT: false
   NODE_ENV: production
   SENTRY_RELEASE: ${{ github.sha }}
+  NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN_CLIENT }}
+  NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${{ vars.NEXT_PUBLIC_SENTRY_ENVIRONMENT || vars.SENTRY_ENVIRONMENT }}
+  NEXT_PUBLIC_SENTRY_RELEASE: ${{ github.sha }}
 
 jobs:
   setup:
@@ -91,6 +93,12 @@ jobs:
         run: pnpm install --prefer-offline --frozen-lockfile
       - name: Build, lint, type-check
         run: pnpm turbo run build lint type-check --concurrency=2 --cache-dir=.turbo
+      - name: Check for unresolved @/ imports in server build
+        run: |
+          if grep -r "@/" server/dist; then
+            echo 'Unresolved @/ import found in server/dist!';
+            exit 1;
+          fi
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
