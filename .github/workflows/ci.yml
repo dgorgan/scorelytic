@@ -158,6 +158,14 @@ jobs:
         run: pnpm --filter client run build
       - name: Build server
         run: pnpm --filter server run build
+      - name: Install cross-env globally
+        run: pnpm add -g cross-env
+      - name: Print Playwright version and browser status
+        run: pnpm exec playwright --version
+      - name: Print pnpm-lock.yaml hash
+        run: sha256sum pnpm-lock.yaml
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps
       - name: Start Next.js app
         run: pnpm --filter client run start --port 4000 &
       - name: Start Express server
