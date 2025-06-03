@@ -1,21 +1,16 @@
-import app from '@/app';
-import logger from '@/logger';
-import * as Sentry from '@sentry/node';
+export { supabase } from './config/database';
 
-const PORT = process.env.PORT || 3001;
+export {
+  analyzeText,
+  getEmbedding,
+  UPDATED_LLM_PROMPT,
+  FEW_SHOT_EXAMPLES,
+} from './services/sentiment/sentimentService';
 
-app.listen(PORT, () => {
-  logger.info(`Server running on port ${PORT}`);
-});
+export { toCamel } from './utils/caseMapping';
 
-process.on('uncaughtException', (err) => {
-  logger.error(err, 'Uncaught Exception');
-  Sentry.captureException(err);
-  process.exit(1);
-});
-
-process.on('unhandledRejection', (reason) => {
-  logger.error(reason, 'Unhandled Rejection');
-  Sentry.captureException(reason);
-  process.exit(1);
-});
+export {
+  fetchYoutubeCaptions,
+  normalizeYoutubeToReview,
+  upsertReviewToSupabase,
+} from './services/youtube/captionIngestService';

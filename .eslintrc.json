@@ -24,13 +24,41 @@
       }
     },
     {
-      "files": ["client/app/**/*.{ts,tsx}", "server/src/**/*.{ts,tsx}", "shared/**/*.{ts,tsx}"],
+      "files": ["client/app/**/*.{ts,tsx}"],
       "parserOptions": {
-        "project": ["client/tsconfig.json", "server/tsconfig.json", "shared/tsconfig.json"]
+        "project": ["client/tsconfig.json"]
+      },
+      "rules": {
+        "import/no-relative-parent-imports": "error"
+      }
+    },
+    {
+      "files": ["server/src/**/*.{ts,tsx}"],
+      "parserOptions": {
+        "project": ["server/tsconfig.json"]
+      },
+      "rules": {
+        "import/no-relative-parent-imports": "error"
+      }
+    },
+    {
+      "files": ["shared/src/**/*.{ts,tsx}"],
+      "parserOptions": {
+        "project": ["shared/tsconfig.json"]
+      },
+      "rules": {
+        "import/no-relative-parent-imports": "error"
+      }
+    },
+    {
+      "files": ["scripts/src/**/*.{ts,tsx}"],
+      "parserOptions": {
+        "project": ["scripts/tsconfig.json"]
       },
       "rules": {
         "import/no-relative-parent-imports": "error"
       }
     }
-  ]
+  ],
+  "ignorePatterns": ["**/dist/**"]
 }

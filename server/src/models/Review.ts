@@ -1,1 +1,1 @@
-export * from '@/shared/types/Review';
+export * from '@scorelytic/shared';

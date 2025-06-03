@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import logger from '@/logger';
+import { env } from '@/config/env';
 
 export type SentimentResult = {
   summary: string | null;
@@ -19,12 +20,12 @@ export const getEmbedding = async (
   model: string = 'text-embedding-ada-002',
 ): Promise<number[]> => {
   // Kill switch to prevent OpenAI costs
-  if (process.env.DISABLE_OPENAI === 'true') {
+  if (env.DISABLE_OPENAI) {
     logger.info('[LLM] OpenAI embeddings disabled via DISABLE_OPENAI env var');
     return new Array(1536).fill(0); // Return zero vector
   }
 
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
   const resp = await openai.embeddings.create({
     model,
     input: text,
@@ -207,10 +208,10 @@ export const analyzeText = async (
   gameTitle?: string,
   creatorName?: string,
 ): Promise<SentimentResult> => {
-  if (process.env.NODE_ENV !== 'production') {
+  if (env.isTest || env.isProd) {
     logger.info('[TRANSCRIPT] First 500 chars:\n', text.slice(0, 500));
   }
-  if (process.env.DISABLE_OPENAI === 'true') {
+  if (env.DISABLE_OPENAI) {
     logger.info('[LLM] OpenAI disabled via DISABLE_OPENAI env var');
     return {
       summary: 'No clear summary detected.',
@@ -225,13 +226,13 @@ export const analyzeText = async (
     };
   }
 
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
   let model = preferredModel || 'gpt-4o';
   if (!['gpt-4o', 'gpt-4-turbo', 'gpt-3.5-turbo'].includes(model)) model = 'gpt-4o';
 
   // --- Prompt selection logic ---
   const shouldUseAlternativePrompt =
-    model.includes('gpt-3.5') || process.env.LLM_PROMPT_STYLE === 'ALTERNATIVE';
+    model.includes('gpt-3.5') || env.LLM_PROMPT_STYLE === 'ALTERNATIVE';
   const promptToUse =
     customPrompt ||
     (shouldUseAlternativePrompt ? UPDATED_LLM_PROMPT_ALTERNATIVE : UPDATED_LLM_PROMPT);
@@ -273,7 +274,7 @@ export const analyzeText = async (
         temperature: 0.7,
       });
       const raw = completion.choices[0]?.message?.content?.trim() || '{}';
-      if (process.env.LOG_LLM_OUTPUT === 'true') {
+      if (env.LOG_LLM_OUTPUT) {
         logger.info('[LLM] Raw response:', raw);
       }
       return tryParseJson(raw);
@@ -523,7 +524,7 @@ export const analyzeBiasImpact = async (
   preferredModel?: string,
 ): Promise<BiasAdjustmentResult> => {
   biasAdjustmentCallCount++;
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
   const prompt = UPDATED_LLM_PROMPT;
   try {
     const completion = await openai.chat.completions.create({

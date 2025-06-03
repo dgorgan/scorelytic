@@ -1,22 +1,41 @@
 {
   "name": "scorelytic",
+  "private": true,
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "clean": "rm -rf .turbo node_modules **/dist **/tsconfig.tsbuildinfo .next coverage",
+    "rebuild": "pnpm exec tsc -b --clean && pnpm exec tsc -b",
+    "build:ts": "pnpm exec tsc -b",
     "check:types": "tsc --noEmit -p server/tsconfig.json && tsc --noEmit -p client/tsconfig.json",
-    "test:server": "cd server && npx jest",
-    "test:client": "cd client && npx jest",
-    "check:all": "npm run check:types && npm run test:server && npm run test:client",
-    "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
+    "test:server": "cd server && jest --coverage --coverageDirectory=../coverage/server",
+    "test:client": "cd client && jest --coverage --coverageDirectory=../coverage/client",
+    "test:shared": "cd shared && jest --coverage --coverageDirectory=../coverage/shared",
+    "test": "jest --coverage",
+    "test:fast": "jest",
+    "test:changed": "jest --onlyChanged",
+    "coverage:merge": "nyc merge coverage coverage/coverage-final.json && nyc report --reporter=lcov --reporter=text",
+    "coverage": "pnpm run test && pnpm run coverage:merge",
+    "check:all": "pnpm run check:types && pnpm run test",
+    "dev": "turbo run dev",
     "dev:server": "ts-node-dev --respawn --transpile-only server/src/server.ts",
     "migrate": "dotenv -e .env -- node scripts/check-and-migrate.js",
-    "seed:server": "dotenv -e server/.env -- ts-node server/src/utils/seedSupabase.ts",
+    "seed:server": "cross-env TS_NODE_PROJECT=server/tsconfig.json dotenv -e server/.env -- ts-node -r tsconfig-paths/register server/src/utils/seedSupabase.ts",
     "batch:llm-test": "dotenv -e server/.env -- npx ts-node -P scripts/tsconfig.json scripts/batch-llm-review-test.ts",
     "prepare": "husky install",
-    "test": "jest --coverage",
-    "test:changed": "jest --onlyChanged",
-    "lint": "eslint . --ext .js,.ts,.tsx"
+    "lint": "eslint . --ext .ts,.tsx",
+    "format": "turbo run format",
+    "type-check": "turbo run type-check",
+    "build": "turbo run build",
+    "prune": "pnpm turbo prune --out-dir .pruned",
+    "test:e2e": "playwright test"
   },
+  "workspaces": [
+    "client",
+    "server",
+    "shared"
+  ],
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -40,6 +59,7 @@
     "@types/d3-shape": "^3.1.7",
     "@types/d3-time": "^3.0.4",
     "@types/d3-timer": "^3.0.2",
+    "@types/dotenv": "^8.2.3",
     "@types/eslint": "^9.6.1",
     "@types/eslint-scope": "^8.3.0",
     "@types/estree": "^1.0.7",
@@ -56,13 +76,12 @@
     "@types/less": "^3.0.8",
     "@types/mapbox__point-geometry": "^0.1.4",
     "@types/mapbox__vector-tile": "^1.3.4",
-    "@types/node": "^22.15.23",
+    "@types/node": "^22.15.28",
     "@types/papaparse": "^5.3.16",
     "@types/pbf": "^3.0.5",
     "@types/qs": "^6.14.0",
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.5",
-    "@types/sass": "^1.43.1",
     "@types/serve-static": "^1.15.7",
     "@types/stylus": "^0.48.43",
     "@types/supertest": "^6.0.3",
@@ -73,6 +92,7 @@
     "@types/yargs": "^17.0.33",
     "@types/youtube-captions-scraper": "^1.0.0",
     "concurrently": "^9.1.0",
+    "cross-env": "^7.0.3",
     "dotenv-cli": "^8.0.0",
     "eslint": "^8.57.0",
     "eslint-config-next": "^15.3.2",
@@ -82,6 +102,7 @@
     "jest-environment-jsdom": "^30.0.0-beta.3",
     "lint-staged": "^15.5.2",
     "next": "^15.3.2",
+    "nyc": "^17.1.0",
     "pg": "^8.16.0",
     "playwright": "^1.52.0",
     "prettier": "^3.5.3",
@@ -89,12 +110,16 @@
     "ts-jest": "^29.3.4",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
+    "tsc-alias": "^1.8.16",
+    "turbo": "^2.5.4",
+    "typescript": "^5.8.3",
     "wait-on": "^8.0.3"
   },
   "dependencies": {
     "@logtail/node": "^0.5.5",
     "@logtail/pino": "^0.5.5",
     "@radix-ui/react-tooltip": "^1.2.7",
+    "@sentry/nextjs": "^9.24.0",
     "@supabase/gotrue-js": "^2.70.0",
     "@supabase/postgrest-js": "^1.19.4",
     "@supabase/supabase-js": "^2.49.8",
@@ -102,6 +127,7 @@
     "camelcase-keys": "^9.1.3",
     "cors": "^2.8.5",
     "csv-writer": "^1.6.0",
+    "dotenv": "^16.5.0",
     "envalid": "^8.0.0",
     "express": "^4.18.2",
     "module-alias": "^2.2.3",
@@ -111,15 +137,32 @@
     "snakecase-keys": "^8.0.1",
     "youtube-captions-scraper": "^2.0.3"
   },
-  "workspaces": [
-    "client",
-    "server",
-    "shared"
-  ],
   "type": "module",
   "lint-staged": {
     "*.{js,ts,tsx,jsx,json,md,yml,yaml,css,scss,html}": [
       "prettier --write"
     ]
+  },
+  "nyc": {
+    "all": true,
+    "extension": [
+      ".js",
+      ".ts",
+      ".tsx"
+    ],
+    "reporter": [
+      "lcov",
+      "text"
+    ],
+    "exclude": [
+      "**/node_modules/**",
+      "**/test/**",
+      "**/*.d.ts"
+    ],
+    "temp-directory": "./coverage/.nyc_output"
+  },
+  "packageManager": "pnpm@10.11.0",
+  "engines": {
+    "node": ">=20.0.0"
   }
 }

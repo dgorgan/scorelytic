@@ -9,7 +9,8 @@ const nextConfig: NextConfig = {
   webpack: (config) => {
     config.resolve.alias = {
       ...(config.resolve.alias || {}),
-      shared: path.resolve(__dirname, '../shared'),
+      '@': path.resolve(__dirname),
+      // remove shared alias here
     };
     return config;
   },
@@ -19,7 +20,7 @@ const nextConfig: NextConfig = {
 
 export default withSentryConfig(nextConfig, {
   org: process.env.SENTRY_ORG || 'scorelytic',
-  project: process.env.SENTRY_PROJECT || 'javascript-nextjs',
+  project: process.env.SENTRY_PROJECT_CLIENT || 'javascript-nextjs',
   authToken: process.env.SENTRY_AUTH_TOKEN,
   widenClientFileUpload: true,
   disableLogger: true,

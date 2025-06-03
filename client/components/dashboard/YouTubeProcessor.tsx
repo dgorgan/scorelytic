@@ -3,8 +3,8 @@ import {
   buildYouTubeMetadataUrl,
   buildYouTubeProcessUrl,
   ERROR_MESSAGES,
-} from '@/shared/constants/api';
-import { extractVideoId } from '@/shared/utils/youtube';
+} from '@scorelytic/shared';
+import { extractVideoId } from '@scorelytic/shared';
 
 interface YouTubeProcessorProps {
   onProcessComplete?: (result: any) => void;

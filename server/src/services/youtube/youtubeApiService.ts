@@ -19,7 +19,6 @@ export const fetchYouTubeVideoMetadata = async (videoId: string): Promise<YouTub
   if (!apiKey) {
     throw new Error('YouTube API key not configured');
   }
-
   try {
     const response = await axios.get('https://www.googleapis.com/youtube/v3/videos', {
       params: {

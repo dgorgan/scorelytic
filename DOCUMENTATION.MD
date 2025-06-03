@@ -13,7 +13,7 @@ Scorelytic analyzes video game reviews (YouTube, critics, creators) to extract s
 
 ```ts
 import { analyzeText } from 'server/src/services/sentimentService';
-import { evaluateBiasImpact } from 'shared/utils/biasAdjustment';
+import { evaluateBiasImpact } from '@scorelytic/shared';
 
 const sentiment = await analyzeText(transcript);
 const biasAdjustment = evaluateBiasImpact(sentiment.sentimentScore, sentiment.biasIndicators);
@@ -139,7 +139,8 @@ See [PROJECT_MILESTONES.MD](PROJECT_MILESTONES.MD).
 - Mock external dependencies (e.g., Supabase, OpenAI) using `jest.mock()`.
 - Place tests in a `__tests__` folder colocated with the code being tested.
 - Write descriptive test names covering happy paths and basic edge cases.
-- Run all tests with `npm test` at the repo root (runs both server and client tests)
+- Run all tests with `pnpm test` at the repo root (runs both server and client tests)
+- For fast, incremental tests, use `pnpm turbo run test --filter=...<changed package>`
 - All backend code is under `server/src/` for TypeScript rootDir consistency
 
 ---
@@ -186,7 +187,7 @@ See [PROJECT_MILESTONES.MD](PROJECT_MILESTONES.MD).
 
 ### Data Models (Types)
 
-See `shared/types/biasReport.ts` for:
+See `shared/src/types/biasReport.ts` for:
 
 - `ReviewSummary`: User-facing, quick verdict and score, with confidence and bias summary.
 - `BiasDetail`: List of all detected biases, their severity, score impact, and qualitative effect.

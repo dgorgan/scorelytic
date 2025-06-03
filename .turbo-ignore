@@ -1,0 +1,6 @@
+# .turbo-ignore
+**/*.md
+**/docs/**
+.vscode/**
+*.log
+*.env.local

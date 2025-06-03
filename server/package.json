@@ -1,18 +1,16 @@
 {
-  "name": "server",
+  "name": "@scorelytic/server",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
-  "_moduleAliases": {
-    "@": "dist"
-  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "test": "jest --config jest.config.ts --passWithNoTests",
-    "test:watch": "jest --config jest.config.ts --watchAll",
+    "dev": "ts-node-dev -r tsconfig-paths/register src/server.ts",
+    "build": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
     "start": "node dist/server.js",
-    "dev": "ts-node-dev -r tsconfig-paths/register server.ts",
-    "clean": "rm -rf dist node_modules/.cache",
-    "build": "tsc -p tsconfig.json"
+    "format": "turbo run format --filter=server...",
+    "type-check": "tsc --noEmit",
+    "test": "jest --detectOpenHandles --forceExit --runInBand"
   },
   "keywords": [],
   "author": "",
@@ -20,8 +18,10 @@
   "dependencies": {
     "@logtail/node": "^0.5.5",
     "@logtail/pino": "^0.5.5",
-    "@scorelytic/shared": "*",
-    "@sentry/node": "^8.19.0",
+    "@scorelytic/shared": "workspace:*",
+    "@sentry/node": "^8.55.0",
+    "@types/axios": "^0.14.4",
+    "axios": "^1.9.0",
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -33,7 +33,7 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/jest": "^29.5.14",
-    "@types/node": "^22.9.3",
+    "@types/node": "^22.15.28",
     "@types/pino": "^7.0.4",
     "jest": "^29.7.0",
     "nodemon": "^3.1.7",
@@ -42,6 +42,7 @@
     "ts-jest": "^29.3.4",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
+    "tsc-alias": "^1.8.16",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.8.3"
   }
