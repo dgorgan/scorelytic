@@ -4,7 +4,7 @@ import {
   SentimentAnalysisRequest,
   SentimentAnalysisResponse,
   ApiResponse,
-} from '@/shared/types/api';
+} from '@scorelytic/shared';
 import { validateInput } from '@/utils/validateInput';
 
 export const sentimentController = {

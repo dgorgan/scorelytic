@@ -1,0 +1,48 @@
+{
+  "$schema": "https://turborepo.org/schema.json",
+  "tasks": {
+    "build": {
+      "outputs": ["dist/**", ".next/**", "build/**"],
+      "dependsOn": ["^build"]
+    },
+    "lint": {
+      "outputs": [],
+      "dependsOn": ["^lint"]
+    },
+    "type-check": {
+      "outputs": [],
+      "dependsOn": ["^type-check"]
+    },
+    "test": {
+      "outputs": ["coverage/**"],
+      "dependsOn": ["^build", "^type-check", "^test"]
+    },
+    "format": {
+      "outputs": ["**/*.{js,ts,tsx,jsx,json,md,css,scss,html}"]
+    },
+    "e2e": {
+      "outputs": ["client/test-results/**"],
+      "dependsOn": ["^build", "^test"]
+    },
+    "dev": {
+      "cache": false
+    }
+  },
+  "globalEnv": [
+    "SUPABASE_URL",
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    "OPENAI_API_KEY",
+    "NODE_ENV",
+    "SENTRY_AUTH_TOKEN",
+    "NEXT_PUBLIC_SENTRY_DSN",
+    "NEXT_PUBLIC_SENTRY_RELEASE",
+    "NEXT_PUBLIC_SENTRY_ENVIRONMENT",
+    "SENTRY_ORG",
+    "SENTRY_PROJECT_CLIENT",
+    "SENTRY_PROJECT_SERVER",
+    "SENTRY_ENVIRONMENT",
+    "SENTRY_RELEASE"
+  ]
+}

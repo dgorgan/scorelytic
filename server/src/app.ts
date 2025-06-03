@@ -1,10 +1,10 @@
 import 'module-alias/register';
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
-import * as Sentry from '@sentry/node';
+const Sentry = require('@sentry/node');
 import { errorHandler } from '@/middleware/errorHandler';
 import requestLogger from '@/middleware/requestLogger';
+import { env } from './config/env';
 
 import biasReportRoutes from '@/routes/biasReport';
 import sentimentRoutes from '@/routes/sentiment';
@@ -13,15 +13,13 @@ import gameRoutes from '@/routes/game';
 import youtubeRoutes from '@/routes/youtube';
 import creatorRoutes from '@/routes/creator';
 
-dotenv.config();
-
 const app: express.Application = express();
 
 Sentry.init({
-  dsn: process.env.SENTRY_DSN,
+  dsn: env.SENTRY_DSN_SERVER,
   integrations: [Sentry.expressIntegration()],
   tracesSampleRate: 1.0,
-  environment: process.env.NODE_ENV,
+  environment: env.SENTRY_ENVIRONMENT,
 });
 
 app.use(cors());

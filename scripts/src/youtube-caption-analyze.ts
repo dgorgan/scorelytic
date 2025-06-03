@@ -4,9 +4,9 @@ import {
   fetchYoutubeCaptions,
   normalizeYoutubeToReview,
   upsertReviewToSupabase,
-} from '../server/src/services/youtube/captionIngestService.ts';
-import { supabase } from '../server/src/config/database.ts';
-import { analyzeText } from '../server/src/services/sentiment/sentimentService.ts';
+  supabase,
+  analyzeText,
+} from '@scorelytic/server';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 

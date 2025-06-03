@@ -3,6 +3,7 @@ import OpenAI from 'openai';
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
+import { env } from '@/config/env';
 
 const unlinkAsync = promisify(fs.unlink);
 
@@ -41,7 +42,7 @@ const defaultHelpers: TranscriptionHelpers = {
     ]);
   },
   transcribeAudioWithOpenAI: async (audioPath, language) => {
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
     const transcription = await openai.audio.transcriptions.create({
       file: fs.createReadStream(audioPath),
       model: 'whisper-1',
@@ -59,7 +60,7 @@ const defaultHelpers: TranscriptionHelpers = {
   fileExists: (filePath) => fs.existsSync(filePath),
   unlinkFile: (filePath) => unlinkAsync(filePath),
   createReadStream: (filePath) => fs.createReadStream(filePath),
-  getOpenAI: () => new OpenAI({ apiKey: process.env.OPENAI_API_KEY }),
+  getOpenAI: () => new OpenAI({ apiKey: env.OPENAI_API_KEY }),
 };
 
 /**
@@ -70,7 +71,7 @@ export const transcribeYouTubeAudio = async (
   options: TranscriptionOptions = {},
   helpers: TranscriptionHelpers = defaultHelpers,
 ): Promise<string> => {
-  if (process.env.DISABLE_OPENAI === 'true') {
+  if (env.DISABLE_OPENAI) {
     throw new Error('Audio transcription disabled');
   }
 

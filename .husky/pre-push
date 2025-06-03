@@ -1,8 +1,8 @@
 #!/usr/bin/env sh
-npm run check:all
+pnpm run check:all
 
-if find ./shared -type f -name '*.js' | grep -v node_modules | grep -q .; then
+if find ./shared -type f -name '*.js' | grep -v node_modules | grep -v 'dist/' | grep -q .; then
   echo '❌ JS artifacts found in shared/. Push blocked.'
-  find ./shared -type f -name '*.js' | grep -v node_modules
+  find ./shared -type f -name '*.js' | grep -v node_modules | grep -v 'dist/'
   exit 1
-fi 
+fi

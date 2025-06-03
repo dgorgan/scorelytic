@@ -1,6 +1,10 @@
 import { Request, Response } from 'express';
-import { generateBiasReport } from '@/shared/utils/biasAdjustment';
-import { BiasReportRequest, BiasReportResponse, ApiResponse } from '@/shared/types/api';
+import {
+  generateBiasReport,
+  BiasReportRequest,
+  BiasReportResponse,
+  ApiResponse,
+} from '@scorelytic/shared';
 import { validateInput } from '@/utils/validateInput';
 
 export const biasReportController = {

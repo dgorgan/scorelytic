@@ -4,10 +4,8 @@ npm-debug.log
 yarn-debug.log
 yarn-error.log
 
-# TypeScript (only for client, since Next.js uses TypeScript)
-client/dist/
-client/build/
-client/*.tsbuildinfo
+# TypeScript build artifacts (for all projects, not just client)
+**/*.tsbuildinfo
 
 # Next.js (Frontend specific)
 client/.next/
@@ -46,9 +44,17 @@ Desktop.ini
 # Coverage or testing-related files
 **/coverage/
 
-# Dist and build folders (Backend)
+# Backend build and dist folders
 server/dist/
 server/build/
+
+# Shared and scripts workspace build outputs
+dist-shared/
+dist-scripts/
+
+# Additional root-level dist folders from build
+dist/
+dist-server/
 
 # Next.js trace files
 .next/trace
@@ -62,8 +68,7 @@ client/test/.next/trace.json
 .next/
 .swc/
 
-# Root-level dist/ and .cursorrules
-dist/
+# Root-level cursor rules
 .cursorrules
 
 # Ignore JS/JS.map/d.ts artifacts in source (except build output)
@@ -95,3 +100,10 @@ node_modules/
 
 # Ignore Mac system files
 .DS_Store
+
+# Turborepo cache
+.turbo/
+
+# Ignore generated JS files and build outputs in shared
+shared/dist/
+shared/dist/types/

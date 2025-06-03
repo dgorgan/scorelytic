@@ -1,0 +1,6 @@
+# Ignore all Jest/unit test files and folders except e2e
+**/*.test.ts
+**/*.test.tsx
+**/*.test.js
+**/__tests__/**
+!client/test/e2e/** 

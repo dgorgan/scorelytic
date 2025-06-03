@@ -141,8 +141,8 @@ Once the MVP is built and tested, we aim to enhance the platform with additional
 
 ### Prerequisites
 
-- Node.js (v16+ recommended)
-- npm or yarn
+- Node.js (v18+ recommended)
+- pnpm (monorepo uses pnpm workspaces)
 - Supabase project (for backend database, auth, and storage)
 
 ### Setup
@@ -154,45 +154,45 @@ Once the MVP is built and tested, we aim to enhance the platform with additional
    cd scorelytic
    ```
 
-2. **Install dependencies:**
+2. **Install dependencies (all packages):**
 
-   - Root dependencies:
-
-     ```bash
-     npm install
-     ```
-
-   - Client dependencies:
-
-     ```bash
-     cd client
-     npm install
-     ```
-
-   - Server dependencies:
-     ```bash
-     cd ../server
-     npm install
-     ```
+   ```bash
+   pnpm install
+   ```
 
 3. **Environment configuration:**
 
-   Create a `.env` file in the `server` directory with your Supabase credentials:
+   Create a `.env` file in the root and in each package as needed (see .env.example for required vars).
 
-   ```plaintext
-   SUPABASE_URL=your-supabase-url
-   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-   ```
-
-4. **Run the development servers:**
-
-   From the root directory, run:
+4. **Run development servers:**
 
    ```bash
-   npm run dev
+   pnpm dev
+   # or for a specific package:
+   pnpm --filter client dev
+   pnpm --filter server dev
    ```
 
-   This will start both the client (http://localhost:4000) and server (http://localhost:5000) development servers concurrently.
+5. **Build all packages:**
+
+   ```bash
+   pnpm build
+   ```
+
+6. **Run all tests (with coverage):**
+
+   ```bash
+   pnpm test
+   # or for fast, incremental tests:
+   pnpm turbo run test --filter=...<changed package>
+   ```
+
+## Monorepo Structure
+
+- `client/` – Next.js frontend
+- `server/` – Express backend
+- `shared/` – Shared types, utils, and logic (import via `@scorelytic/shared` only)
+- `scripts/` – Batch and utility scripts
 
 ## Project Structure
 
