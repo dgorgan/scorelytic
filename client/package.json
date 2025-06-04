@@ -11,6 +11,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "@radix-ui/react-tooltip": "^1.2.7",
     "@scorelytic/shared": "workspace:*",
     "@sentry/nextjs": "^9.24.0",
