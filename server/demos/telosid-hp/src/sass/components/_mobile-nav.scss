@@ -1,0 +1,134 @@
+.mobile-nav {
+  height: 60px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .ma5menu__toggle {
+    background-color: transparent;
+    border: 0;
+
+    &:hover {
+      background-color: transparent;
+      border: 0;
+    }
+
+    &:focus {
+      outline: 0;
+    }
+  }
+}
+
+.ma5menu__panel {
+  background-color: $white;
+  color: $dark;
+}
+
+.ma5menu__panel > ul li .ma5menu__category.ma5menu__path {
+  background-color: transparent;
+}
+
+.ma5menu__panel > ul li .ma5menu__category {
+  color: $dark;
+}
+
+.ma5menu__panel > ul li:first-of-type {
+  border: 0;
+}
+
+.ma5menu__head {
+  border-bottom: 1px solid transparent rgba(46, 53, 62, 0.1);
+  background-color: $white;
+}
+
+.ma5menu__leave {
+  font-size: 1.065rem;
+  background-color: rgba(1, 52, 105, 0.06);
+  border-bottom: 1px solid transparent rgba(46, 53, 62, 0.05);
+  color: $dark;
+}
+
+.ma5menu__btn--leave {
+  background-image: url('../../dist/img/icons/arrow-prev-dark.svg');
+  background-size: 7px;
+  transition: all 0.3s;
+
+  &:hover {
+    background-image: url('../../dist/img/icons/arrow-prev-dark-full.svg');
+  }
+}
+
+.ma5menu__header .ma5menu__toggle {
+  .ma5menu__close {
+    background: url('../../dist/img/icons/x.svg');
+    background-size: cover;
+    width: 15px;
+    height: 15px;
+    transition: background-image 0.3s;
+  }
+
+  &:hover .ma5menu__close {
+    background: url('../../dist/img/icons/x-dark.svg');
+    background-size: cover;
+  }
+}
+
+.ma5menu--right .ma5menu__header .ma5menu__toggle {
+  left: auto;
+  right: 0;
+  background-color: $blue;
+}
+
+.ma5menu__home .mobile-nav-logo {
+  float: left;
+  margin-top: 12px;
+  margin-left: 20px;
+}
+
+.ma5menu__panel > ul li {
+  background-color: $white;
+
+  a {
+    color: $dark;
+    border-bottom: 1px solid transparent rgba(46, 53, 62, 0.1);
+    background-color: transparent;
+
+    &.no-underline {
+      border: 0;
+      font-size: 0.85rem;
+
+      &.careers {
+        padding: 1.3125rem;
+        margin-top: 0.5rem;
+      }
+
+      &.downloads {
+        padding: 0 1.3125rem;
+      }
+    }
+  }
+
+  .ma5menu__category {
+    border-bottom: 1px solid transparent rgba(46, 53, 62, 0.1);
+  }
+}
+
+.ma5menu__btn--enter {
+  background-image: url('../../dist/img/icons/arrow-next-dark.svg');
+  background-size: 7px;
+  transition: all 0.3s;
+
+  &:hover {
+    background-image: url('../../dist/img/icons/arrow-next-dark-full.svg');
+  }
+}
+
+@include min($sm) {
+  .desktop-nav {
+    display: block;
+  }
+
+  .mobile-nav {
+    display: none;
+  }
+}

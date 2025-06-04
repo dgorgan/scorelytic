@@ -1,0 +1,152 @@
+// -----------------------------------------------------------------------------
+//! Navigation
+// -----------------------------------------------------------------------------
+
+header {
+  max-width: 1440px;
+  margin: 0 auto;
+  border-bottom: 1px solid rgba(81, 95, 115, 0.2);
+
+  .container {
+    width: 100%;
+
+    @include min(1200px) {
+      padding: 0;
+    }
+  }
+}
+
+.desktop-nav {
+  display: none;
+
+  .top-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0;
+
+    li {
+      position: relative;
+      display: inline-block;
+      list-style-type: none;
+    }
+
+    a {
+      position: relative;
+      text-decoration: none;
+      font-size: 1.125rem;
+      color: $dark;
+
+      &.top-link {
+        &:after {
+          content: '';
+          height: 2px;
+          width: 0;
+          background-color: $blue;
+          position: absolute;
+          bottom: -31px;
+          left: 0;
+          transition: 0.3s;
+        }
+      }
+
+      &.has-carret {
+        position: relative;
+
+        // &:after {
+        // 	content: "";
+        //     position: absolute;
+        //     right: 15px;
+        //     top: 5px;
+        //     background: url("../../dist/img/icons/arrow-next-dark-full.svg");
+        //     background-size: contain;
+        //     width: 7px;
+        //     height: 12px;
+        //     background-repeat: no-repeat;
+        // }
+        //
+        // &:hover:after {
+        // 	width: 7px;
+        // }
+      }
+
+      &:hover:after,
+      &.active:hover:after {
+        width: 100%;
+      }
+
+      &.is-open:after {
+        width: 100%;
+      }
+    }
+
+    .logo-wrap {
+      .nav-logo {
+        max-width: 100%;
+        height: 45px;
+
+        @include min($lg) {
+          margin-left: 125px;
+        }
+      }
+    }
+
+    .links-wrap {
+      display: flex;
+      justify-content: space-between;
+
+      li {
+        margin: 0 1.5rem;
+
+        &:last-child:not(.js-hover) {
+          margin-right: 2.5rem;
+        }
+      }
+    }
+
+    .nested-nav {
+      position: absolute;
+      left: -35px;
+      top: 100%;
+      min-width: 100%;
+      width: 235px;
+      margin-top: 30px;
+      padding: 1.25rem 0;
+      background: $blue;
+      -webkit-transition: 0.2s;
+      transition: 0.2s;
+      z-index: 52;
+      opacity: 0;
+      transition: all 0.3s;
+      pointer-events: none;
+
+      li {
+        display: block;
+        margin: 0.65rem 0;
+        padding-left: 2rem;
+
+        a {
+          display: block;
+          font-size: 1rem;
+          font-weight: 300;
+          color: $white;
+          opacity: 0.8;
+          cursor: pointer;
+          transition: all 0.3s;
+
+          &:hover {
+            opacity: 1;
+          }
+        }
+
+        &.js-pointer-events {
+          pointer-events: auto;
+        }
+      }
+
+      &.is-open {
+        opacity: 1;
+      }
+    }
+  }
+}

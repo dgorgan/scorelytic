@@ -1,0 +1,113 @@
+.hero {
+  background: url('../img/hero-mobile.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: 100% 85%;
+  height: 420px;
+
+  @include min($sm) {
+    background: url('../img/hero.png');
+    height: auto;
+  }
+
+  @include min($md) {
+    background-position: 50% 0;
+  }
+
+  @include min(1200px) {
+    background-position: 0;
+  }
+
+  @include min($lg) {
+    padding: 4.188em 0;
+  }
+
+  @include min($content-width) {
+    background-position: 100%;
+    background-repeat: no-repeat;
+  }
+}
+
+.hero-copy {
+  h1 {
+    font-size: 1.565rem;
+    margin: 0 0 1.25rem;
+
+    @include min($xs) {
+      max-width: 80%;
+    }
+  }
+
+  p {
+    max-width: 90%;
+  }
+
+  .watch-more {
+    display: none;
+  }
+
+  .btn-video {
+    margin-top: 4.5625rem;
+  }
+
+  @include min($sm) {
+    .btn-video {
+      display: none;
+    }
+  }
+
+  @include min($md) {
+    max-width: 60%;
+
+    h1 {
+      max-width: 100%;
+      font-size: 2.375rem;
+      margin: 2.076rem 0;
+    }
+
+    p {
+      max-width: 85%;
+      margin-bottom: 2.5625rem;
+    }
+
+    .watch-more {
+      display: block;
+    }
+  }
+}
+
+.video {
+  .video-text {
+    font-family: $roboto-medium;
+  }
+
+  .video-wrapper {
+    position: relative;
+    max-width: 229px;
+    height: 130px;
+    margin-bottom: 10px;
+    background: url('../img/video-still.jpg');
+    box-shadow: 0 6px 15px 0 rgba(0, 0, 0, 0.2);
+    transition: all 0.3s;
+    cursor: pointer;
+
+    .video-wrapper-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      height: 40px;
+      width: 40px;
+      transform: translate(-50%, -50%);
+      background: url('../img/icons/play.png');
+      background-size: contain;
+    }
+
+    &:hover {
+      box-shadow: 0 6px 27px 0 rgba(0, 0, 0, 0.4);
+    }
+  }
+
+  @include max($sm) {
+    display: none;
+  }
+}

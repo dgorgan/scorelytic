@@ -1,0 +1,698 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <title>ROI Calculator</title>
+
+    <meta name="author" content="name" />
+    <meta name="description" content="Deltek ROI Calculator" />
+    <meta
+      name="keywords"
+      content="deltek, calculator, roi, bizdev, utilization, project profitability"
+    />
+
+    <link rel="shortcut icon" href="dist/img/icons/favicon.ico" type="image/vnd.microsoft.icon" />
+    <link rel="stylesheet" href="https://use.typekit.net/pbq7luy.css" />
+    <link rel="stylesheet" href="dist/css/style.css" />
+  </head>
+
+  <body>
+    <div class="app-container">
+      <header>
+        <div class="hero small">
+          <a href="index.html">
+            <img src="dist/img/icons/deltek-logo.svg" class="logo" alt="Deltek Logo" />
+          </a>
+          <a href="#" class="btn btn-inverse">Contact Us</a>
+        </div>
+        <nav class="calculator-nav">
+          <a href="#business-development" class="js-open bizdev-cta nav-item biz-icon"
+            >Business Development</a
+          >
+          <a href="#utilization" class="js-open utilization-cta nav-item util-icon">Utilization</a>
+          <a href="#project-profitability" class="js-open profitability-cta nav-item profit-icon"
+            >Project Profitability</a
+          >
+          <a href="results.html" class="nav-item results-icon">Results</a>
+        </nav>
+      </header>
+
+      <div class="app-inner">
+        <div class="bizdev-section inner-app">
+          <!-- Biztek Calculator -->
+
+          <div class="calculator">
+            <div class="flash-message tip">
+              <div class="flash-message-left small">
+                <p class="calculator-substatement tip">
+                  <span class="highlight">Note…</span>please mouse-over the
+                  <img src="dist/img/icons/tooltip-full.svg" class="tooltip-tip" /> icon to view
+                  tips on industry standards for the input.
+                </p>
+              </div>
+              <div class="close-flash-btn bizdev" data-flash="bizdevFlash"></div>
+            </div>
+
+            <h3 class="calculator-statement">Build your pipeline and win more opportunities</h3>
+            <h4 class="calculator-substatement">
+              <span class="highlight">What if...</span>you could increase your win percentage?
+            </h4>
+
+            <form>
+              <div class="field-wrap">
+                <div class="field">
+                  <input
+                    id="numOpps"
+                    type="number"
+                    name="numOpps"
+                    class="bizdev-question field-question"
+                  />
+                  <label for="numOpps" class="field-label">Number of opportunities per year?</label>
+                  <div class="line"></div>
+                </div>
+
+                <div class="field">
+                  <input
+                    id="avgOpp"
+                    inputmode="numeric"
+                    name="avgOpp"
+                    class="field-question bizdev-question dollar-value"
+                  />
+                  <label for="avgOpp" class="field-label">Average opportunity value</label>
+                  <div class="line"></div>
+                </div>
+
+                <div class="field percentInput">
+                  <input
+                    id="currWinRate"
+                    type="text"
+                    name="currWinRate"
+                    class="field-question bizdev-question percentage-value"
+                  />
+                  <label for="currWinRate" class="field-label">
+                    Current win rate percentage
+
+                    <div class="tooltip">
+                      <span class="tooltiptext"
+                        >High performing firms achieve win rates of 40% or higher</span
+                      >
+                    </div>
+                  </label>
+                  <div class="line"></div>
+                </div>
+              </div>
+
+              <h3 class="calculator-statement single">Deltek Can Help...</h3>
+              <div class="field-wrap no-flex special-spacing">
+                <div class="field range-field row-field">
+                  <div class="wrap">
+                    <div class="field-label no-range-lines">Increase in opportunities per year</div>
+
+                    <div class="range-wrap">
+                      <span class="increase-in-opps-left range-percent left"></span>
+                      <input
+                        type="range"
+                        name="increaseInOpps"
+                        class="field-range-standard bizdev-question"
+                      />
+                      <output for="increaseInOpps"></output>
+                      <span class="increase-in-opps-right range-percent right"></span>
+                    </div>
+                  </div>
+
+                  <div class="wrap">
+                    <div class="psuedo-label">Total Opportunities Per Year</div>
+                    <div class="field-answer totalOpportunitiesEl"></div>
+                  </div>
+                </div>
+
+                <div class="field range-field row-field">
+                  <div class="wrap">
+                    <div class="field-label no-range-lines">
+                      Increase in win percentage
+
+                      <div class="tooltip">
+                        <span class="tooltiptext"
+                          >Deltek customers can typically see an increase in win rate by 5-10%</span
+                        >
+                      </div>
+                    </div>
+
+                    <div class="range-wrap">
+                      <span class="increase-in-win-percent-left range-percent left"></span>
+                      <input
+                        type="range"
+                        name="increaseInWinPercent"
+                        class="field-range-percentage bizdev-question"
+                      />
+                      <output for="increaseInWinPercent"></output>
+                      <span class="increase-in-win-percent-right range-percent right"></span>
+                    </div>
+                  </div>
+
+                  <div class="wrap">
+                    <div class="psuedo-label">Deltek Win Rate</div>
+                    <div class="field-answer totalWinRateEl">40%</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field-wrap results-wrap">
+                <div class="half-wrap">
+                  <div class="field results-field bottom-border">
+                    <div class="field-answer newRevenueDeltaEl"></div>
+                    <div class="psuedo-label">Increase in revenue per year</div>
+                  </div>
+
+                  <div class="field results-field">
+                    <div id="revenueTotal" class="field-answer revenueTotalEl"></div>
+                    <div class="psuedo-label">Revenue per year</div>
+                  </div>
+                </div>
+
+                <div class="field results-field left-border-blue main-result">
+                  <div class="field-answer newRevenueTotalEl main-answer"></div>
+                  <div class="psuedo-label">Total New Revenue per year with improvements</div>
+                </div>
+              </div>
+
+              <div class="view-results-cta">
+                <a href="results.html#bizdev" class="btn">View Results</a>
+                <p>All changes are autosaved.</p>
+              </div>
+            </form>
+          </div>
+        </div>
+        <!-- end bizdev-inner -->
+
+        <div class="utilization-section inner-app">
+          <!-- Utilization Calculator -->
+
+          <!-- Utilization Calculator -->
+          <div class="calculator">
+            <div class="flash-message tip">
+              <div class="flash-message-left small">
+                <p class="calculator-substatement tip">
+                  <span class="highlight">Note…</span>please mouse-over the
+                  <img src="dist/img/icons/tooltip-full.svg" class="tooltip-tip" /> icon to view
+                  tips on industry standards for the input.
+                </p>
+              </div>
+              <div class="close-flash-btn utilization" data-flash="utilizationFlash"></div>
+            </div>
+
+            <h2 class="calculator-statement">Optimize Utilization to Maximize Profit</h2>
+            <h3 class="calculator-substatement">
+              <span class="highlight">What if…</span>you always had the right resource on the right
+              engagement at the right time?
+            </h3>
+
+            <form>
+              <div class="field-wrap">
+                <div class="field">
+                  <input
+                    id="numBillableResources"
+                    type="number"
+                    name="numBillableResources"
+                    class="field-question utilization-question"
+                  />
+                  <label for="numBillableResources" class="field-label"
+                    >Number of billable resources</label
+                  >
+                  <div class="line"></div>
+                </div>
+
+                <div class="field">
+                  <input
+                    id="avgBillableRatePerHour"
+                    inputmode="numeric"
+                    name="avgBillableRatePerHour"
+                    class="field-question utilization-question dollar-value"
+                  />
+                  <label for="avgBillableRatePerHour" class="field-label"
+                    >Average billable rate per hour</label
+                  >
+                  <div class="line"></div>
+                </div>
+                <div class="field">
+                  <input
+                    id="avgResourceCostPerHour"
+                    inputmode="numeric"
+                    name="avgResourceCostPerHour"
+                    class="field-question utilization-question dollar-value"
+                  />
+                  <label for="avgResourceCostPerHour" class="field-label"
+                    >Average resource cost per hour</label
+                  >
+                  <div class="line"></div>
+                </div>
+                <div class="field">
+                  <input
+                    id="currentUtilization"
+                    type="text"
+                    name="currentUtilization"
+                    class="percentage-value field-question utilization-question"
+                  />
+                  <label for="currentUtilization" class="field-label">
+                    Current utilization
+
+                    <div class="tooltip">
+                      <span class="tooltiptext"
+                        >High performing firms see utilization rates of 62% or higher</span
+                      >
+                    </div>
+                  </label>
+                  <div class="line"></div>
+                </div>
+              </div>
+
+              <h3 class="calculator-statement single">Deltek Can Help...</h3>
+              <div class="field-wrap no-flex special-spacing">
+                <div class="field range-field row-field">
+                  <div class="wrap">
+                    <div class="field-label no-range-lines">
+                      Desired increase in utilization
+
+                      <div class="tooltip">
+                        <span class="tooltiptext"
+                          >Deltek customers can typically see an increase in utilization by
+                          5-10%</span
+                        >
+                      </div>
+                    </div>
+                    <div class="range-wrap">
+                      <span class="desired-utilization-left range-percent left"></span>
+                      <input
+                        type="range"
+                        name="desiredUtilization"
+                        class="field-range-percentage field-question utilization-question"
+                      />
+                      <output
+                        for="desiredUtilization"
+                        onforminput="value = foo.valueAsNumber;"
+                      ></output>
+                      <span class="desired-utilization-right range-percent right"></span>
+                    </div>
+                  </div>
+
+                  <div class="wrap">
+                    <div class="question">Additional billable hours per resource per week</div>
+                    <div class="field-answer additionalBillableHoursEl"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field-wrap no-flex no-spacing">
+                <div class="table">
+                  <div class="field table-row" data-table="billableRevenueCurrentUtilTable">
+                    <div class="question">Billable revenue at current utilization</div>
+
+                    <div class="table-wrap">
+                      <div class="table-cell">
+                        <div>Week</div>
+                        <div class="week"></div>
+                      </div>
+
+                      <div class="table-cell">
+                        <div>Month</div>
+                        <div class="month"></div>
+                      </div>
+
+                      <div class="table-cell">
+                        <div>Year</div>
+                        <div class="year"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="field table-row" data-table="billableRevenueDesiredUtilTable">
+                    <div class="question">Billable revenue at desired utilization</div>
+
+                    <div class="table-wrap">
+                      <div class="table-cell">
+                        <div>Week</div>
+                        <div class="week"></div>
+                      </div>
+
+                      <div class="table-cell">
+                        <div>Month</div>
+                        <div class="month"></div>
+                      </div>
+
+                      <div class="table-cell">
+                        <div>Year</div>
+                        <div class="year"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="field table-row" data-table="profitUtilizationCurrentTable">
+                    <div class="question">Profit at current utilization</div>
+
+                    <div class="table-wrap">
+                      <div class="table-cell">
+                        <div>Week</div>
+                        <div class="week"></div>
+                      </div>
+
+                      <div class="table-cell">
+                        <div>Month</div>
+                        <div class="month"></div>
+                      </div>
+
+                      <div class="table-cell">
+                        <div>Year</div>
+                        <div class="year"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="field table-row border-bottom-none"
+                    data-table="profitUtilizationDesiredTable"
+                  >
+                    <div class="question">Profit at desired utilization</div>
+
+                    <div class="table-wrap">
+                      <div class="table-cell">
+                        <div>Week</div>
+                        <div class="week"></div>
+                      </div>
+
+                      <div class="table-cell">
+                        <div>Month</div>
+                        <div class="month"></div>
+                      </div>
+
+                      <div class="table-cell">
+                        <div>Year</div>
+                        <div class="year"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="field table-row main-result"
+                    data-table="increasedRevenueImprovementsTable"
+                  >
+                    <div class="question">Increased revenue with desired improvements</div>
+
+                    <div class="table-wrap">
+                      <div class="table-cell">
+                        <div>Week</div>
+                        <div class="week main-answer"></div>
+                      </div>
+
+                      <div class="table-cell">
+                        <div>Month</div>
+                        <div class="month main-answer"></div>
+                      </div>
+
+                      <div class="table-cell">
+                        <div>Year</div>
+                        <div class="year main-answer"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="field table-row main-result"
+                    data-table="increasedProfitImprovementsTable"
+                  >
+                    <div class="question">Increased profit with desired improvements</div>
+
+                    <div class="table-wrap">
+                      <div class="table-cell">
+                        <div>Week</div>
+                        <div class="week main-answer"></div>
+                      </div>
+
+                      <div class="table-cell">
+                        <div>Month</div>
+                        <div class="month main-answer"></div>
+                      </div>
+
+                      <div class="table-cell">
+                        <div>Year</div>
+                        <div class="year main-answer"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="view-results-cta">
+                <a href="results.html#utilization" class="btn">View Results</a>
+                <p>All changes are autosaved.</p>
+              </div>
+            </form>
+          </div>
+        </div>
+        <!-- end utilization inner -->
+
+        <div class="profitability-section inner-app">
+          <!-- Project Profitability Calculator -->
+          <div class="calculator">
+            <div class="flash-message tip">
+              <div class="flash-message-left small">
+                <p class="calculator-substatement tip">
+                  <span class="highlight">Note…</span>please mouse-over the
+                  <img src="dist/img/icons/tooltip-full.svg" class="tooltip-tip" /> icon to view
+                  tips on industry standards for the input.
+                </p>
+              </div>
+              <div class="close-flash-btn profitability" data-flash="profitabilityFlash"></div>
+            </div>
+
+            <h2 class="calculator-statement">Profitable Projects Yield Better Results</h2>
+            <h3 class="calculator-substatement">
+              <span class="highlight">What if…</span>you reduce cost overruns and improved the
+              number of profitable engagements?
+            </h3>
+
+            <form>
+              <div class="field-wrap no-flex special-spacing">
+                <div class="field">
+                  <input
+                    id="numProjectsPerYear"
+                    type="number"
+                    name="numProjectsPerYear"
+                    class="field-question project-profitability-question"
+                  />
+                  <label for="numProjectsPerYear" class="field-label"
+                    >Number Of Projects Per year?</label
+                  >
+                  <div class="line"></div>
+                </div>
+                <div class="field">
+                  <input
+                    id="averageRevenuePerProject"
+                    inputmode="numeric"
+                    name="averageRevenuePerProject"
+                    class="field-question project-profitability-question dollar-value"
+                  />
+                  <div class="field-label">Average Revenue Per Project</div>
+                  <div class="line"></div>
+                </div>
+                <div class="field">
+                  <input
+                    id="averageCostPerProject"
+                    inputmode="numeric"
+                    name="averageCostPerProject"
+                    class="field-question project-profitability-question dollar-value"
+                  />
+                  <div class="field-label">Average Cost Per Project</div>
+                  <div class="line"></div>
+                </div>
+                <div class="field no-flash">
+                  <div class="field-answer projectMarginEl"></div>
+                  <div class="psuedo-label">
+                    Average Project Margin
+
+                    <div class="tooltip">
+                      <span class="tooltiptext"
+                        >High performing firms achieve project margins of 34% or higher</span
+                      >
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row-field-wrap">
+                  <div class="field row-field no-flash">
+                    <div class="wrap field field-inner">
+                      <input
+                        id="averagePercentProjectsOverBudget"
+                        type="text"
+                        name="averagePercentProjectsOverBudget"
+                        class="field-question project-profitability-question percentage-value"
+                      />
+                      <label for="averagePercentProjectsOverBudget" class="field-label">
+                        Average % of Projects Over Budget
+
+                        <div class="tooltip">
+                          <span class="tooltiptext">High performing firms have 23% or lower</span>
+                        </div>
+                      </label>
+                      <div class="line"></div>
+                    </div>
+                    <div class="wrap">
+                      <div class="psuedo-label">Projects Over Budget</div>
+                      <div class="field-answer projectsOverBudgetEl"></div>
+                    </div>
+                  </div>
+
+                  <div class="field row-field no-flash">
+                    <div class="wrap field field-inner">
+                      <input
+                        id="averagePercentBudgetOverCost"
+                        type="text"
+                        name="averagePercentBudgetOverCost"
+                        class="field-question project-profitability-question percentage-value"
+                      />
+                      <label for="averagePercentBudgetOverCost" class="field-label"
+                        >Average % Over Budget Costs</label
+                      >
+                      <div class="line"></div>
+                    </div>
+                    <div class="wrap">
+                      <div class="psuedo-label">Over Budget Per Year (Unbillable)</div>
+                      <div class="field-answer overBudgetPerYearEl text-right"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <h3 class="calculator-statement single">Deltek Can Help...</h3>
+              <div class="field-wrap no-flex special-spacing">
+                <div class="field range-field row-field">
+                  <div class="wrap">
+                    <div class="field-label no-range-lines">
+                      Reduce % Of Projects Over Budget To
+
+                      <div class="tooltip">
+                        <span class="tooltiptext"
+                          >Deltek customers can typically see a decrease in projects over budget by
+                          5-10%</span
+                        >
+                      </div>
+                    </div>
+
+                    <div class="range-wrap project-profitability-range">
+                      <span
+                        class="desired-decrease-projects-percent-left range-percent left"
+                      ></span>
+                      <input
+                        type="range"
+                        name="desiredDecreaseProjectsPercent"
+                        class="field-question project-profitability-question field-range-percentage inverse-range"
+                      />
+                      <output for="desiredDecreaseProjectsPercent" class="right-output"></output>
+                      <span
+                        class="desired-decrease-projects-percent-right range-percent right"
+                      ></span>
+                    </div>
+                  </div>
+
+                  <div class="wrap">
+                    <div class="psuedo-label">Projects Over Budget</div>
+                    <div class="field-answer desiredDecreaseProjectsPercentEl"></div>
+                  </div>
+                </div>
+
+                <div class="field range-field row-field">
+                  <div class="wrap">
+                    <div class="field-label no-range-lines">
+                      Reduce % of over budget costs to
+
+                      <div class="tooltip">
+                        <span class="tooltiptext"
+                          >Deltek customers can typically see a decrease in over budget costs by
+                          5-10%</span
+                        >
+                      </div>
+                    </div>
+
+                    <div class="range-wrap project-profitability-range">
+                      <span
+                        class="desired-decrease-over-budget-percent-left range-percent left"
+                      ></span>
+                      <input
+                        type="range"
+                        name="desiredDecreaseOverBudgetPercent"
+                        class="field-question project-profitability-question field-range-percentage inverse-range"
+                      />
+                      <output for="desiredDecreaseOverBudgetPercent" class="right-output"></output>
+                      <span
+                        class="desired-decrease-over-budget-percent-right range-percent right"
+                      ></span>
+                    </div>
+                  </div>
+
+                  <div class="wrap">
+                    <div class="psuedo-label">Over Budget Per Year (Unbillable)</div>
+                    <div class="field-answer desiredDecreaseOverBudgetPercentEl"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field-wrap results-wrap">
+                <div class="half-wrap">
+                  <div class="field results-field bottom-border">
+                    <div class="field-answer totalProjectRevenuePerYearEl"></div>
+                    <div class="psuedo-label">Total project revenue per year</div>
+                  </div>
+                  <div class="field results-field bottom-border">
+                    <div class="field-answer totalProjectCostsPerYearEl"></div>
+                    <div class="psuedo-label">Total project costs per year</div>
+                  </div>
+                  <div class="field results-field">
+                    <div class="field-answer totalProfitPerYearEl"></div>
+                    <div class="psuedo-label">Total profit per year</div>
+                  </div>
+                </div>
+
+                <div class="half-wrap">
+                  <div class="field results-field left-border bottom-border-blue quarter-height">
+                    <div class="field-answer projectOverrunsPerYearEl"></div>
+                    <div class="psuedo-label">Project overruns per year</div>
+                  </div>
+
+                  <div
+                    class="field results-field main-result left-border-blue three-quarter-height"
+                  >
+                    <div class="field-answer main-answer savedOverrunCostsEl"></div>
+                    <div class="psuedo-label">Saved overrun costs</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="view-results-cta">
+                <a href="results.html#profitability" class="btn">View Results</a>
+                <p>All changes are autosaved.</p>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <footer class="footer-app">
+        <div class="footer-inner">
+          <img
+            src="dist/img/icons/deltek-logo-dark.png"
+            width="90"
+            height="24"
+            class="logo"
+            alt="Deltek Logo"
+          />
+          <div class="footer-links">
+            <span>&copy; 2018 Deltek, Inc.</span> | <a href="#">Company Overview</a> |
+            <a href="#">Privacy Statement</a>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.min.js"></script>
+    <script src="src/js/fetch.js"></script>
+    <script src="src/js/percentMask.js"></script>
+    <script src="src/js/moneyMask.js"></script>
+    <script src="dist/js/scripts.min.js"></script>
+  </body>
+</html>

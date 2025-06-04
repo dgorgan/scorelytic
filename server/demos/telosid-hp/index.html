@@ -1,0 +1,668 @@
+<!doctype html>
+<html>
+  <head>
+    <link rel="stylesheet" href="dist/css/style.min.css" />
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="MobileOptimized" content="width" />
+    <meta name="HandheldFriendly" content="true" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:500" rel="stylesheet" />
+
+    <!-- scrollReveal -->
+    <script src="https://unpkg.com/scrollreveal/dist/scrollreveal.min.js"></script>
+
+    <title>TelosID - Identity Management Solutions</title>
+  </head>
+
+  <body>
+    <!-- HEADER -->
+    <header>
+      <div class="container js-hover">
+        <nav class="desktop-nav js-hover">
+          <ul class="top-nav js-hover">
+            <li class="logo-wrap">
+              <a href="#">
+                <img src="dist/img/telosid-logo.png" alt="TelosID Logo" class="nav-logo" />
+              </a>
+            </li>
+
+            <div class="links-wrap">
+              <li class="top-li">
+                <a href="about" class="top-link js-hover">About</a>
+                <ul class="nested-nav level-2 js-hover">
+                  <li class="js-hover"><a href="about/values/" class="js-hover">Our Values</a></li>
+                  <li class="js-hover"><a href="about/team/" class="js-hover">Our Team</a></li>
+                  <li class="js-hover">
+                    <a href="about/customers/" class="js-hover">Our Customers</a>
+                  </li>
+                  <li class="js-hover">
+                    <a href="about/differentiators/" class="js-hover">The Telos ID Difference</a>
+                  </li>
+                </ul>
+              </li>
+              <li class="top-li">
+                <a href="solutions" class="top-link js-hover">Solutions</a>
+                <ul class="nested-nav level-2 js-hover">
+                  <li class="top-li js-hover">
+                    <a
+                      href="solutions/aviation-channeling/"
+                      class="js-hover has-carret"
+                      data-link="Aviation Channeling"
+                      >Aviation Channeling</a
+                    >
+                  </li>
+                  <li class="top-li js-hover">
+                    <a
+                      href="solutions/fingerprint-services/"
+                      class="js-hover has-carret"
+                      data-link="Fingerprint Services"
+                      >Fingerprint Services</a
+                    >
+                  </li>
+                  <li class="top-li js-hover">
+                    <a
+                      href="solutions/infastructure-services/"
+                      class="js-hover has-carret"
+                      data-link="Infastructure Services"
+                      >Infastructure Services</a
+                    >
+                  </li>
+                </ul>
+              </li>
+              <li class="top-li">
+                <a href="news" class="top-link js-hover">News</a>
+                <ul class="nested-nav level-2 js-hover">
+                  <li class="js-hover"><a href="news/events/" class="js-hover">Events</a></li>
+                </ul>
+              </li>
+              <li class="top-li"><a href="support" class="top-link">Support</a></li>
+              <li class="top-li"><a href="contact" class="top-link">Contact</a></li>
+            </div>
+          </ul>
+        </nav>
+
+        <div class="mobile-nav">
+          <a href="#">
+            <img
+              src="dist/img/telosid-logo.png"
+              alt="TelosID Logo"
+              class="nav-logo"
+              width="111"
+              height="32"
+            />
+          </a>
+
+          <button class="ma5menu__toggle" type="button">
+            <img src="dist/img/icons/hamburger.svg" />
+          </button>
+        </div>
+
+        <nav class="ma5menu" itemscope itemtype="http://schema.org/SiteNavigationElement">
+          <div class="ma5menu__header">
+            <a class="ma5menu__home" href="index.html" tabindex="-1">
+              <img
+                src="dist/img/telosid-logo.png"
+                width="111"
+                height="32"
+                class="mobile-nav-logo"
+              />
+            </a>
+            <a class="ma5menu__toggle" tabindex="-1">
+              <div class="mobile-menu-close ma5menu__close"></div>
+            </a>
+          </div>
+          <!-- 'ma5menu__panel--active' - unordered-list which has active list-item and is closest to him in menu tree (only one for menu) -->
+          <!-- At Home page active link set as first in menu tree -->
+          <ul class="lvl-0 ma5menu__panel--active" data-ma5order="ma5-ul">
+            <!-- 'ma5menu__li--current' - current list-item wchich is closest to active link in menu tree (only one for menu) -->
+            <li class="ma5menu__li--current" data-ma5order="ma5-li-1">
+              <!-- Use class 'ma5menu__path' when you need colored link or category, for example to active link or path links -->
+              <span class="ma5menu__btn--enter ma5menu__category ma5menu__path">About</span>
+              <ul class="lvl-1" data-ma5order="ma5-ul-1">
+                <li data-ma5order="ma5-li-1-1">
+                  <div class="ma5menu__leave"><span class="ma5menu__btn--leave"></span>About</div>
+                </li>
+                <li data-ma5order="ma5-li-1-2"><a href="index-page.html">Our Values</a></li>
+                <li data-ma5order="ma5-li-1-3"><a href="index-page.html">Our Team</a></li>
+                <li data-ma5order="ma5-li-1-4"><a href="index-page.html">Our Customers</a></li>
+                <li data-ma5order="ma5-li-1-5">
+                  <a href="index-page.html">The Telos ID Difference</a>
+                </li>
+              </ul>
+            </li>
+            <li data-ma5order="ma5-li-2">
+              <span class="ma5menu__btn--enter ma5menu__category">Solutions</span>
+              <ul class="lvl-1" data-ma5order="ma5-ul-2">
+                <li data-ma5order="ma5-li-2-1">
+                  <div class="ma5menu__leave">
+                    <span class="ma5menu__btn--leave"></span>Solutions
+                  </div>
+                  <span class="ma5menu__btn--enter ma5menu__category">Aviation Channeling</span>
+                  <ul class="lvl-2" data-ma5order="ma5-ul-2-1">
+                    <li data-ma5order="ma5-li-2-1-1">
+                      <div class="ma5menu__leave">
+                        <span class="ma5menu__btn--leave"></span>Aviation Channeling
+                      </div>
+                      <a href="index-page.html">About DAC</a>
+                    </li>
+                    <li data-ma5order="ma5-li-2-1-2"><a href="index-page.html">Why Switch</a></li>
+                    <li data-ma5order="ma5-li-2-1-3">
+                      <a href="index-page.html">Our Customers</a>
+                    </li>
+                  </ul>
+                </li>
+                <li data-ma5order="ma5-li-2-2">
+                  <span class="ma5menu__btn--enter ma5menu__category">Fingerprint Services</span>
+                  <ul class="lvl-2" data-ma5order="ma5-ul-2-2">
+                    <li data-ma5order="ma5-li-2-2-1">
+                      <div class="ma5menu__leave">
+                        <span class="ma5menu__btn--leave"></span>Solutions
+                      </div>
+                    </li>
+                    <li data-ma5order="ma5-li-2-2-2">
+                      <a href="index-page.html">About IDVetting</a>
+                    </li>
+                    <li data-ma5order="ma5-li-2-2-3">
+                      <span class="ma5menu__btn--enter ma5menu__category">Solutions</span>
+                      <ul class="lvl-3" data-ma5order="ma5-ul-2-2-3">
+                        <li data-ma5order="ma5-li-2-2-3-1">
+                          <div class="ma5menu__leave">
+                            <span class="ma5menu__btn--leave"></span>Fingerprint Services
+                          </div>
+                        </li>
+                        <li data-ma5order="ma5-li-2-2-3-2">
+                          <span class="ma5menu__btn--enter ma5menu__category">FBI Channeling</span>
+                          <ul class="lvl-4" data-ma5order="ma5-ul-2-2-3-2">
+                            <li data-ma5order="ma5-li-2-2-3-2-1">
+                              <div class="ma5menu__leave">
+                                <span class="ma5menu__btn--leave"></span>FBI Channeling
+                              </div>
+                            </li>
+                            <li data-ma5order="ma5-li-2-2-3-2-2">
+                              <a href="https://enroll.idvetting.com" target="_blank"
+                                >Individual Background Check</a
+                              >
+                            </li>
+                            <li data-ma5order="ma5-li-2-2-3-2-3">
+                              <a href="index-page.html"
+                                >Organizational Employee Background Checks</a
+                              >
+                            </li>
+                          </ul>
+                        </li>
+                        <li data-ma5order="ma5-li-2-2-3-3">
+                          <a href="index-page.html">Comprehensive Managed Service</a>
+                        </li>
+                        <li data-ma5order="ma5-li-2-2-3-4">
+                          <a href="index-page.html">Florida Department of Law Enforcement (FDLE)</a>
+                        </li>
+                      </ul>
+                    </li>
+                    <li data-ma5order="ma5-li-2-2-4">
+                      <span class="ma5menu__btn--enter ma5menu__category">Industries</span>
+                      <ul class="lvl-3" data-ma5order="ma5-ul-2-2-4">
+                        <li data-ma5order="ma5-li-2-2-4-1">
+                          <div class="ma5menu__leave">
+                            <span class="ma5menu__btn--leave"></span>Fingerprint Services
+                          </div>
+                        </li>
+                        <li data-ma5order="ma5-li-2-2-4-2">
+                          <a href="index-page.html">Federal Govt</a>
+                        </li>
+                        <li data-ma5order="ma5-li-2-2-4-3">
+                          <a href="index-page.html">State & Local Govt</a>
+                        </li>
+                        <li data-ma5order="ma5-li-2-2-4-4">
+                          <a href="index-page.html">Commercial</a>
+                        </li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+                <li data-ma5order="ma5-li-2-3">
+                  <span class="ma5menu__btn--enter ma5menu__category">Infastructure Services</span>
+                  <ul class="lvl-2" data-ma5order="ma5-ul-2-3">
+                    <li data-ma5order="ma5-li-2-3-1">
+                      <div class="ma5menu__leave">
+                        <span class="ma5menu__btn--leave"></span>Solutions
+                      </div>
+                      <a href="index-page.html">What is IDINFRA?</a>
+                    </li>
+                    <li data-ma5order="ma5-li-2-3-2">
+                      <a href="index-page.html">Technologies?</a>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+            <li data-ma5order="ma5-li-3-1"><a href="index-page.html">Contracts</a></li>
+            <li data-ma5order="ma5-li-4">
+              <span class="ma5menu__btn--enter ma5menu__category">News</span>
+              <ul class="lvl-1" data-ma5order="ma5-ul-4">
+                <li data-ma5order="ma5-li-4-1">
+                  <div class="ma5menu__leave"><span class="ma5menu__btn--leave"></span>News</div>
+                  <span class="ma5menu__btn--enter ma5menu__category">Events</span>
+                  <ul class="lvl-2" data-ma5order="ma5-ul-4-1">
+                    <li data-ma5order="ma5-li-4-1-1">
+                      <div class="ma5menu__leave">
+                        <span class="ma5menu__btn--leave"></span>Events
+                      </div>
+                      <a href="index-page.html">Event 1</a>
+                    </li>
+                    <li data-ma5order="ma5-li-4-1-2"><a href="index-page.html">Event 2</a></li>
+                    <li data-ma5order="ma5-li-4-1-3"><a href="index-page.html">Event 3</a></li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+            <li data-ma5order="ma5-li-5">
+              <a href="index-page.html">Support</a>
+            </li>
+            <li data-ma5order="ma5-li-6">
+              <a href="index-page.html">Contact</a>
+            </li>
+            <li>
+              <a href="https://www.telos.com/careers" class="no-underline careers">Careers</a>
+            </li>
+            <li><a href="#" class="no-underline downloads">Downloads</a></li>
+          </ul>
+        </nav>
+      </div>
+      <nav class="breadcrumb-nav">
+        <div class="breadcrumb-main-link"></div>
+        <ul class="breadcrumb-links"></ul>
+      </nav>
+    </header>
+    <!-- END HEADER -->
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="container">
+        <div class="hero-copy">
+          <h1 data-sr>
+            <span class="text-highlight">Identity Management Solutions</span> and
+            <span class="text-highlight">Services</span> for Today, and Beyond
+          </h1>
+          <p>
+            For more than 20 years, Telos ID has protected people, critical facilities, and
+            information assets around the world.
+          </p>
+          <a href="javascript:void(0)" class="btn btn-video">Watch to Learn More</a>
+          <div class="video">
+            <div class="video-wrapper">
+              <div class="video-wrapper-icon"></div>
+            </div>
+            <p class="small video-text">Watch to Learn More</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- END HERO -->
+
+    <!-- AFFILIATES -->
+    <section class="affiliate-logos">
+      <div class="container">
+        <div class="logos-wrap">
+          <div class="logos-list">
+            <div>
+              <img src="dist/img/icons/fbi.png" alt="" class="logo" />
+            </div>
+            <div>
+              <img src="dist/img/icons/chs-airport.png" alt="" class="logo" />
+            </div>
+            <div>
+              <img src="dist/img/icons/denver-airport.png" alt="" class="logo" />
+            </div>
+            <div>
+              <img src="dist/img/icons/lax-airport.png" alt="" class="logo" />
+            </div>
+            <div>
+              <img src="dist/img/icons/gsa.png" alt="" class="logo" />
+            </div>
+            <div>
+              <img src="dist/img/icons/tsa.png" alt="" class="logo" />
+            </div>
+          </div>
+          <div class="logos-arrows"></div>
+        </div>
+      </div>
+    </section>
+    <!-- AFFILIATES -->
+
+    <!-- ABOUT -->
+    <section class="about-telos">
+      <div class="container">
+        <h3 class="small">About TelosID</h3>
+        <div class="row">
+          <div class="col-xs-12">
+            <p class="lead">
+              Our attention to a high standard has led to extensive experience and a long history of
+              <span class="text-highlight sm"
+                >protecting individual identities, critical facilities and</span
+              >
+              <span class="text-highlight sm">infrastructure</span> including continuous monitoring
+              across the spectrum of business, government, and military institutions.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- END ABOUT -->
+
+    <!-- CALLOUTS -->
+    <section class="callout-padding">
+      <div class="container callout">
+        <div class="row mobile-callout">
+          <div class="col-xs-12 col-sm-6">
+            <h2 class="callout-title">Telos ID DAC</h2>
+            <p class="callout-description">
+              Our aviation channeling technology provides a secure web-based solution that allows
+              aviation entities to collect, process, and submit aviation workers' biographic and
+              biometric fingerprint data for the purpose of security threat assessments and FBI
+              criminal history background checks.
+            </p>
+            <div class="callout-icons">
+              <div class="icon-item">
+                <img src="dist/img/icons/headphones.png" alt="" class="icon" />
+                <p class="xs">Reduced costs and superior 24/7 customer care</p>
+              </div>
+              <div class="icon-item">
+                <img src="dist/img/icons/browser.png" alt="" class="icon" />
+                <p class="xs">Flexible integration for cross-system data integrity</p>
+              </div>
+              <div class="icon-item">
+                <img src="dist/img/icons/plane.png" alt="" class="icon" />
+                <p class="xs">Engineering for evolving TSA and industry requirements</p>
+              </div>
+              <div class="icon-item">
+                <img src="dist/img/icons/file.png" alt="" class="icon" />
+                <p class="xs">
+                  Enhanced functionality: scheduling tool, applicant and signatory portals
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="col-xs-12 col-sm-6 col-img">
+            <div class="callout-img-wrap right">
+              <img src="dist/img/plane.png" alt="" class="callout-img" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="callout-padding">
+      <div class="container callout">
+        <div class="row mobile-callout">
+          <div class="col-xs-12 col-sm-6 col-img">
+            <div class="callout-img-wrap left">
+              <img src="dist/img/building.png" alt="" class="callout-img" />
+            </div>
+          </div>
+          <div class="col-xs-12 col-sm-6">
+            <h2 class="callout-title">IDVetting</h2>
+            <p class="callout-description">
+              Our fingerprinting services offers organizations and individuals quick, secure, and
+              cost-effective fingerprinting channeling services for the purpose of FBI criminal and
+              identity history background checks. Our services make acquiring individual identity
+              history checks easy, fast, and secure.
+            </p>
+            <div class="callout-icons">
+              <div class="icon-item">
+                <img src="dist/img/icons/fingerprint.png" alt="" class="icon" />
+                <p class="xs">Directly submits electronic biometric fingerprints</p>
+              </div>
+              <div class="icon-item">
+                <img src="dist/img/icons/shield.png" alt="" class="icon" />
+                <p class="xs">Protect your organization from high-risk individuals</p>
+              </div>
+              <div class="icon-item">
+                <img src="dist/img/icons/ink.png" alt="" class="icon" />
+                <p class="xs">No more messy ink cards</p>
+              </div>
+              <div class="icon-item">
+                <img src="dist/img/icons/clock.png" alt="" class="icon" />
+                <p class="xs">Less than 24-hour turnaround for results</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="callout-padding fill">
+      <div class="container callout">
+        <div class="row mobile-callout">
+          <div class="col-xs-12 col-sm-6">
+            <h2 class="callout-title">Identity Infastructure</h2>
+            <p class="callout-description">
+              We design, develop, test, and deploy hardware and software components that form the
+              backbone of identity infrastructures needed for specialized requirements such as high
+              security/integrity specifications, management of privileges, and the handling of
+              personally identifiable information.
+            </p>
+            <div class="callout-icons">
+              <div class="icon-item">
+                <img src="dist/img/icons/biometric.png" alt="" class="icon" />
+                <p class="xs">Leverage biometric technologies for identity systems</p>
+              </div>
+              <div class="icon-item">
+                <img src="dist/img/icons/cyber.png" alt="" class="icon" />
+                <p class="xs">Integrate emerging cyber security technologies</p>
+              </div>
+              <div class="icon-item">
+                <img src="dist/img/icons/tools.png" alt="" class="icon" />
+                <p class="xs">Provide state-of-the-art logistical support and maintenance</p>
+              </div>
+              <div class="icon-item">
+                <img src="dist/img/icons/gear.png" alt="" class="icon" />
+                <p class="xs">Continuous technical support of mission critical identity systems</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-xs-12 col-sm-6 col-img">
+            <div class="callout-img-wrap right">
+              <img src="dist/img/people.png" alt="" class="callout-img" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- END CALLOUTS -->
+
+    <!-- CTA BLOCK -->
+    <section class="cta-block-container">
+      <div class="container">
+        <div class="row">
+          <div class="col-xs-12 col-sm-6 cta-block">
+            <p class="cta-block-description">
+              Our aviation channeling customers are all over the map — find out who's already
+              switched to Telos ID DAC
+            </p>
+            <a class="btn">Learn More</a>
+          </div>
+          <div class="col-xs-12 col-sm-6 cta-block">
+            <p class="cta-block-description">
+              IDVetting — Request your FBI Identity History Summary Check using our simple
+              application process
+            </p>
+            <a class="btn">Sign In</a>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- END CTA BLOCK -->
+
+    <!-- TESTIMONIALS -->
+    <section class="testimonial-padding">
+      <div class="container">
+        <div class="row testimonials-container">
+          <div class="testimonial">
+            <img src="dist/img/icons/quote.svg" class="quote-icon" />
+            <div class="col-xs-12">
+              <p class="testimonial-description">
+                Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
+                incididunt ut labore et dolore magna aliqua minim veniam, quis nostrud exercitation
+                ullamco laboris nisi.
+              </p>
+            </div>
+            <div class="testimonial-profile">
+              <img src="dist/img/persona.png" class="testimonial-profile-img" />
+              <div class="testimonial-profile-text">
+                <h3>John Smith</h3>
+                <p class="xs">Sacramento International Airport</p>
+              </div>
+            </div>
+          </div>
+          <div class="testimonial">
+            <img src="dist/img/icons/quote.svg" class="quote-icon" />
+            <div class="col-xs-12">
+              <p class="testimonial-description">
+                Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
+                incididunt ut labore et dolore magna aliqua minim veniam, quis nostrud exercitation
+                ullamco laboris nisi.
+              </p>
+            </div>
+            <div class="testimonial-profile">
+              <img src="dist/img/persona.png" class="testimonial-profile-img" />
+              <div class="testimonial-profile-text">
+                <h3>John Smith</h3>
+                <p class="xs">Sacramento International Airport</p>
+              </div>
+            </div>
+          </div>
+          <div class="testimonial">
+            <img src="dist/img/icons/quote.svg" class="quote-icon" />
+            <div class="col-xs-12">
+              <p class="testimonial-description">
+                Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
+                incididunt ut labore et dolore magna aliqua minim veniam, quis nostrud exercitation
+                ullamco laboris nisi.
+              </p>
+            </div>
+            <div class="testimonial-profile">
+              <img src="dist/img/persona.png" class="testimonial-profile-img" />
+              <div class="testimonial-profile-text">
+                <h3>John Smith</h3>
+                <p class="xs">Sacramento International Airport</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- END TESTIMONIALS -->
+
+    <!-- NOTEWORTHY-->
+    <section class="noteworthy-section">
+      <div class="container">
+        <div class="row">
+          <div class="noteworthy-controls col-xs-12 col-lg-3">
+            <p class="small">Noteworthy</p>
+            <h2>Duis Aute Irure Dolor Reprehenderit</h2>
+            <div class="arrows"></div>
+          </div>
+          <div class="noteworthy-container col-xs-12-col-lg-9">
+            <div class="noteworthy-item">
+              <div class="card" data-news-type="Press Release">
+                <img class="card-img-top" src="dist/img/noteworthy/jet.png" alt="Jet" />
+                <div class="card-body">
+                  <p class="xs">January 17, 2018</p>
+                  <h3 class="card-title">
+                    Telos Corporation Selected by the United States Air Force for IT Enterprise Risk
+                    Management and Compliance Automation
+                  </h3>
+                  <p class="card-text small">
+                    Xacta® to automate the NIST framework, accelerate cloud adoption, and
+                    continuously…
+                  </p>
+                  <a href="#" class="card-cta">Read More</a>
+                </div>
+              </div>
+            </div>
+            <div class="noteworthy-item">
+              <div class="card" data-news-type="Case Study">
+                <img
+                  class="card-img-top"
+                  src="dist/img/noteworthy/sacramento-airport.png"
+                  alt="Jet"
+                />
+                <div class="card-body">
+                  <p class="xs">December 21, 2013</p>
+                  <h3 class="card-title">
+                    Sacramento International Airport is First in Line to Enjoy the Benefits of New
+                    Channeling Service
+                  </h3>
+                  <p class="card-text small">
+                    Airport officials chose Telos ID Designated Aviation Channeling (DAC) for
+                    secure, responsive and cost-effective submission of…
+                  </p>
+                  <a href="#" class="card-cta">Download Case Study</a>
+                </div>
+              </div>
+            </div>
+            <div class="noteworthy-item">
+              <div class="card" data-news-type="Event">
+                <img class="card-img-top" src="dist/img/noteworthy/calendar.png" alt="Jet" />
+                <div class="card-body">
+                  <p class="xs">December 21, 2012</p>
+                  <h3 class="card-title">
+                    Curabitur Non Nulla sit Amet Nisl Tempus Convallis Quis ac Lectus Nulla Quis
+                    Lorem ut Libero
+                  </h3>
+                  <p class="card-text small">
+                    Donec sollicitudin molestie malesuada. Vivamus suscipit tortor eget felis
+                    porttitor volutpat. Vivamus magna justo, lacinia eget…
+                  </p>
+                  <a href="#" class="card-cta">Learn More</a>
+                </div>
+              </div>
+            </div>
+            <div class="noteworthy-item">
+              <div class="card" data-news-type="Case Study">
+                <img
+                  class="card-img-top"
+                  src="dist/img/noteworthy/sacramento-airport.png"
+                  alt="Jet"
+                />
+                <div class="card-body">
+                  <p class="xs">December 21, 2013</p>
+                  <h3 class="card-title">
+                    Sacramento International Airport is First in Line to Enjoy the Benefits of New
+                    Channeling Service
+                  </h3>
+                  <p class="card-text small">
+                    Airport officials chose Telos ID Designated Aviation Channeling (DAC) for
+                    secure, responsive and cost-effective submission of…
+                  </p>
+                  <a href="#" class="card-cta">Download Case Study</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- END NOTEWORTHY -->
+
+    <footer class="footer">
+      <div class="container no-padding">
+        <div class="footer-links-container">
+          <div class="footer-links">
+            <a href="https://www.telos.com/careers">Careers</a>
+            <a href="downloads">Downloads</a>
+          </div>
+          <div class="footer-logo-container">
+            <img src="dist/img/telosid-logo.png" class="footer-logo" alt="TelosID Logo" />
+          </div>
+          <div class="copyright">@2018 TelosID. All rights reserved.</div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="dist/js/scripts.min.js"></script>
+  </body>
+</html>

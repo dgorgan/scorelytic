@@ -1,0 +1,184 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <title>ROI Calculator</title>
+
+    <meta name="author" content="name" />
+    <meta name="description" content="Deltek ROI Calculator" />
+    <meta
+      name="keywords"
+      content="deltek, calculator, roi, bizdev, utilization, project profitability"
+    />
+
+    <link rel="shortcut icon" href="dist/img/icons/favicon.ico" type="image/vnd.microsoft.icon" />
+    <link rel="stylesheet" href="https://use.typekit.net/pbq7luy.css" />
+    <link rel="stylesheet" href="dist/css/style.css" />
+  </head>
+
+  <body>
+    <div class="app-container">
+      <header>
+        <div class="hero small">
+          <a href="index.html">
+            <img src="dist/img/icons/deltek-logo.svg" class="logo" alt="Deltek Logo" />
+          </a>
+          <a href="#" class="btn btn-inverse">Contact Us</a>
+        </div>
+        <nav class="calculator-nav share-page">
+          <a href="results.html" class="nav-item results-icon">Back To Results</a>
+          <a href="calculator.html#business-development" class="nav-item home-icon"
+            >ROI Calculator Home</a
+          >
+        </nav>
+      </header>
+
+      <div class="app-inner">
+        <div class="share-inner">
+          <header>
+            <h3 class="heading">Invite Others</h3>
+            <p>
+              Congratulations! We trust you are delighted with the positive results you can achieve
+              with Deltek. Use this form to share your results with colleagues, and invite them to
+              try out the calculations themselves - you’ll make their day!
+            </p>
+          </header>
+
+          <main>
+            <form class="invite-form">
+              <div class="share-body">
+                <div class="share-field">
+                  <label>From<span class="req">*</span></label>
+                  <input
+                    type="text"
+                    name="inviteFromName"
+                    placeholder="Your name"
+                    class="req-field name form-input"
+                  />
+                  <span class="error">Please enter your name</span>
+                </div>
+
+                <div class="share-field">
+                  <label>Email<span class="req">*</span></label>
+                  <input
+                    type="email"
+                    name="inviteFromEmail"
+                    placeholder="Recipient's email"
+                    class="req-field email form-input"
+                  />
+                  <span class="error">Please enter valid email address</span>
+                </div>
+
+                <div class="share-field">
+                  <label>To<span class="req">*</span></label>
+                  <input
+                    type="text"
+                    name="inviteToName"
+                    placeholder="Recipient's first name"
+                    class="req-field name form-input"
+                  />
+                  <span class="error">Please enter recipient's first name</span>
+                </div>
+
+                <div class="share-field">
+                  <label>Email<span class="req">*</span></label>
+                  <input
+                    type="email"
+                    name="inviteToEmail"
+                    placeholder="Recipient's email"
+                    class="req-field email form-input"
+                  />
+                  <span class="error">Please enter valid email address</span>
+                </div>
+
+                <!-- <div class="share-field">
+                                <label>Title</label>
+                                <input type="text" name="inviteRecipientTitle" placeholder="Recipient's title" class="form-input">
+                            </div> -->
+
+                <div class="share-field">
+                  <label>Comments</label>
+                  <textarea name="inviteComments" class="form-input"></textarea>
+                </div>
+              </div>
+
+              <div class="submit-wrap">
+                <button type="submit" class="btn invite-others">Invite Others</button>
+                <a href="results.html" class="btn btn-white">Cancel</a>
+              </div>
+            </form>
+          </main>
+        </div>
+
+        <div class="report-submit-success">
+          <div class="flash-message">
+            <p class="flash-message-left small">Report successfully sent!</p>
+            <div class="close-flash-btn"></div>
+          </div>
+
+          <div class="report-submit-inner">
+            <header>
+              <h3 class="heading">
+                Deltek Makes Your Job Easier and Your Projects More Profitable
+              </h3>
+            </header>
+
+            <div class="callout-wrap">
+              <div class="callout">
+                <img src="dist/img/icons/chart.svg" class="callout-icon" alt="" />
+                <h4 class="callout-title short-title">Business Development Just Works</h4>
+                <p class="callout-statement">
+                  Easily Manage Client Relationships,  track opportunities, and estimate  project
+                  costs.
+                </p>
+                <a href="calculator.html#business-development" class="btn">Learn More</a>
+              </div>
+              <div class="callout">
+                <img src="dist/img/icons/pie-chart.svg" class="callout-icon" alt="" />
+                <h4 class="callout-title short-title">Project Management  Just Works</h4>
+                <p class="callout-statement">
+                  Easily deliver projects on time and on budget and with the right resources to
+                  improve customer satisfaction.
+                </p>
+                <a href="calculator.html#utilization" class="btn">Learn More</a>
+              </div>
+              <div class="callout">
+                <img src="dist/img/icons/piggy-bank.svg" class="callout-icon" alt="" />
+                <h4 class="callout-title">Delivering Profitable Projects Just Works</h4>
+                <p class="callout-statement">
+                  Easily monitor key metrics with dashboards and alerts telling you when things need
+                  your attention.
+                </p>
+                <a href="calculator.html#project-profitability" class="btn">Learn More</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="footer-app">
+        <div class="footer-inner">
+          <img
+            src="dist/img/icons/deltek-logo-dark.png"
+            width="90"
+            height="24"
+            class="logo"
+            alt="Deltek Logo"
+          />
+          <div class="footer-links">
+            <span>&copy; 2018 Deltek, Inc.</span> | <a href="#">Company Overview</a> |
+            <a href="#">Privacy Statement</a>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.min.js"></script>
+    <script src="src/js/fetch.js"></script>
+    <script src="src/js/percentMask.js"></script>
+    <script src="src/js/moneyMask.js"></script>
+    <script src="dist/js/scripts.min.js"></script>
+  </body>
+</html>

@@ -1,0 +1,48 @@
+// -----------------------------------------------------------------------------
+//! Base
+// -----------------------------------------------------------------------------
+
+.btn {
+  display: inline-block;
+  min-width: 179px;
+  padding: 14px 38px;
+  background-color: $white;
+  border-radius: 100px;
+  box-shadow: 0 2px 6px 0 rgba(1, 52, 105, 0.4);
+  text-decoration: none;
+  text-align: center;
+  font-family: $roboto-medium;
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 17px;
+  color: $blue;
+  cursor: pointer;
+  @include smoothing();
+
+  &.btn-video {
+    position: relative;
+    min-width: 235px;
+    background: rgba(44, 124, 181, 0.95);
+    box-shadow: 0 2px 6px 0 rgba(46, 53, 62, 0.3);
+    font-size: 0.8125rem;
+    letter-spacing: -0.5px;
+    color: $white;
+
+    &:before {
+      content: '';
+      position: absolute;
+      left: 10px;
+      top: 7px;
+      width: 33px;
+      height: 33px;
+      background: url('../img/icons/play.png');
+      background-size: contain;
+    }
+  }
+
+  &:hover {
+    text-decoration: none;
+    background-color: lighten($blue, 15%);
+    color: $white;
+  }
+}
