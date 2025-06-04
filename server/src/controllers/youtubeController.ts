@@ -39,7 +39,7 @@ const normalizeSentiment = (obj: any) => ({
   culturalContext: obj.culturalContext ?? obj.cultural_context ?? {},
 });
 
-const processYouTubeVideo = async (videoId: string) => {
+const processYouTubeVideo = async (videoId: string, language: string = 'en') => {
   const metadata = await fetchYouTubeVideoMetadata(videoId);
   const extractedGameTitle = extractGameFromMetadata(metadata);
   const gameSlug = extractedGameTitle ? createSlug(extractedGameTitle) : 'unknown-game';
@@ -48,6 +48,7 @@ const processYouTubeVideo = async (videoId: string) => {
     allowAudioFallback: true,
     maxCostUSD: 0.5,
     maxDurationMinutes: 20,
+    language,
   });
   const review = await normalizeYoutubeToReview({
     videoId,
@@ -76,7 +77,7 @@ const processYouTubeVideo = async (videoId: string) => {
 export const youtubeController = {
   processVideo: async (req: Request, res: Response) => {
     try {
-      const { videoId } = req.body;
+      const { videoId, language = 'en', generalAnalysis = false } = req.body;
       if (!videoId) {
         return res.status(400).json({ error: 'videoId is required' });
       }
@@ -110,18 +111,36 @@ export const youtubeController = {
           },
         });
       }
-      const review = await processYouTubeVideo(videoId);
+      const review = await processYouTubeVideo(videoId, language);
       let sentiment;
       if (review.transcript && review.transcript.trim().length > 0) {
-        const llmResult = await analyzeTextWithBiasAdjustmentFull(
-          review.transcript!,
-          'gpt-3.5-turbo',
-          undefined,
-          undefined,
-          review.title,
-          review.title,
-        );
-        sentiment = normalizeSentiment(flattenSentiment(llmResult));
+        if (generalAnalysis) {
+          const llmResult = await analyzeTextWithBiasAdjustmentFull(
+            review.transcript!,
+            'gpt-3.5-turbo',
+            undefined,
+            undefined,
+            'Analyze what this video is about and tell me. List any key notes or important points.',
+            'Analyze what this video is about and tell me. List any key notes or important points.',
+          );
+          return res.json({
+            success: true,
+            summary: (llmResult as any).summary || (llmResult as any).sentimentSummary || '',
+            keyNotes: (llmResult as any).keyNotes || (llmResult as any).pros || [],
+            transcript: review.transcript,
+            debug: review.transcriptDebug,
+          });
+        } else {
+          const llmResult = await analyzeTextWithBiasAdjustmentFull(
+            review.transcript!,
+            'gpt-3.5-turbo',
+            undefined,
+            undefined,
+            review.title,
+            review.title,
+          );
+          sentiment = normalizeSentiment(flattenSentiment(llmResult));
+        }
       } else {
         sentiment = normalizeSentiment(
           flattenSentiment({

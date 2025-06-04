@@ -16,6 +16,7 @@ export interface HybridTranscriptOptions extends TranscriptionOptions {
   allowAudioFallback?: boolean; // Default: true
   maxCostUSD?: number; // Default: 1.00 (max $1 per video)
   language?: string; // Default: 'en'
+  forceEnglish?: boolean; // If true, force English output
 }
 
 /**
@@ -29,6 +30,7 @@ export const getHybridTranscript = async (
     allowAudioFallback = true,
     maxCostUSD = 1.0,
     language = 'en',
+    forceEnglish,
     ...transcriptionOptions
   } = options;
 
@@ -92,6 +94,7 @@ export const getHybridTranscript = async (
     const transcript = await audioService.transcribeYouTubeAudio(videoId, {
       ...transcriptionOptions,
       language,
+      forceEnglish: typeof forceEnglish === 'boolean' ? forceEnglish : language === 'en',
     });
 
     debug.push(`[HYBRID] ✅ Audio transcription successful: ${transcript.length} characters`);

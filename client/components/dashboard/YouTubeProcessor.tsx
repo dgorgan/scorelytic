@@ -15,6 +15,8 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
   const [processing, setProcessing] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [language, setLanguage] = useState('en');
+  const [generalAnalysis, setGeneralAnalysis] = useState(false);
 
   const handleProcess = async () => {
     const extractedId = extractVideoId(videoId.trim());
@@ -33,7 +35,7 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ videoId: extractedId }),
+        body: JSON.stringify({ videoId: extractedId, language, generalAnalysis }),
       });
 
       const data = await response.json();
@@ -95,6 +97,35 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-600"
             disabled={processing}
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Language Code (e.g. 'en', 'el')
+          </label>
+          <input
+            type="text"
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+            placeholder="en"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-600"
+            disabled={processing}
+          />
+        </div>
+
+        <div>
+          <label className="inline-flex items-center">
+            <input
+              type="checkbox"
+              checked={generalAnalysis}
+              onChange={(e) => setGeneralAnalysis(e.target.checked)}
+              className="form-checkbox h-4 w-4 text-blue-600"
+              disabled={processing}
+            />
+            <span className="ml-2 text-sm text-gray-700">
+              General analysis ("What is this video about?")
+            </span>
+          </label>
         </div>
 
         <div className="flex gap-2">

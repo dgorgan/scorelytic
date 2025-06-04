@@ -12,11 +12,16 @@ export interface TranscriptionOptions {
   audioQuality?: 'worst' | 'best'; // Default: worst (smaller files)
   tempDir?: string; // Default: /tmp
   language?: string; // Default: 'en'
+  forceEnglish?: boolean; // If true, use translation endpoint
 }
 
 export interface TranscriptionHelpers {
   downloadAudio: (videoUrl: string, audioPath: string, options: any) => Promise<void>;
-  transcribeAudioWithOpenAI: (audioPath: string, language: string) => Promise<string>;
+  transcribeAudioWithOpenAI: (
+    audioPath: string,
+    language: string,
+    forceEnglish?: boolean,
+  ) => Promise<string>;
   getVideoDuration: (videoId: string) => Promise<number>;
   fileExists: (filePath: string) => boolean;
   unlinkFile: (filePath: string) => Promise<void>;
@@ -80,6 +85,7 @@ export const transcribeYouTubeAudio = async (
     audioQuality = 'worst',
     tempDir = '/tmp',
     language = 'en',
+    forceEnglish = false,
   } = options;
 
   const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
@@ -97,7 +103,11 @@ export const transcribeYouTubeAudio = async (
       );
     }
     // Transcribe
-    const transcription = await helpers.transcribeAudioWithOpenAI(audioPath, language);
+    const transcription = await helpers.transcribeAudioWithOpenAI(
+      audioPath,
+      language,
+      forceEnglish,
+    );
     await helpers.unlinkFile(audioPath);
     return transcription;
   } catch (error: any) {
@@ -106,7 +116,9 @@ export const transcribeYouTubeAudio = async (
         await helpers.unlinkFile(audioPath);
       }
     } catch {}
-    if (error.message?.includes('duration')) {
+    // Only check actual duration if error is about duration or file not created
+    const duration = await helpers.getVideoDuration(videoId);
+    if (duration > maxDurationMinutes) {
       throw new Error(
         `Video ${videoId} is too long (>${maxDurationMinutes} minutes) for audio transcription`,
       );
