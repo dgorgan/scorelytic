@@ -151,6 +151,8 @@ jobs:
         run: pnpm install --prefer-offline --frozen-lockfile
       - name: Build, lint, type-check
         run: pnpm turbo run build lint type-check --concurrency=2 --cache-dir=.turbo
+      - name: Patch Scorelytic client URLs in static demos
+        run: pnpm run patch-demo-urls
       - name: Check for unresolved @/ imports in server build
         run: |
           if grep -r "@/" server/dist; then

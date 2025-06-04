@@ -19,6 +19,74 @@
 
   <body>
     <div class="app-container">
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css?family=Inter:400,700&display=swap"
+      />
+      <style>
+        body {
+          font-family: 'Inter', Arial, sans-serif;
+          background: #f8fafc;
+          margin: 0;
+        }
+        .navbar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          background: #fff;
+          box-shadow: 0 2px 8px #0001;
+          padding: 16px 32px;
+        }
+        .navbar-left {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+        .navbar-logo {
+          height: 46px;
+          width: 100%;
+          vertical-align: middle;
+        }
+        .navbar-link {
+          color: #374151;
+          text-decoration: none;
+          margin-left: 24px;
+          font-weight: 500;
+          transition: color 0.2s;
+        }
+        .navbar-link:hover {
+          color: #2563eb;
+        }
+        .navbar-right {
+          display: flex;
+          align-items: center;
+          gap: 24px;
+        }
+        .back-link {
+          color: #2563eb;
+          text-decoration: none;
+          font-weight: 500;
+          margin-right: 24px;
+        }
+        .back-link:hover {
+          text-decoration: underline;
+        }
+      </style>
+      <nav class="navbar">
+        <div class="navbar-left">
+          <a href="https://www.scorelytic.com/dashboard" title="Go to Scorelytic App">
+            <img src="../scorelytic-logo.png" alt="Scorelytic Logo" class="navbar-logo" />
+          </a>
+          <a href="/demos/index.html" class="navbar-link">Demos</a>
+          <a href="/demos/deltek-roi-calculator/index.html" class="navbar-link"
+            >Deltek ROI Calculator</a
+          >
+        </div>
+        <div class="navbar-right">
+          <a href="/demos/telosid-hp/index.html" class="navbar-link">TelosID HP</a>
+          <a href="/demos/index.html" class="back-link">&larr; Back to Demos</a>
+        </div>
+      </nav>
       <header>
         <div class="hero small">
           <a href="index.html">
@@ -41,7 +109,7 @@
             <p>
               Congratulations! We trust you are delighted with the positive results you can achieve
               with Deltek. Use this form to share your results with colleagues, and invite them to
-              try out the calculations themselves - you’ll make their day!
+              try out the calculations themselves - you'll make their day!
             </p>
           </header>
 
@@ -129,14 +197,14 @@
                 <img src="dist/img/icons/chart.svg" class="callout-icon" alt="" />
                 <h4 class="callout-title short-title">Business Development Just Works</h4>
                 <p class="callout-statement">
-                  Easily Manage Client Relationships,  track opportunities, and estimate  project
+                  Easily Manage Client Relationships, track opportunities, and estimate project
                   costs.
                 </p>
                 <a href="calculator.html#business-development" class="btn">Learn More</a>
               </div>
               <div class="callout">
                 <img src="dist/img/icons/pie-chart.svg" class="callout-icon" alt="" />
-                <h4 class="callout-title short-title">Project Management  Just Works</h4>
+                <h4 class="callout-title short-title">Project Management Just Works</h4>
                 <p class="callout-statement">
                   Easily deliver projects on time and on budget and with the right resources to
                   improve customer satisfaction.

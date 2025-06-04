@@ -24,7 +24,7 @@ export default function Home() {
       </Head>
       <div className="flex flex-col items-center justify-center min-h-screen p-8">
         <h1 className="text-4xl font-bold mb-4">Welcome to Scorelytic</h1>
-        <p className="text-lg text-gray-600 mb-8">
+        <p className="text-lg text-white-600 mb-8">
           Game review analytics, bias detection, and more.
         </p>
         {isPending || clicked ? (

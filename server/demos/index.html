@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Demos Dashboard - Scorelytic</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css?family=Inter:400,700&display=swap"
+    />
+    <link rel="shortcut icon" href="./scorelytic-favicon.png" type="image/vnd.microsoft.icon" />
+    <style>
+      body {
+        font-family: 'Inter', Arial, sans-serif;
+        background: #f8fafc;
+        margin: 0;
+      }
+      .navbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #fff;
+        box-shadow: 0 2px 8px #0001;
+        padding: 16px 32px;
+      }
+      .navbar-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .navbar-logo {
+        height: 46px;
+        width: 100%;
+        vertical-align: middle;
+      }
+      .navbar-title {
+        font-weight: bold;
+        font-size: 1.5rem;
+        color: #222;
+        margin-left: 8px;
+      }
+      .navbar-link {
+        color: #374151;
+        text-decoration: none;
+        margin-left: 24px;
+        font-weight: 500;
+        transition: color 0.2s;
+      }
+      .navbar-link:hover {
+        color: #2563eb;
+      }
+      .navbar-right {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+      }
+      .dashboard-main {
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 0 16px;
+      }
+      .dashboard-title {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #222;
+        margin-bottom: 32px;
+      }
+      .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 32px;
+      }
+      .demo-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px #0001;
+        overflow: hidden;
+        text-decoration: none;
+        color: inherit;
+        transition: box-shadow 0.2s;
+        display: flex;
+        flex-direction: column;
+      }
+      .demo-card:hover {
+        box-shadow: 0 4px 16px #0002;
+      }
+      .demo-thumb {
+        width: 100%;
+        height: 160px;
+        object-fit: cover;
+        background: #f1f5f9;
+      }
+      .demo-content {
+        padding: 20px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+      .demo-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #222;
+        margin-bottom: 8px;
+      }
+      .demo-desc {
+        color: #555;
+        font-size: 0.98rem;
+        flex: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="navbar-left">
+        <a href="https://www.scorelytic.com/dashboard" title="Go to Scorelytic App">
+          <img src="./scorelytic-logo.png" alt="Scorelytic Logo" class="navbar-logo" />
+        </a>
+      </div>
+      <div class="navbar-right">
+        <a href="/demos/deltek-roi-calculator/index.html" class="navbar-link"
+          >Deltek ROI Calculator</a
+        >
+        <a href="/demos/telosid-hp/index.html" class="navbar-link">TelosID HP</a>
+      </div>
+    </nav>
+    <main class="dashboard-main">
+      <div class="dashboard-title">Demos</div>
+      <div class="card-grid">
+        <a href="/demos/deltek-roi-calculator/index.html" class="demo-card">
+          <img
+            src="../demos/deltek-roi-calculator/src/img/icons/gradient.png"
+            alt="Deltek ROI Calculator"
+            class="demo-thumb"
+          />
+          <div class="demo-content">
+            <div class="demo-title">Deltek ROI Calculator</div>
+            <div class="demo-desc">
+              Estimate ROI for Deltek implementations with this interactive calculator. Explore
+              business development, utilization, and project profitability scenarios.
+            </div>
+          </div>
+        </a>
+        <a href="/demos/telosid-hp/index.html" class="demo-card">
+          <img src="../demos/telosid-hp/dist/img/hero.png" alt="TelosID HP" class="demo-thumb" />
+          <div class="demo-content">
+            <div class="demo-title">TelosID HP</div>
+            <div class="demo-desc">
+              Demo for TelosID HP: identity verification and onboarding. Try out the workflow and
+              see how it works in practice.
+            </div>
+          </div>
+        </a>
+      </div>
+    </main>
+  </body>
+</html>

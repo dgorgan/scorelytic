@@ -28,6 +28,8 @@
     "format": "turbo run format",
     "type-check": "turbo run type-check",
     "build": "turbo run build",
+    "patch-demo-urls": "npx tsx scripts/src/replace-client-url.ts",
+    "postbuild": "pnpm run patch-demo-urls",
     "prune": "pnpm turbo prune --out-dir .pruned",
     "test:e2e": "playwright test"
   },
