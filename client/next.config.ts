@@ -16,6 +16,16 @@ const nextConfig: NextConfig = {
   },
   productionBrowserSourceMaps: true,
   experimental: {},
+
+  // 👇 Add this block
+  async rewrites() {
+    return [
+      {
+        source: '/demos/:path*',
+        destination: 'https://api.scorelytic.com/demos/:path*',
+      },
+    ];
+  },
 };
 
 export default withSentryConfig(nextConfig, {

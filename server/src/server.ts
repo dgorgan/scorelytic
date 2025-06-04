@@ -3,8 +3,12 @@ const Sentry = require('@sentry/node');
 import { env } from '@/config/env';
 import app from '@/app';
 import logger from '@/logger';
+import express from 'express';
+import path from 'path';
 
 const PORT = env.PORT;
+
+app.use('/demos', express.static(path.join(__dirname, '../demos')));
 
 app.listen(PORT, () => {
   logger.info(`Server running on port ${PORT}`);
