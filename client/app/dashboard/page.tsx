@@ -415,8 +415,6 @@ export default function Dashboard() {
     }
   };
 
-  if (!results.length) return <div>Loading...</div>;
-
   return (
     <Tooltip.Provider>
       <div className="min-h-screen bg-neutral-50 p-8">

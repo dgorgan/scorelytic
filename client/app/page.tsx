@@ -1,3 +1,4 @@
+'use client';
 import Head from 'next/head';
 import { useTransition, useState } from 'react';
 import { useRouter } from 'next/navigation';
