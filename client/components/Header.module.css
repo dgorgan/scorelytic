@@ -1,0 +1,24 @@
+.navbar {
+  @apply flex items-center justify-between bg-white shadow px-8 py-4;
+}
+.navbarLeft {
+  @apply flex items-center gap-4;
+}
+.navbarLogo {
+  height: 46px;
+  width: auto;
+  vertical-align: middle;
+}
+.logoLink {
+  display: flex;
+  align-items: center;
+}
+.navbarRight {
+  @apply flex items-center gap-6;
+}
+.navbarLink {
+  @apply text-gray-700 no-underline ml-6 font-medium transition-colors duration-200;
+}
+.navbarLink:hover {
+  @apply text-blue-600;
+}

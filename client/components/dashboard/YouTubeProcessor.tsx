@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import {
   buildYouTubeMetadataUrl,
   buildYouTubeProcessUrl,
@@ -357,25 +358,31 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        <img
+                        <Image
                           src={
                             meta.thumbnails?.maxres?.url ||
                             meta.thumbnails?.high?.url ||
                             meta.thumbnails?.default?.url
                           }
                           alt={meta.title}
-                          className="w-full h-96 object-cover rounded-t-lg border-b hover:opacity-90 transition"
+                          width={1920} // example width for 16:9 aspect ratio
+                          height={1080} // example height for 16:9 aspect ratio (h-96 ~ 384px, but use aspect ratio here)
+                          className="rounded-t-lg border-b hover:opacity-90 transition"
+                          style={{ objectFit: 'cover', width: '100%', height: '384px' }} // h-96 ≈ 384px
                         />
                       </a>
                     ) : (
-                      <img
+                      <Image
                         src={
                           meta.thumbnails?.maxres?.url ||
                           meta.thumbnails?.high?.url ||
                           meta.thumbnails?.default?.url
                         }
                         alt={meta.title}
-                        className="w-full h-64 object-cover rounded-t-lg border-b"
+                        width={1920}
+                        height={1080} // h-64 ≈ 256px, but keep aspect ratio consistent, adjust style below
+                        className="rounded-t-lg border-b"
+                        style={{ objectFit: 'cover', width: '100%', height: '256px' }} // h-64 ≈ 256px
                       />
                     )}
                     <div className="p-6">
@@ -479,25 +486,31 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      <img
+                      <Image
                         src={
                           meta.thumbnails?.maxres?.url ||
                           meta.thumbnails?.high?.url ||
                           meta.thumbnails?.default?.url
                         }
                         alt={meta.title}
-                        className="w-full h-96 object-cover rounded-t-lg border-b hover:opacity-90 transition"
+                        width={1920} // 16:9 aspect ratio width
+                        height={1080} // 16:9 aspect ratio height
+                        className="rounded-t-lg border-b hover:opacity-90 transition"
+                        style={{ objectFit: 'cover', width: '100%', height: '384px' }} // h-96 ~ 384px
                       />
                     </a>
                   ) : (
-                    <img
+                    <Image
                       src={
                         meta.thumbnails?.maxres?.url ||
                         meta.thumbnails?.high?.url ||
                         meta.thumbnails?.default?.url
                       }
                       alt={meta.title}
-                      className="w-full h-64 object-cover rounded-t-lg border-b"
+                      width={1920}
+                      height={1080}
+                      className="rounded-t-lg border-b"
+                      style={{ objectFit: 'cover', width: '100%', height: '256px' }} // h-64 ~ 256px
                     />
                   )}
                   <div className="p-6">
