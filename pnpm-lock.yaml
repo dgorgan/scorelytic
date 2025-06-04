@@ -297,14 +297,11 @@ importers:
         specifier: workspace:*
         version: link:../shared
       '@sentry/nextjs':
-        specifier: ^9.23.0
+        specifier: ^9.24.0
         version: 9.24.0(@opentelemetry/context-async-hooks@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/core@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/instrumentation@0.57.2(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(next@15.3.3(@babel/core@7.27.4)(@opentelemetry/api@1.9.0)(@playwright/test@1.52.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(sass@1.89.1))(react@19.1.0)(webpack@5.99.9)
       '@supabase/supabase-js':
         specifier: ^2.49.8
         version: 2.49.8
-      '@types/papaparse':
-        specifier: ^5.3.16
-        version: 5.3.16
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.21(postcss@8.5.4)
@@ -351,6 +348,9 @@ importers:
       '@types/node':
         specifier: ^20
         version: 20.17.57
+      '@types/papaparse':
+        specifier: ^5.3.16
+        version: 5.3.16
       '@types/react':
         specifier: ^19.1.6
         version: 19.1.6
@@ -396,9 +396,6 @@ importers:
       '@sentry/node':
         specifier: ^8.55.0
         version: 8.55.0
-      '@types/axios':
-        specifier: ^0.14.4
-        version: 0.14.4
       axios:
         specifier: ^1.9.0
         version: 1.9.0
@@ -417,10 +414,16 @@ importers:
       module-alias:
         specifier: ^2.2.3
         version: 2.2.3
+      pino:
+        specifier: ^9.7.0
+        version: 9.7.0
       yt-dlp-wrap:
         specifier: ^2.3.12
         version: 2.3.12
     devDependencies:
+      '@types/axios':
+        specifier: ^0.14.4
+        version: 0.14.4
       '@types/cors':
         specifier: ^2.8.17
         version: 2.8.18
@@ -442,9 +445,6 @@ importers:
       nodemon:
         specifier: ^3.1.7
         version: 3.1.10
-      pino:
-        specifier: ^9.7.0
-        version: 9.7.0
       pino-pretty:
         specifier: ^13.0.0
         version: 13.0.0
