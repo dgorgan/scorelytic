@@ -635,7 +635,7 @@ export const analyzeTextWithBiasAdjustmentFull = async (
     reviewSummary: sentiment.reviewSummary || '',
   };
   // Bias adjustment phase
-  const biasAdjustmentRaw = await analyzeBiasImpact(
+  let biasAdjustmentRaw = await analyzeBiasImpact(
     {
       originalScore: biasDetection.originalScore,
       biasIndicators: sentiment.biasIndicators,
@@ -646,6 +646,38 @@ export const analyzeTextWithBiasAdjustmentFull = async (
     },
     preferredModel,
   );
+  // Fallback: If LLM did not adjust score or rationale is missing, synthesize adjustment
+  if (
+    biasAdjustmentRaw.biasAdjustedScore === biasDetection.originalScore ||
+    !biasAdjustmentRaw.adjustmentRationale ||
+    biasAdjustmentRaw.adjustmentRationale.trim() === ''
+  ) {
+    // Synthesize rationale and adjustment
+    const biasObjs = mapBiasLabelsToObjects(
+      sentiment.biasIndicators,
+      sentiment.reviewSummary || '',
+      sentiment.pros,
+      sentiment.cons,
+    );
+    const totalScoreAdjustment = biasObjs.reduce((sum, b) => sum + b.scoreInfluence, 0);
+    const biasAdjustedScore = Math.max(
+      0,
+      Math.min(10, Math.round((biasDetection.originalScore + totalScoreAdjustment) * 10) / 10),
+    );
+    const rationale =
+      totalScoreAdjustment === 0
+        ? 'No bias adjustment was made because no significant biases were detected.'
+        : `Score adjusted by ${totalScoreAdjustment > 0 ? '+' : ''}${totalScoreAdjustment} based on detected biases: ${biasObjs
+            .map((b) => b.biasName)
+            .join(', ')}.`;
+    biasAdjustmentRaw = {
+      ...biasAdjustmentRaw,
+      biasAdjustedScore,
+      totalScoreAdjustment,
+      adjustmentRationale: rationale,
+    };
+    logger.warn('[BiasAdjustment] Fallback adjustment/rationale used for review.');
+  }
   const biasAdjustment: BiasAdjustmentPhaseOutput = {
     biasAdjustedScore: biasAdjustmentRaw.biasAdjustedScore,
     totalScoreAdjustment: biasAdjustmentRaw.totalScoreAdjustment,

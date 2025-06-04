@@ -27,6 +27,19 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
   const [progress, setProgress] = useState(0);
   const [isSuccess, setIsSuccess] = useState(false);
   const stepsSet = useRef<Set<string>>(new Set());
+  const resultRef = useRef<HTMLDivElement>(null);
+
+  const fullResult = { ...result, ...(result?.data || {}) };
+  const isGeneralAnalysis = !!fullResult.summary && Array.isArray(fullResult.keyNotes);
+  const transcript = fullResult.transcript;
+  const transcriptError =
+    typeof fullResult.transcriptError === 'string' ? fullResult.transcriptError.trim() : '';
+  const isTranscriptOk = typeof transcript === 'string' && transcript.trim().length > 0;
+  const hasTranscriptError = !!transcriptError && !isTranscriptOk;
+  const sentiment = fullResult.sentiment;
+  const isTrulySuccess = isGeneralAnalysis
+    ? isTranscriptOk && !transcriptError
+    : !!sentiment && isTranscriptOk && !error;
 
   useEffect(() => {
     if (progressLogs.length > 0) {
@@ -38,13 +51,17 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
 
   useEffect(() => {
     const target = steps.length > 0 ? ((currentStep + 1) / steps.length) * 100 : 0;
+    if (isTrulySuccess && progress < 100) {
+      setProgress(100);
+      return;
+    }
     if (progress < target) {
       const interval = setInterval(() => {
         setProgress((p) => Math.min(target, p + 1));
       }, 10);
       return () => clearInterval(interval);
     }
-  }, [currentStep, progress, steps.length]);
+  }, [currentStep, progress, steps.length, isTrulySuccess]);
 
   useEffect(() => {
     if (result) setIsSuccess(true);
@@ -59,6 +76,18 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
     setResult(null);
     setError(null);
   }, [videoId]);
+
+  useEffect(() => {
+    if (result && resultRef.current) {
+      resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [result]);
+
+  useEffect(() => {
+    if (isTrulySuccess && steps.length > 0 && steps[steps.length - 1] !== 'Success!') {
+      setSteps((prev) => [...prev, 'Success!']);
+    }
+  }, [isTrulySuccess, steps]);
 
   const resetProgress = () => {
     setProgressLogs([]);
@@ -80,11 +109,15 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
     setProcessing(true);
     resetProgress();
     if (useStreaming) {
+      // Always fetch metadata in parallel
+      const metaPromise = fetch(buildYouTubeMetadataUrl(extractedId))
+        .then((r) => r.json())
+        .catch(() => null);
       // SSE mode
       const url = buildYouTubeProcessStreamUrl(extractedId, generalAnalysis);
       const es = new window.EventSource(url);
       eventSourceRef.current = es;
-      es.onmessage = (event) => {
+      es.onmessage = async (event) => {
         // Default event
         const msg = event.data;
         setProgressLogs((logs) => [...logs, msg]);
@@ -103,11 +136,16 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
         }
         setCurrentStep(Array.from(stepsSet.current).indexOf(message));
       });
-      es.addEventListener('result', (event) => {
-        setResult(JSON.parse(event.data));
+      es.addEventListener('result', async (event) => {
+        const resultData = JSON.parse(event.data);
+        const metaData = await metaPromise;
+        const merged = { ...resultData, metadata: metaData };
+        setResult(merged);
+        onProcessComplete?.(merged);
         es.close();
         setProcessing(false);
         setIsSuccess(true);
+        setProgress(100);
       });
       es.addEventListener('error', (event) => {
         setError('Streaming error');
@@ -116,21 +154,23 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
         setIsSuccess(false);
       });
     } else {
-      // Regular POST mode
+      // Regular POST mode with parallel metadata fetch
       try {
-        const response = await fetch(buildYouTubeProcessUrl(), {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ videoId: extractedId, generalAnalysis }),
-        });
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.error || ERROR_MESSAGES.YOUTUBE.PROCESS_FAILED);
-        }
-        setResult(data);
-        onProcessComplete?.(data);
+        const metaPromise = fetch(buildYouTubeMetadataUrl(extractedId))
+          .then((r) => r.json())
+          .catch(() => null);
+        const [processRes, metaData] = await Promise.all([
+          fetch(buildYouTubeProcessUrl(), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ videoId: extractedId, generalAnalysis }),
+          }).then((r) => r.json()),
+          metaPromise,
+        ]);
+        // Always flatten: if processRes.data exists, use it, else use processRes
+        const merged = { ...(processRes.data || processRes), metadata: metaData };
+        setResult(merged);
+        onProcessComplete?.(merged);
         setIsSuccess(true);
       } catch (err: any) {
         setError(err.message || ERROR_MESSAGES.YOUTUBE.PROCESS_FAILED);
@@ -237,7 +277,7 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
           <div className="p-4 bg-gray-50 border border-gray-200 rounded-md">
             <h4 className="font-medium text-gray-900 mb-2">Result:</h4>
             <pre className="text-xs text-gray-700 overflow-auto max-h-96">
-              {JSON.stringify(result, null, 2)}
+              {JSON.stringify(fullResult, null, 2)}
             </pre>
           </div>
         )}
@@ -272,20 +312,433 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
                 </li>
               ))}
             </ul>
-            {isSuccess && !error && (
+            {isTrulySuccess && !error && (
               <div className="flex items-center text-green-600 mt-2">
                 <CheckCircleIcon className="w-5 h-5 mr-2" />
                 <span className="font-semibold">Success!</span>
               </div>
             )}
-            {error && (
+            {(error || hasTranscriptError) && (
               <div className="flex items-center text-red-600 mt-2">
                 <XCircleIcon className="w-5 h-5 mr-2" />
-                <span className="font-semibold">{error}</span>
+                <span className="font-semibold">Failed!</span>
               </div>
             )}
           </div>
         )}
+
+        {(() => {
+          const meta = fullResult.metadata || fullResult.data?.metadata;
+          const isGeneralAnalysis = !!fullResult.summary && Array.isArray(fullResult.keyNotes);
+          const sentiment = fullResult.sentiment;
+          const biasAdjustment = fullResult.biasAdjustment || fullResult.sentiment?.biasAdjustment;
+          const biasDetection = fullResult.biasDetection || fullResult.sentiment?.biasDetection;
+          const context = fullResult.culturalContext || fullResult.sentiment?.culturalContext;
+          const alsoRecommends = sentiment?.alsoRecommends || [];
+          const biasIndicators = sentiment?.biasIndicators || [];
+          const detectedBiases = biasDetection?.biasesDetected || [];
+          const rationale = biasAdjustment?.rationale || biasAdjustment?.adjustmentRationale;
+          const biasAdjustedScore = biasAdjustment?.biasAdjustedScore;
+          const originalScore = biasDetection?.originalScore ?? sentiment?.score;
+          const [showDetails, setShowDetails] = useState(false);
+          // If general analysis is checked and data is present, show ONLY the general analysis block
+          if (generalAnalysis && isGeneralAnalysis) {
+            return (
+              <div className="mt-8">
+                {/* Metadata card (always show) */}
+                {meta && (
+                  <div
+                    ref={resultRef}
+                    className="bg-white rounded-lg shadow border border-gray-200 mb-6"
+                  >
+                    {meta.channelId ? (
+                      <a
+                        href={`https://www.youtube.com/watch?v=${extractVideoId(videoId.trim())}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <img
+                          src={
+                            meta.thumbnails?.maxres?.url ||
+                            meta.thumbnails?.high?.url ||
+                            meta.thumbnails?.default?.url
+                          }
+                          alt={meta.title}
+                          className="w-full h-96 object-cover rounded-t-lg border-b hover:opacity-90 transition"
+                        />
+                      </a>
+                    ) : (
+                      <img
+                        src={
+                          meta.thumbnails?.maxres?.url ||
+                          meta.thumbnails?.high?.url ||
+                          meta.thumbnails?.default?.url
+                        }
+                        alt={meta.title}
+                        className="w-full h-64 object-cover rounded-t-lg border-b"
+                      />
+                    )}
+                    <div className="p-6">
+                      <div className="text-2xl font-bold text-gray-900 mb-2">{meta.title}</div>
+                      <div className="flex items-center gap-3 mb-2">
+                        {meta.channelId ? (
+                          <a
+                            href={`https://www.youtube.com/watch?v=${extractVideoId(videoId.trim())}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-base text-gray-700 font-semibold hover:underline"
+                          >
+                            {meta.channelTitle}
+                          </a>
+                        ) : (
+                          <a
+                            href={`https://www.youtube.com/watch?v=${extractVideoId(videoId.trim())}`}
+                            className="text-base text-gray-700 font-semibold"
+                          >
+                            {meta.channelTitle}
+                          </a>
+                        )}
+                        {meta.channelId && (
+                          <a
+                            href={`https://www.youtube.com/channel/${meta.channelId}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <button className="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow hover:bg-red-700 transition">
+                              Subscribe
+                            </button>
+                          </a>
+                        )}
+                      </div>
+                      {meta.publishedAt && (
+                        <div className="text-xs text-gray-500 mb-4">
+                          {new Date(meta.publishedAt).toLocaleDateString(undefined, {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                          })}
+                        </div>
+                      )}
+                      {meta.description && (
+                        <div
+                          className="text-sm text-gray-800 whitespace-pre-line mb-4"
+                          style={{ lineHeight: '1.6' }}
+                        >
+                          {meta.description}
+                        </div>
+                      )}
+                      {meta.tags && meta.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {meta.tags.map((tag: string) => (
+                            <span
+                              key={tag}
+                              className="text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full text-xs font-medium"
+                            >
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {/* General analysis summary card */}
+                <div className="bg-white rounded-lg shadow border border-gray-200 p-6 mb-6">
+                  <div className="text-xl font-bold text-gray-900 mb-2">Video Summary</div>
+                  <div className="text-base text-gray-800 mb-4">{fullResult.summary}</div>
+                  <div className="text-lg font-semibold text-blue-700 mb-2">Key Notes</div>
+                  <ul className="list-disc list-inside text-sm text-gray-800 mb-4">
+                    {fullResult.keyNotes.map((note: string, i: number) => (
+                      <li key={i}>{note}</li>
+                    ))}
+                  </ul>
+                  <details className="mt-2">
+                    <summary className="cursor-pointer text-xs text-gray-500 hover:underline">
+                      Show full transcript
+                    </summary>
+                    <pre className="text-xs text-gray-700 bg-gray-50 rounded p-2 mt-2 max-h-96 overflow-auto whitespace-pre-wrap">
+                      {fullResult.transcript}
+                    </pre>
+                  </details>
+                </div>
+              </div>
+            );
+          }
+          // Otherwise, show the original review/bias block (full process details)
+          if (meta && sentiment) {
+            return (
+              <div
+                ref={resultRef}
+                className="mt-8 bg-white rounded-lg shadow border border-gray-200"
+              >
+                {/* Metadata card (same as general analysis) */}
+                <div className="bg-white rounded-t-lg border-b">
+                  {meta.channelId ? (
+                    <a
+                      href={`https://www.youtube.com/watch?v=${extractVideoId(videoId.trim())}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <img
+                        src={
+                          meta.thumbnails?.maxres?.url ||
+                          meta.thumbnails?.high?.url ||
+                          meta.thumbnails?.default?.url
+                        }
+                        alt={meta.title}
+                        className="w-full h-96 object-cover rounded-t-lg border-b hover:opacity-90 transition"
+                      />
+                    </a>
+                  ) : (
+                    <img
+                      src={
+                        meta.thumbnails?.maxres?.url ||
+                        meta.thumbnails?.high?.url ||
+                        meta.thumbnails?.default?.url
+                      }
+                      alt={meta.title}
+                      className="w-full h-64 object-cover rounded-t-lg border-b"
+                    />
+                  )}
+                  <div className="p-6">
+                    <div className="text-2xl font-bold text-gray-900 mb-2">{meta.title}</div>
+                    <div className="flex items-center gap-3 mb-2">
+                      {meta.channelId ? (
+                        <a
+                          href={`https://www.youtube.com/watch?v=${extractVideoId(videoId.trim())}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-base text-gray-700 font-semibold hover:underline"
+                        >
+                          {meta.channelTitle}
+                        </a>
+                      ) : (
+                        <a
+                          href={`https://www.youtube.com/watch?v=${extractVideoId(videoId.trim())}`}
+                          className="text-base text-gray-700 font-semibold"
+                        >
+                          {meta.channelTitle}
+                        </a>
+                      )}
+                      {meta.channelId && (
+                        <a
+                          href={`https://www.youtube.com/channel/${meta.channelId}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <button className="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow hover:bg-red-700 transition">
+                            Subscribe
+                          </button>
+                        </a>
+                      )}
+                    </div>
+                    {meta.publishedAt && (
+                      <div className="text-xs text-gray-500 mb-4">
+                        {new Date(meta.publishedAt).toLocaleDateString(undefined, {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </div>
+                    )}
+                    {meta.description && (
+                      <div
+                        className="text-sm text-gray-800 whitespace-pre-line mb-4"
+                        style={{ lineHeight: '1.6' }}
+                      >
+                        {meta.description}
+                      </div>
+                    )}
+                    {meta.tags && meta.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {meta.tags.map((tag: string) => (
+                          <span
+                            key={tag}
+                            className="text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full text-xs font-medium"
+                          >
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {/* Review summary, verdict, score, pros, cons */}
+                <div className="px-6 pb-6 mt-2">
+                  <div className="text-lg font-semibold text-green-700 mb-2">Review Summary</div>
+                  <div className="text-base text-gray-900 mb-2">
+                    {sentiment.reviewSummary || sentiment.summary}
+                  </div>
+                  <div className="flex flex-wrap gap-4 mb-2">
+                    <div>
+                      <div className="text-xs text-gray-500">Verdict</div>
+                      <div className="text-sm font-bold text-gray-800">{sentiment.verdict}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500">Score</div>
+                      <div className="text-sm font-bold text-gray-800">
+                        {sentiment.sentimentScore ?? sentiment.score}
+                      </div>
+                    </div>
+                  </div>
+                  {sentiment.pros && sentiment.pros.length > 0 && (
+                    <div className="mb-2">
+                      <div className="text-xs text-green-700 font-semibold mb-1">Pros</div>
+                      <ul className="list-disc list-inside text-sm text-gray-800">
+                        {sentiment.pros.map((pro: string) => (
+                          <li key={pro}>{pro}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {sentiment.cons && sentiment.cons.length > 0 && (
+                    <div className="mb-2">
+                      <div className="text-xs text-red-700 font-semibold mb-1">Cons</div>
+                      <ul className="list-disc list-inside text-sm text-gray-800">
+                        {sentiment.cons.map((con: string) => (
+                          <li key={con}>{con}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+                {/* --- Bias-Adjusted Score Card --- */}
+                <div className="flex flex-col md:flex-row items-start md:items-center gap-4 px-6 pt-4 pb-2 border-b">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500">Original Score</span>
+                    <span className="text-lg font-bold text-gray-800">{originalScore ?? '—'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500">Bias-Adjusted</span>
+                    <span
+                      className={`text-lg font-bold ${biasAdjustedScore !== originalScore ? 'text-blue-700' : 'text-gray-800'}`}
+                    >
+                      {biasAdjustedScore ?? '—'}
+                    </span>
+                    {biasAdjustedScore !== originalScore && (
+                      <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-semibold">
+                        Adjusted
+                      </span>
+                    )}
+                  </div>
+                </div>
+                {rationale && (
+                  <div className="px-6 pb-2 pt-2 text-sm text-gray-700 italic border-b">
+                    {rationale}
+                  </div>
+                )}
+                {/* --- Expandable Advanced Details --- */}
+                <div className="px-6 py-4">
+                  <button
+                    className="text-xs text-blue-700 font-semibold underline mb-2 focus:outline-none"
+                    onClick={() => setShowDetails((v) => !v)}
+                  >
+                    {showDetails ? 'Hide advanced details' : 'Show advanced details'}
+                  </button>
+                  {showDetails && (
+                    <div className="space-y-4 mt-2">
+                      {alsoRecommends.length > 0 && (
+                        <div>
+                          <div className="text-xs text-gray-500 font-semibold mb-1">
+                            Also Recommends
+                          </div>
+                          <ul className="flex flex-wrap gap-2">
+                            {alsoRecommends.map((rec: string) => (
+                              <li
+                                key={rec}
+                                className="bg-gray-100 px-2 py-0.5 rounded text-xs text-gray-800"
+                              >
+                                {rec}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {biasIndicators.length > 0 && (
+                        <div>
+                          <div className="text-xs text-gray-500 font-semibold mb-1">
+                            Bias Indicators
+                          </div>
+                          <ul className="flex flex-wrap gap-2">
+                            {biasIndicators.map((b: string) => (
+                              <li
+                                key={b}
+                                className="bg-yellow-100 px-2 py-0.5 rounded text-xs text-yellow-800"
+                              >
+                                {b}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {detectedBiases.length > 0 && (
+                        <div>
+                          <div className="text-xs text-gray-500 font-semibold mb-1">
+                            Detected Biases
+                          </div>
+                          <ul className="space-y-1">
+                            {detectedBiases.map((b: any, i: number) => (
+                              <li key={b.biasName + i} className="border rounded p-2 bg-yellow-50">
+                                <div className="font-semibold text-yellow-900 text-sm">
+                                  {b.biasName}
+                                </div>
+                                <div className="text-xs text-gray-700">
+                                  Severity: <span className="font-semibold">{b.severity}</span>
+                                </div>
+                                <div className="text-xs text-gray-700">
+                                  Impact: {b.impactOnExperience}
+                                </div>
+                                <div className="text-xs text-gray-700">
+                                  Score Influence:{' '}
+                                  <span className="font-semibold">{b.scoreInfluence}</span>
+                                </div>
+                                <div className="text-xs text-gray-700">{b.explanation}</div>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {context && (
+                        <div>
+                          <div className="text-xs text-gray-500 font-semibold mb-1">
+                            Cultural Context
+                          </div>
+                          <div className="text-xs text-gray-700 mb-1">{context.justification}</div>
+                          <div className="flex flex-wrap gap-2 mb-1">
+                            {context.ideologicalThemes?.map((theme: string) => (
+                              <span
+                                key={theme}
+                                className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-xs"
+                              >
+                                {theme}
+                              </span>
+                            ))}
+                          </div>
+                          <div className="text-xs text-gray-700">Audience Reactions:</div>
+                          <ul className="ml-4 text-xs text-gray-700">
+                            <li>
+                              <span className="font-semibold">Aligned:</span>{' '}
+                              {context.audienceReactions?.aligned}
+                            </li>
+                            <li>
+                              <span className="font-semibold">Neutral:</span>{' '}
+                              {context.audienceReactions?.neutral}
+                            </li>
+                            <li>
+                              <span className="font-semibold">Opposed:</span>{' '}
+                              {context.audienceReactions?.opposed}
+                            </li>
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          }
+          return null;
+        })()}
       </div>
     </div>
   );

@@ -117,6 +117,16 @@ interface ErrorEvent {
 
 type ProgressEmitter = (msg: string) => void;
 
+interface YoutubeMeta {
+  title?: string;
+  channelTitle?: string;
+  channelId?: string;
+  publishedAt?: string;
+  description?: string;
+  thumbnails?: any;
+  tags?: string[];
+}
+
 export const youtubeController = {
   processVideo: async (
     req: Request,
@@ -144,35 +154,63 @@ export const youtubeController = {
       if (dbError) {
         throw new Error(`Database lookup failed: ${dbError.message}`);
       }
-      if (existingReview && existingReview.sentiment) {
-        const flatSentiment = flattenSentiment(existingReview.sentiment);
-        const normalizedSentiment = normalizeSentiment(flatSentiment);
-        return res.json({
-          success: true,
-          data: {
-            reviewId: existingReview.video_url,
-            sentiment: normalizedSentiment,
-            metadata: {
-              gameTitle: existingReview.game_title,
-              creatorName: existingReview.creator_name,
-              publishedAt: existingReview.published_at,
-              videoTitle: existingReview.video_title,
-              channelTitle: existingReview.channel_title || existingReview.creator_name,
-              channelUrl: existingReview.channel_url,
-              thumbnails: existingReview.thumbnails,
-              tags: existingReview.tags,
-              transcript: existingReview.transcript,
-            },
-            transcript: existingReview.transcript,
-            debug: existingReview.transcript_debug || [],
-          },
-        });
-      }
+      // if (existingReview && existingReview.sentiment) {
+      //   // Helper to check if metadata is missing or malformed
+      //   const isMalformed = (meta: any) => {
+      //     return (
+      //       !meta ||
+      //       !meta.video_title ||
+      //       !meta.channel_title ||
+      //       !meta.thumbnails ||
+      //       !meta.thumbnails.default
+      //     );
+      //   };
+      //   let fixedMetadata = {
+      //     gameTitle: existingReview.game_title,
+      //     creatorName: existingReview.creator_name,
+      //     publishedAt: existingReview.published_at,
+      //     videoTitle: existingReview.video_title,
+      //     channelTitle: existingReview.channel_title || existingReview.creator_name,
+      //     channelUrl: existingReview.channel_url,
+      //     thumbnails: existingReview.thumbnails,
+      //     tags: existingReview.tags,
+      //     transcript: existingReview.transcript,
+      //   };
+      //   if (isMalformed(fixedMetadata)) {
+      //     try {
+      //       const fresh = await fetchYouTubeVideoMetadata(videoId);
+      //       fixedMetadata = {
+      //         ...fixedMetadata,
+      //         videoTitle: fresh.title,
+      //         channelTitle: fresh.channelTitle,
+      //         channelUrl: `https://www.youtube.com/channel/${fresh.channelId}`,
+      //         thumbnails: fresh.thumbnails,
+      //         tags: fresh.tags,
+      //         publishedAt: fresh.publishedAt,
+      //       };
+      //     } catch (e) {
+      //       // If YouTube fetch fails, just return what we have
+      //     }
+      //   }
+      //   const flatSentiment = flattenSentiment(existingReview.sentiment);
+      //   const normalizedSentiment = normalizeSentiment(flatSentiment);
+      //   return res.json({
+      //     success: true,
+      //     data: {
+      //       reviewId: existingReview.video_url,
+      //       sentiment: normalizedSentiment,
+      //       metadata: fixedMetadata,
+      //       transcript: existingReview.transcript,
+      //       debug: existingReview.transcript_debug || [],
+      //     },
+      //   });
+      // }
+      // TODO: Re-enable cache when DB metadata is always correct
       const review = await processYouTubeVideo(videoId, language);
       let sentiment: SentimentAnalysisResponse['sentiment'];
       let debugArr = review.transcriptDebug || [];
       // Use YouTube metadata for all fields if available
-      const meta = review._youtubeMeta || {};
+      const meta = (review._youtubeMeta || {}) as YoutubeMeta;
       const metadataObj = {
         title: meta.title || '',
         channelTitle: meta.channelTitle || '',
@@ -239,12 +277,14 @@ export const youtubeController = {
         const reviewToUpsert = { ...reviewForDatabase, sentiment } as Review;
         await upsertReviewToSupabase(reviewToUpsert);
       }
+      const freshMeta = await fetchYouTubeVideoMetadata(videoId);
       return res.json({
         success: true,
         data: {
           reviewId: review.videoUrl,
           sentiment,
-          metadata: metadataObj,
+          // metadata: metadataObj,
+          metadata: freshMeta,
           transcript: review.transcript,
           transcriptMethod: review.transcriptMethod,
           transcriptDebug: review.transcriptDebug,
@@ -343,7 +383,12 @@ export const youtubeController = {
         emit('No transcript found.');
         sentiment = normalizeSentiment(flattenSentiment({}));
       }
-      sendEvent('result', { success: true, sentiment, debug: debugLog });
+      sendEvent('result', {
+        success: true,
+        sentiment,
+        transcript: review.transcript,
+        debug: debugLog,
+      });
       res.end();
     } catch (error: unknown) {
       const errMsg = error instanceof Error ? error.message : 'Failed to process YouTube video';
@@ -369,10 +414,15 @@ async function processYouTubeVideoWithProgress(
   const transcriptResult = await getHybridTranscript(videoId, {
     allowAudioFallback: true,
     maxCostUSD: 0.5,
-    maxDurationMinutes: 20,
+    maxDurationMinutes: 60,
     language,
     emit,
   });
+  console.log(
+    'DEBUG: processYouTubeVideo transcript:',
+    typeof transcriptResult.transcript,
+    transcriptResult.transcript && transcriptResult.transcript.length,
+  );
   emit('Normalizing review...');
   const review = await normalizeYoutubeToReview({
     videoId,
@@ -384,6 +434,16 @@ async function processYouTubeVideoWithProgress(
     channelUrl: `https://www.youtube.com/channel/${metadata.channelId}`,
     publishedAt: metadata.publishedAt,
   });
+  console.log(
+    'DEBUG: processYouTubeVideo transcript:',
+    typeof transcriptResult.transcript,
+    transcriptResult.transcript && transcriptResult.transcript.length,
+  );
+  console.log(
+    'DEBUG: processYouTubeVideo returned transcript:',
+    typeof review.transcript,
+    review.transcript && review.transcript.length,
+  );
   return {
     ...review,
     title: metadata.title,

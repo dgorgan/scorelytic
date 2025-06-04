@@ -4,6 +4,8 @@ import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
 import { env } from '@/config/env';
+import { execSync } from 'child_process';
+import ffmpeg from 'fluent-ffmpeg';
 
 const unlinkAsync = promisify(fs.unlink);
 
@@ -68,6 +70,40 @@ const defaultHelpers: TranscriptionHelpers = {
   getOpenAI: () => new OpenAI({ apiKey: env.OPENAI_API_KEY }),
 };
 
+// Helper: Get audio duration (seconds) using fluent-ffmpeg
+const getAudioDuration = (audioPath: string): Promise<number> =>
+  new Promise((resolve, reject) => {
+    ffmpeg.ffprobe(audioPath, (err: any, metadata: any) => {
+      if (err) return reject(err);
+      resolve(metadata.format.duration);
+    });
+  });
+
+// Helper: Split audio file into ≤25MB chunks using ffmpeg (async)
+const splitAudioFile = async (
+  audioPath: string,
+  maxChunkBytes = 25 * 1024 * 1024,
+): Promise<string[]> => {
+  const fs = require('fs');
+  const path = require('path');
+  const stat = fs.statSync(audioPath);
+  if (stat.size <= maxChunkBytes) return [audioPath];
+  // Get duration in seconds (async)
+  const duration = await getAudioDuration(audioPath);
+  // Estimate chunk duration
+  const numChunks = Math.ceil(stat.size / maxChunkBytes);
+  const chunkDuration = Math.ceil(duration / numChunks);
+  const chunkPaths: string[] = [];
+  for (let i = 0; i < numChunks; i++) {
+    const chunkPath = audioPath.replace(/\.mp3$/, `.chunk${i}.mp3`);
+    execSync(
+      `ffmpeg -y -i "${audioPath}" -ss ${i * chunkDuration} -t ${chunkDuration} -c copy "${chunkPath}"`,
+    );
+    chunkPaths.push(chunkPath);
+  }
+  return chunkPaths;
+};
+
 /**
  * Extracts audio from YouTube video and transcribes it using OpenAI Whisper
  */
@@ -99,17 +135,28 @@ export const transcribeYouTubeAudio = async (
     });
     if (!helpers.fileExists(audioPath)) {
       throw new Error(
-        `Audio extraction failed - file not created. Video may be too long (>${maxDurationMinutes}min) or unavailable.`,
+        `Audio extraction failed - file not created. Video may be too long (> ${maxDurationMinutes}min) or unavailable.`,
       );
     }
-    // Transcribe
-    const transcription = await helpers.transcribeAudioWithOpenAI(
-      audioPath,
-      language,
-      forceEnglish,
-    );
-    await helpers.unlinkFile(audioPath);
-    return transcription;
+    // --- Chunking logic ---
+    const fs = require('fs');
+    const stat = fs.statSync(audioPath);
+    let transcript = '';
+    if (stat.size > 25 * 1024 * 1024) {
+      // Split and transcribe each chunk
+      const chunkPaths = await splitAudioFile(audioPath);
+      for (const chunkPath of chunkPaths) {
+        transcript += await helpers.transcribeAudioWithOpenAI(chunkPath, language, forceEnglish);
+        await helpers.unlinkFile(chunkPath);
+      }
+      await helpers.unlinkFile(audioPath);
+      return transcript;
+    } else {
+      // Transcribe whole file
+      transcript = await helpers.transcribeAudioWithOpenAI(audioPath, language, forceEnglish);
+      await helpers.unlinkFile(audioPath);
+      return transcript;
+    }
   } catch (error: any) {
     try {
       if (helpers.fileExists(audioPath)) {

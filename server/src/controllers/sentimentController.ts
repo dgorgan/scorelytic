@@ -26,16 +26,19 @@ export const sentimentController = {
       // Analyze sentiment
       const sentiment = await analyzeSentiment(text);
 
+      // Only include pros/cons if present and non-empty
+      const sentimentObj: any = {
+        score: sentiment.sentimentScore ?? 0,
+        summary: sentiment.summary ?? '',
+        verdict: sentiment.verdict ?? '',
+      };
+      if (sentiment.pros && sentiment.pros.length) sentimentObj.pros = sentiment.pros;
+      if (sentiment.cons && sentiment.cons.length) sentimentObj.cons = sentiment.cons;
+
       return res.json({
         success: true,
         data: {
-          sentiment: {
-            score: sentiment.sentimentScore ?? 0,
-            summary: sentiment.summary ?? '',
-            verdict: sentiment.verdict ?? '',
-            pros: sentiment.pros,
-            cons: sentiment.cons,
-          },
+          sentiment: sentimentObj,
         },
       });
     } catch (error: any) {
