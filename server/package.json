@@ -10,7 +10,7 @@
     "start": "node dist/server.js",
     "format": "turbo run format --filter=server...",
     "type-check": "tsc --noEmit",
-    "test": "jest --detectOpenHandles --forceExit --runInBand"
+    "test": "cross-env NODE_ENV=test jest --detectOpenHandles --forceExit --runInBand"
   },
   "keywords": [],
   "author": "",
