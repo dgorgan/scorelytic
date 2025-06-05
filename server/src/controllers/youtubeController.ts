@@ -137,161 +137,235 @@ export const youtubeController = {
         videoId,
         language = 'en',
         generalAnalysis = false,
+        demoMode = false,
       } = req.body as {
         videoId?: string;
         language?: string;
         generalAnalysis?: boolean;
+        demoMode?: boolean;
       };
       if (!videoId) {
         return res.status(400).json({ success: false, error: 'videoId is required' });
       }
       const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-      const { data: existingReview, error: dbError } = await supabase
-        .from('reviews')
-        .select('*, sentiment')
-        .eq('video_url', videoUrl)
-        .maybeSingle();
-      if (dbError) {
-        throw new Error(`Database lookup failed: ${dbError.message}`);
-      }
-      // if (existingReview && existingReview.sentiment) {
-      //   // Helper to check if metadata is missing or malformed
-      //   const isMalformed = (meta: any) => {
-      //     return (
-      //       !meta ||
-      //       !meta.video_title ||
-      //       !meta.channel_title ||
-      //       !meta.thumbnails ||
-      //       !meta.thumbnails.default
-      //     );
-      //   };
-      //   let fixedMetadata = {
-      //     gameTitle: existingReview.game_title,
-      //     creatorName: existingReview.creator_name,
-      //     publishedAt: existingReview.published_at,
-      //     videoTitle: existingReview.video_title,
-      //     channelTitle: existingReview.channel_title || existingReview.creator_name,
-      //     channelUrl: existingReview.channel_url,
-      //     thumbnails: existingReview.thumbnails,
-      //     tags: existingReview.tags,
-      //     transcript: existingReview.transcript,
-      //   };
-      //   if (isMalformed(fixedMetadata)) {
-      //     try {
-      //       const fresh = await fetchYouTubeVideoMetadata(videoId);
-      //       fixedMetadata = {
-      //         ...fixedMetadata,
-      //         videoTitle: fresh.title,
-      //         channelTitle: fresh.channelTitle,
-      //         channelUrl: `https://www.youtube.com/channel/${fresh.channelId}`,
-      //         thumbnails: fresh.thumbnails,
-      //         tags: fresh.tags,
-      //         publishedAt: fresh.publishedAt,
-      //       };
-      //     } catch (e) {
-      //       // If YouTube fetch fails, just return what we have
-      //     }
-      //   }
-      //   const flatSentiment = flattenSentiment(existingReview.sentiment);
-      //   const normalizedSentiment = normalizeSentiment(flatSentiment);
-      //   return res.json({
-      //     success: true,
-      //     data: {
-      //       reviewId: existingReview.video_url,
-      //       sentiment: normalizedSentiment,
-      //       metadata: fixedMetadata,
-      //       transcript: existingReview.transcript,
-      //       debug: existingReview.transcript_debug || [],
-      //     },
-      //   });
-      // }
-      // TODO: Re-enable cache when DB metadata is always correct
-      const review = await processYouTubeVideo(videoId, language);
-      let sentiment: SentimentAnalysisResponse['sentiment'];
-      let debugArr = review.transcriptDebug || [];
-      // Use YouTube metadata for all fields if available
-      const meta = (review._youtubeMeta || {}) as YoutubeMeta;
-      const metadataObj = {
-        title: meta.title || '',
-        channelTitle: meta.channelTitle || '',
-        channelId: meta.channelId || '',
-        publishedAt: meta.publishedAt || '',
-        description: meta.description || '',
-        thumbnails: meta.thumbnails || {},
-        tags: meta.tags || [],
-        channelUrl: meta.channelId ? `https://www.youtube.com/channel/${meta.channelId}` : '',
-        transcript: review.transcript,
-      };
-      if (review.transcript && review.transcript.trim().length > 0) {
-        if (generalAnalysis) {
-          const generalResult = await analyzeGeneralSummary(review.transcript!, 'gpt-4o');
-          // Debug: log and include raw LLM output
-          const llmDebug =
-            'LLM generalAnalysis result (raw): ' + JSON.stringify(generalResult, null, 2);
-          debugArr = [...debugArr, llmDebug];
-          return res.json({
-            success: true,
-            data: {
-              summary: generalResult.summary,
-              keyNotes: generalResult.keyNotes,
-              transcript: review.transcript,
-              debug: debugArr,
-              metadata: metadataObj,
-            },
-          });
+      if (demoMode) {
+        const debugLog: string[] = [];
+        const emit: ProgressEmitter = (msg) => debugLog.push(msg);
+        const review = await processYouTubeVideoWithProgress(videoId, language, emit);
+        let sentiment: ReturnType<typeof normalizeSentiment> | undefined;
+        if (review.transcript && review.transcript.trim().length > 0) {
+          if (generalAnalysis) {
+            emit('Running general analysis...');
+            const generalResult = await analyzeGeneralSummary(review.transcript!, 'gpt-4o');
+            const llmDebug =
+              'LLM generalAnalysis result (raw): ' + JSON.stringify(generalResult, null, 2);
+            debugLog.push(llmDebug);
+            const minimal = {
+              reviewId: videoUrl,
+              sentiment: undefined,
+              metadata: {
+                title: review.title,
+                channelTitle: (review as any)['creatorName'] || '',
+                channelId: (review as any)['channelId'] || '',
+                publishedAt: review.publishedAt,
+                videoTitle: review.title,
+                channelUrl:
+                  (review as any)['channelUrl'] ||
+                  ((review as any)['channelId']
+                    ? `https://www.youtube.com/channel/${(review as any)['channelId']}`
+                    : ''),
+                thumbnails: review.thumbnails,
+                tags: review.tags,
+                description: review.description,
+              },
+              transcriptMethod: review.transcriptMethod,
+              transcriptDebug: review.transcriptDebug,
+              debug: debugLog,
+            };
+            await supabase.from('demo_reviews').upsert(
+              [
+                {
+                  video_url: videoUrl,
+                  data: minimal,
+                },
+              ],
+              { onConflict: 'video_url' },
+            );
+            return res.json({
+              success: true,
+              data: {
+                summary: generalResult.summary,
+                keyNotes: generalResult.keyNotes,
+                transcript: review.transcript,
+                debug: debugLog,
+                metadata: {
+                  gameTitle: review.title,
+                  creatorName: (review as any)['creatorName'] || '',
+                  publishedAt: review.publishedAt,
+                  videoTitle: review.title,
+                  channelTitle: (review as any)['creatorName'] || '',
+                  channelUrl:
+                    (review as any)['channelUrl'] ||
+                    ((review as any)['channelId']
+                      ? `https://www.youtube.com/channel/${(review as any)['channelId']}`
+                      : ''),
+                  thumbnails: review.thumbnails,
+                  tags: review.tags,
+                  transcript: review.transcript,
+                },
+              },
+            });
+          } else {
+            emit('Running bias/sentiment analysis...');
+            const llmResult = await analyzeTextWithBiasAdjustmentFull(
+              review.transcript!,
+              'gpt-4o',
+              undefined,
+              undefined,
+              review.title,
+              review.title,
+            );
+            sentiment = normalizeSentiment(flattenSentiment(llmResult));
+          }
         } else {
-          const llmResult = await analyzeTextWithBiasAdjustmentFull(
-            review.transcript!,
-            'gpt-4o',
-            undefined,
-            undefined,
-            review.title,
-            review.title,
-          );
-          sentiment = normalizeSentiment(flattenSentiment(llmResult));
+          emit('No transcript found.');
+          sentiment = normalizeSentiment(flattenSentiment({}));
         }
-      } else {
-        sentiment = normalizeSentiment(flattenSentiment({}));
-      }
-      const isValidSentiment =
-        sentiment &&
-        ((sentiment.score !== 0 && sentiment.score !== undefined) ||
-          ('sentimentScore' in sentiment &&
-            sentiment.sentimentScore !== 0 &&
-            sentiment.sentimentScore !== undefined) ||
-          (sentiment.summary && sentiment.summary.trim().length > 0) ||
-          (sentiment.pros && sentiment.pros.length > 0) ||
-          (sentiment.cons && sentiment.cons.length > 0));
-      if (review.transcript && review.transcript.trim().length > 0 && isValidSentiment) {
-        const {
-          title,
-          description,
-          thumbnails,
-          tags,
-          publishedAt,
-          transcriptDebug,
-          transcriptError,
-          transcriptMethod,
-          ...reviewForDatabase
-        } = review;
-        const reviewToUpsert = { ...reviewForDatabase, sentiment } as Review;
-        await upsertReviewToSupabase(reviewToUpsert);
-      }
-      const freshMeta = await fetchYouTubeVideoMetadata(videoId);
-      return res.json({
-        success: true,
-        data: {
-          reviewId: review.videoUrl,
+        const minimal = {
+          reviewId: videoUrl,
           sentiment,
-          // metadata: metadataObj,
-          metadata: freshMeta,
-          transcript: review.transcript,
+          metadata: {
+            title: review.title,
+            channelTitle: review._youtubeMeta?.channelTitle || '',
+            channelId: review._youtubeMeta?.channelId || '',
+            publishedAt: review.publishedAt,
+            description: review.description,
+            thumbnails: review.thumbnails,
+            tags: review.tags,
+          },
           transcriptMethod: review.transcriptMethod,
           transcriptDebug: review.transcriptDebug,
-          transcriptError: review.transcriptError,
-          debug: debugArr,
-        },
-      });
+          debug: debugLog,
+        };
+        await supabase.from('demo_reviews').upsert(
+          [
+            {
+              video_url: videoUrl,
+              data: minimal,
+            },
+          ],
+          { onConflict: 'video_url' },
+        );
+        return res.json({
+          success: true,
+          data: {
+            reviewId: review.videoUrl,
+            sentiment,
+            metadata: {
+              title: review.title,
+              channelTitle: review._youtubeMeta?.channelTitle || '',
+              channelId: review._youtubeMeta?.channelId || '',
+              publishedAt: review.publishedAt,
+              description: review.description,
+              thumbnails: review.thumbnails,
+              tags: review.tags,
+              transcript: review.transcript,
+            },
+            transcript: review.transcript,
+            transcriptMethod: review.transcriptMethod,
+            transcriptDebug: review.transcriptDebug,
+            transcriptError: review.transcriptError,
+            debug: debugLog,
+          },
+        });
+      } else {
+        const review = await processYouTubeVideo(videoId, language);
+        let sentiment: SentimentAnalysisResponse['sentiment'];
+        let debugArr = review.transcriptDebug || [];
+        // Use YouTube metadata for all fields if available
+        const meta = (review._youtubeMeta || {}) as YoutubeMeta;
+        const metadataObj = {
+          title: meta.title || '',
+          channelTitle: meta.channelTitle || '',
+          channelId: meta.channelId || '',
+          publishedAt: meta.publishedAt || '',
+          description: meta.description || '',
+          thumbnails: meta.thumbnails || {},
+          tags: meta.tags || [],
+          channelUrl: meta.channelId ? `https://www.youtube.com/channel/${meta.channelId}` : '',
+          transcript: review.transcript,
+        };
+        if (review.transcript && review.transcript.trim().length > 0) {
+          if (generalAnalysis) {
+            const generalResult = await analyzeGeneralSummary(review.transcript!, 'gpt-4o');
+            // Debug: log and include raw LLM output
+            const llmDebug =
+              'LLM generalAnalysis result (raw): ' + JSON.stringify(generalResult, null, 2);
+            debugArr = [...debugArr, llmDebug];
+            return res.json({
+              success: true,
+              data: {
+                summary: generalResult.summary,
+                keyNotes: generalResult.keyNotes,
+                transcript: review.transcript,
+                debug: debugArr,
+                metadata: metadataObj,
+              },
+            });
+          } else {
+            const llmResult = await analyzeTextWithBiasAdjustmentFull(
+              review.transcript!,
+              'gpt-4o',
+              undefined,
+              undefined,
+              review.title,
+              review.title,
+            );
+            sentiment = normalizeSentiment(flattenSentiment(llmResult));
+          }
+        } else {
+          sentiment = normalizeSentiment(flattenSentiment({}));
+        }
+        const isValidSentiment =
+          sentiment &&
+          ((sentiment.score !== 0 && sentiment.score !== undefined) ||
+            ('sentimentScore' in sentiment &&
+              sentiment.sentimentScore !== 0 &&
+              sentiment.sentimentScore !== undefined) ||
+            (sentiment.summary && sentiment.summary.trim().length > 0) ||
+            (sentiment.pros && sentiment.pros.length > 0) ||
+            (sentiment.cons && sentiment.cons.length > 0));
+        if (review.transcript && review.transcript.trim().length > 0 && isValidSentiment) {
+          const {
+            title,
+            description,
+            thumbnails,
+            tags,
+            publishedAt,
+            transcriptDebug,
+            transcriptError,
+            transcriptMethod,
+            ...reviewForDatabase
+          } = review;
+          const reviewToUpsert = { ...reviewForDatabase, sentiment } as Review;
+          await upsertReviewToSupabase(reviewToUpsert);
+        }
+        const freshMeta = await fetchYouTubeVideoMetadata(videoId);
+        return res.json({
+          success: true,
+          data: {
+            reviewId: review.videoUrl,
+            sentiment,
+            // metadata: metadataObj,
+            metadata: freshMeta,
+            transcript: review.transcript,
+            transcriptMethod: review.transcriptMethod,
+            transcriptDebug: review.transcriptDebug,
+            transcriptError: review.transcriptError,
+            debug: debugArr,
+          },
+        });
+      }
     } catch (error: any) {
       res
         .status(500)
@@ -332,10 +406,8 @@ export const youtubeController = {
         debugLog.push(msg);
         sendEvent('progress', { message: msg });
       };
-      // Wrap core logic to emit progress
       const review = await processYouTubeVideoWithProgress(videoId, language, emit);
       let sentiment: ReturnType<typeof normalizeSentiment> | undefined;
-      // let debugArr = review.transcriptDebug || [];
       if (review.transcript && review.transcript.trim().length > 0) {
         if (generalAnalysisBool) {
           emit('Running general analysis...');
@@ -398,7 +470,6 @@ export const youtubeController = {
   },
 };
 
-// Refactor processYouTubeVideo to accept an emit callback for progress
 async function processYouTubeVideoWithProgress(
   videoId: string,
   language: string = 'en',
@@ -459,7 +530,6 @@ async function processYouTubeVideoWithProgress(
   };
 }
 
-// Add a metadata endpoint that always returns JSON
 export const youtubeMetadataHandler = async (req: Request, res: Response) => {
   const { videoId } = req.params;
   if (!videoId) {

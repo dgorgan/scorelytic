@@ -49,7 +49,7 @@ export default function Home() {
           <p className="text-xl text-white/90 mb-8 max-w-xl text-center">
             Game review analytics, bias detection, and more.
             <br />
-            <span style={{ color: '#e0b6f9' }}>Data-driven. Insightful. Beautiful.</span>
+            <span style={{ color: '#ad6cd4' }}>Data-driven. Insightful. Beautiful.</span>
           </p>
           {isPending || clicked ? (
             <div className="flex flex-col items-center gap-4 mt-8">
