@@ -14,6 +14,148 @@ interface YouTubeProcessorProps {
   onProcessComplete?: (result: any) => void;
 }
 
+const YouTubeMetaCard = ({ meta, videoId, showVideo, setShowVideo }: any) => (
+  <div className="bg-white rounded-lg shadow border border-gray-200 mb-6">
+    <div
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '656px',
+        background: '#000',
+        overflow: 'hidden',
+      }}
+    >
+      {showVideo ? (
+        <iframe
+          width="100%"
+          height="100%"
+          src={`https://www.youtube.com/embed/${extractVideoId(videoId.trim())}`}
+          title={meta.title}
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          style={{ width: '100%', height: '100%' }}
+        />
+      ) : (
+        <>
+          <Image
+            src={
+              meta.thumbnails?.maxres?.url ||
+              meta.thumbnails?.high?.url ||
+              meta.thumbnails?.default?.url
+            }
+            alt={meta.title}
+            width={1920}
+            height={1080}
+            style={{ objectFit: 'cover', width: '100%', height: '656px' }}
+            className="border-b"
+          />
+          <button
+            onClick={() => setShowVideo(true)}
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              background: 'rgba(0,0,0,0.6)',
+              border: 'none',
+              borderRadius: '50%',
+              width: 72,
+              height: 72,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px #0003',
+            }}
+            aria-label="Play video"
+          >
+            <svg
+              width="40"
+              height="40"
+              viewBox="0 0 40 40"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle cx="20" cy="20" r="20" fill="rgba(255,255,255,0.85)" />
+              <polygon points="16,12 30,20 16,28" fill="#a18aff" />
+            </svg>
+          </button>
+        </>
+      )}
+    </div>
+    <div className="p-6">
+      <a
+        className="text-2xl font-bold text-gray-900 mb-2"
+        href={`https://www.youtube.com/watch?v=${extractVideoId(videoId.trim())}`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {meta.title}
+      </a>
+      <div className="flex items-center gap-3 mb-2">
+        {meta.channelId ? (
+          <a
+            href={`https://www.youtube.com/channel/${meta.channelId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-base text-gray-700 font-semibold hover:underline"
+          >
+            {meta.channelTitle}
+          </a>
+        ) : (
+          <a
+            href={`https://www.youtube.com/channel/${meta.channelId}`}
+            className="text-base text-gray-700 font-semibold"
+          >
+            {meta.channelTitle}
+          </a>
+        )}
+        {meta.channelId && (
+          <a
+            href={`https://www.youtube.com/channel/${meta.channelId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <button className="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow hover:bg-red-700 transition">
+              Subscribe
+            </button>
+          </a>
+        )}
+      </div>
+      {meta.publishedAt && (
+        <div className="text-xs text-gray-500 mb-4">
+          {new Date(meta.publishedAt).toLocaleDateString(undefined, {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+          })}
+        </div>
+      )}
+      {meta.description && (
+        <div
+          className="text-sm text-gray-800 whitespace-pre-line mb-4"
+          style={{ lineHeight: '1.6' }}
+        >
+          {meta.description}
+        </div>
+      )}
+      {meta.tags && meta.tags.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-2">
+          {meta.tags.map((tag: string) => (
+            <span
+              key={tag}
+              className="text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full text-xs font-medium"
+            >
+              #{tag}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  </div>
+);
+
 export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessorProps) {
   const [videoId, setVideoId] = useState('');
   const [processing, setProcessing] = useState(false);
@@ -353,150 +495,12 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
             return (
               <div className="mt-8">
                 {/* Metadata card (always show) */}
-                {meta && (
-                  <div className="bg-white rounded-lg shadow border border-gray-200 mb-6">
-                    <div
-                      style={{
-                        position: 'relative',
-                        width: '100%',
-                        height: '656px',
-                        background: '#000',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      {showVideo ? (
-                        <iframe
-                          width="100%"
-                          height="100%"
-                          src={`https://www.youtube.com/embed/${extractVideoId(videoId.trim())}`}
-                          title={meta.title}
-                          frameBorder="0"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                          }}
-                        />
-                      ) : (
-                        <>
-                          <Image
-                            src={
-                              meta.thumbnails?.maxres?.url ||
-                              meta.thumbnails?.high?.url ||
-                              meta.thumbnails?.default?.url
-                            }
-                            alt={meta.title}
-                            width={1920}
-                            height={1080}
-                            style={{ objectFit: 'cover', width: '100%', height: '656px' }}
-                            className="border-b"
-                          />
-                          <button
-                            onClick={() => setShowVideo(true)}
-                            style={{
-                              position: 'absolute',
-                              top: '50%',
-                              left: '50%',
-                              transform: 'translate(-50%, -50%)',
-                              background: 'rgba(0,0,0,0.6)',
-                              border: 'none',
-                              borderRadius: '50%',
-                              width: 72,
-                              height: 72,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              cursor: 'pointer',
-                              boxShadow: '0 2px 8px #0003',
-                            }}
-                            aria-label="Play video"
-                          >
-                            <svg
-                              width="40"
-                              height="40"
-                              viewBox="0 0 40 40"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <circle cx="20" cy="20" r="20" fill="rgba(255,255,255,0.85)" />
-                              <polygon points="16,12 30,20 16,28" fill="#a18aff" />
-                            </svg>
-                          </button>
-                        </>
-                      )}
-                    </div>
-                    <div className="p-6">
-                      <a
-                        className="text-2xl font-bold text-gray-900 mb-2"
-                        href={`https://www.youtube.com/watch?v=${extractVideoId(videoId.trim())}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {meta.title}
-                      </a>
-                      <div className="flex items-center gap-3 mb-2">
-                        {meta.channelId ? (
-                          <a
-                            href={`https://www.youtube.com/channel/${meta.channelId}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-base text-gray-700 font-semibold hover:underline"
-                          >
-                            {meta.channelTitle}
-                          </a>
-                        ) : (
-                          <a
-                            href={`https://www.youtube.com/channel/${meta.channelId}`}
-                            className="text-base text-gray-700 font-semibold"
-                          >
-                            {meta.channelTitle}
-                          </a>
-                        )}
-                        {meta.channelId && (
-                          <a
-                            href={`https://www.youtube.com/channel/${meta.channelId}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <button className="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow hover:bg-red-700 transition">
-                              Subscribe
-                            </button>
-                          </a>
-                        )}
-                      </div>
-                      {meta.publishedAt && (
-                        <div className="text-xs text-gray-500 mb-4">
-                          {new Date(meta.publishedAt).toLocaleDateString(undefined, {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                          })}
-                        </div>
-                      )}
-                      {meta.description && (
-                        <div
-                          className="text-sm text-gray-800 whitespace-pre-line mb-4"
-                          style={{ lineHeight: '1.6' }}
-                        >
-                          {meta.description}
-                        </div>
-                      )}
-                      {meta.tags && meta.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mb-2">
-                          {meta.tags.map((tag: string) => (
-                            <span
-                              key={tag}
-                              className="text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full text-xs font-medium"
-                            >
-                              #{tag}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+                <YouTubeMetaCard
+                  meta={meta}
+                  videoId={videoId}
+                  showVideo={showVideo}
+                  setShowVideo={setShowVideo}
+                />
                 {/* General analysis summary card */}
                 <div className="bg-white rounded-lg shadow border border-gray-200 p-6 mb-6">
                   <div className="text-xl font-bold text-gray-900 mb-2">Video Summary</div>
@@ -527,77 +531,12 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
                 className="mt-8 bg-white rounded-lg shadow border border-gray-200"
               >
                 {/* Metadata card (same as general analysis) */}
-                <div
-                  style={{
-                    position: 'relative',
-                    width: '100%',
-                    height: '656px',
-                    background: '#000',
-                    overflow: 'hidden',
-                  }}
-                >
-                  {showVideo ? (
-                    <iframe
-                      width="100%"
-                      height="100%"
-                      src={`https://www.youtube.com/embed/${extractVideoId(videoId.trim())}`}
-                      title={meta.title}
-                      frameBorder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                      }}
-                    />
-                  ) : (
-                    <>
-                      <Image
-                        src={
-                          meta.thumbnails?.maxres?.url ||
-                          meta.thumbnails?.high?.url ||
-                          meta.thumbnails?.default?.url
-                        }
-                        alt={meta.title}
-                        width={1920}
-                        height={1080}
-                        style={{ objectFit: 'cover', width: '100%', height: '656px' }}
-                        className="border-b"
-                      />
-                      <button
-                        onClick={() => setShowVideo(true)}
-                        style={{
-                          position: 'absolute',
-                          top: '50%',
-                          left: '50%',
-                          transform: 'translate(-50%, -50%)',
-                          background: 'rgba(0,0,0,0.6)',
-                          border: 'none',
-                          borderRadius: '50%',
-                          width: 72,
-                          height: 72,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          cursor: 'pointer',
-                          boxShadow: '0 2px 8px #0003',
-                        }}
-                        aria-label="Play video"
-                      >
-                        <svg
-                          width="40"
-                          height="40"
-                          viewBox="0 0 40 40"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <circle cx="20" cy="20" r="20" fill="rgba(255,255,255,0.85)" />
-                          <polygon points="16,12 30,20 16,28" fill="#a18aff" />
-                        </svg>
-                      </button>
-                    </>
-                  )}
-                </div>
+                <YouTubeMetaCard
+                  meta={meta}
+                  videoId={videoId}
+                  showVideo={showVideo}
+                  setShowVideo={setShowVideo}
+                />
                 {/* Review summary, verdict, score, pros, cons */}
                 <div className="px-6 pb-6 mt-2">
                   <div className="text-lg font-semibold text-green-700 mb-2">Review Summary</div>

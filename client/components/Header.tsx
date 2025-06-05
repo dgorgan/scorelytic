@@ -32,6 +32,9 @@ const Header = () => {
         </Link>
       </div>
       <div className={styles.navbarRight}>
+        <Link href="/game-demos" className={styles.navbarLink}>
+          Games
+        </Link>
         <a href={demosUrl} className={styles.navbarLink} rel="noopener noreferrer">
           Demos
         </a>
