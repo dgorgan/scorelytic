@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  images: {
+    domains: ['i.ytimg.com', 'www.scorelytic.com', 'www.youtube.com', 'yt3.ggpht.com'],
+  },
   webpack: (config) => {
     config.resolve.alias = {
       ...(config.resolve.alias || {}),
@@ -16,6 +19,16 @@ const nextConfig: NextConfig = {
   },
   productionBrowserSourceMaps: true,
   experimental: {},
+
+  // 👇 Add this block
+  async rewrites() {
+    return [
+      {
+        source: '/demos/:path*',
+        destination: 'https://api.scorelytic.com/demos/:path*',
+      },
+    ];
+  },
 };
 
 export default withSentryConfig(nextConfig, {

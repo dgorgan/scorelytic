@@ -1,4 +1,4 @@
-import type { BiasDetail, CulturalContext, FullBiasReport } from '@scorelytic/shared';
+import type { BiasDetail, CulturalContext, FullBiasReport } from '../index';
 
 export type BiasImpact = {
   name: string;

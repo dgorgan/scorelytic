@@ -1,0 +1,115 @@
+// -----------------------------------------------------------------------------
+//! Mixins
+// -----------------------------------------------------------------------------
+
+@mixin smoothing() {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// -----------------------------------------------------------------------------
+//! Classes
+// -----------------------------------------------------------------------------
+
+.no-margin {
+  margin: 0;
+}
+
+.top-border {
+  border-top: 1px solid #e5e5e5;
+}
+
+.border-top-blue {
+  border-top: 1px solid #c3dee7;
+}
+
+.left-border {
+  border-left: 1px solid #e5e5e5;
+}
+
+.left-border-blue {
+  border-left: 1px solid #c3dee7;
+}
+
+.right-border {
+  border-right: 1px solid #e5e5e5;
+}
+
+.bottom-border {
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.bottom-border-blue {
+  border-bottom: 1px solid #c3dee7;
+}
+
+.bottom-border-thick {
+  border-bottom: 3px solid #e5e5e5;
+}
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  margin-left: 0.65rem;
+  vertical-align: middle;
+  background: url('../img/icons/tooltip.svg') no-repeat 50%;
+  background-size: contain;
+  transition: background-image 0.3s;
+
+  &:after {
+    content: '';
+  }
+
+  &:hover {
+    background: url('../img/icons/tooltip-blue.svg') no-repeat 50%;
+  }
+}
+
+.tooltip .tooltiptext {
+  width: 200px;
+  padding: 8px 15px;
+  color: #fff;
+  font-size: 0.93rem;
+  line-height: 1.1rem;
+  text-align: center;
+  background-color: $gray;
+  border: 1px solid #464646;
+  border-radius: 3px;
+  visibility: hidden;
+  opacity: 0;
+  transition: all 0.3s;
+
+  /* Position the tooltip */
+  position: absolute;
+  z-index: 1;
+  top: -30%;
+  left: 170%;
+  transform: translateY(-40%);
+
+  &:before {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-top: 5px solid #464646;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    top: 50%;
+    left: 0;
+    margin-left: -7px;
+    margin-top: -1px;
+    transform: rotate(90deg);
+  }
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+
+.highlight {
+  font-weight: 500;
+  margin-right: 0.25rem;
+}

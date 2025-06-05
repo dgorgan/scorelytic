@@ -1,0 +1,75 @@
+// -----------------------------------------------------------------------------
+//! Base /w variants
+// -----------------------------------------------------------------------------
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 250px;
+  padding: 0.7rem 0;
+  border-radius: 2px;
+  background-color: $gray;
+  font-family: $font-primary;
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.625rem;
+  text-decoration: none;
+  color: #fff;
+  cursor: pointer;
+  @include smoothing();
+  transition: all 0.3s;
+
+  &.btn-inverse {
+    background-color: rgba(255, 255, 255, 0.13);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    min-width: 150px;
+
+    &:hover {
+      background-color: #fff;
+      color: #28457e;
+    }
+  }
+
+  &.btn-white {
+    min-width: 60px;
+    padding: 0.3rem 1rem;
+    background-color: rgba(218, 224, 225, 0.15);
+    border: 1px solid rgba(70, 70, 70, 0.25);
+    color: #1c191a;
+    font-size: 0.9375rem;
+
+    &:hover {
+      background-color: #6c6c6c;
+      color: #fff;
+      border: 1px solid transparent;
+    }
+  }
+
+  &:hover {
+    text-decoration: none;
+    background-color: lighten($gray, 15%);
+  }
+
+  &.share-results:before {
+    display: inline-block;
+    content: '';
+    width: 15px;
+    height: 15px;
+    margin-right: 0.875rem;
+    background: url('../img/icons/share-white.svg');
+    background-repeat: no-repeat;
+    background-size: contain;
+  }
+
+  &.invite-others:before {
+    display: inline-block;
+    content: '';
+    width: 15px;
+    height: 15px;
+    margin-right: 0.875rem;
+    background: url('../img/icons/persona-white.svg');
+    background-repeat: no-repeat;
+    background-size: contain;
+  }
+}

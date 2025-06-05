@@ -1,0 +1,37 @@
+// -----------------------------------------------------------------------------
+//! Fonts
+// -----------------------------------------------------------------------------
+
+@font-face {
+  font-family: 'Colfax';
+  src: url('../../src/fonts/colfax.eot'); /* IE9 Compat Modes */
+  src:
+    url('../../src/fonts/colfax.eot?#iefix') format('embedded-opentype'),
+    /* IE6-IE8 */ url('../../src/fonts/colfax.woff2') format('woff2'),
+    /* Super Modern Browsers */ url('../../src/fonts/colfax.woff') format('woff'),
+    /* Pretty Modern Browsers */ url('../../src/fonts/colfax.ttf') format('truetype'),
+    /* Safari, Android, iOS */ url('../../src/fonts/colfax.svg#svgFontName') format('svg'); /* Legacy iOS */
+}
+
+$colfax: 'Colfax', sans-serif;
+$roboto-medium: 'Roboto Mono', monospace;
+
+// -----------------------------------------------------------------------------
+//! Colors
+// -----------------------------------------------------------------------------
+
+$dark: #2e353e;
+$gray: #515f73;
+$blue: #2c7cb5;
+$white: #ffffff;
+$yellow: #fffa6e;
+
+// -----------------------------------------------------------------------------
+//! Breakpoints & Sizes
+// -----------------------------------------------------------------------------
+
+$xs: 420px;
+$sm: 768px;
+$md: 992px;
+$lg: 1100px;
+$content-width: 1440px;

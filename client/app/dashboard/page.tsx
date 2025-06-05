@@ -415,112 +415,129 @@ export default function Dashboard() {
     }
   };
 
-  if (!results.length) return <div>Loading...</div>;
-
   return (
-    <Tooltip.Provider>
-      <div className="min-h-screen bg-neutral-50 p-8">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6">LLM Review Analysis Dashboard</h1>
+    <div
+      className="min-h-screen bg-neutral-50 flex justify-center"
+      style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #e0b6f9 100%)' }}
+    >
+      <main className="w-full">
+        <div className="max-w-[1300px] w-full mx-auto px-4 py-8">
+          <div
+            style={{
+              background: 'rgba(255,255,255,0.95)',
+              borderRadius: '24px',
+              boxShadow: '0 8px 32px 0 rgba(160,138,255,0.10)',
+              padding: '32px 24px',
+              width: '100%',
+              marginTop: '32px',
+              marginBottom: '32px',
+            }}
+          >
+            <Tooltip.Provider>
+              <h1 className="text-3xl font-bold text-gray-900 mb-6">
+                LLM Review Analysis Dashboard
+              </h1>
 
-          {/* YouTube Video Processor */}
-          <div className="mb-8">
-            <YouTubeProcessor />
+              {/* YouTube Video Processor */}
+              <div className="mb-8">
+                <YouTubeProcessor />
+              </div>
+
+              <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-400 rounded">
+                <h2 className="text-lg font-bold text-blue-900 mb-2">How to use this dashboard</h2>
+                <ul className="list-disc pl-6 text-blue-900 text-sm space-y-1">
+                  <li>
+                    <b>Bar graph</b>: Shows mismatches between AI analysis and available ground
+                    truth data. <b>High bars for sentimentScore/verdict are EXPECTED</b> - these are
+                    AI-only fields with no baseline data to compare against.
+                  </li>
+                  <li>
+                    <b>Real Issues to Focus On</b>: Look for mismatches in{' '}
+                    <b>pros, cons, reviewSummary, alsoRecommends</b> - these fields sometimes have
+                    explicit mentions in transcripts that we can verify against.
+                  </li>
+                  <li>
+                    <b>Grouped View</b>: Each row is a reviewId, with all fields shown as columns.
+                    Cell colors: Red = mismatch detected, alternating white/yellow = normal.
+                  </li>
+                  <li>
+                    <b>Advanced QA</b>: Each row is a single field comparison. Use this for detailed
+                    analysis of specific mismatches.
+                  </li>
+                  <li>
+                    <b>This is an internal QA tool</b> to help us fine-tune our AI analysis before
+                    building user-facing features.
+                  </li>
+                </ul>
+              </div>
+
+              {sweepSummary.length > 0 && (
+                <div className="mb-8">
+                  <h2 className="text-xl font-bold text-gray-900 mb-4">Sweep Summary</h2>
+                  <SweepSummaryChart sweepSummary={sweepSummary} />
+                </div>
+              )}
+
+              <div className="mb-8">
+                <h2 className="text-xl font-bold text-gray-900 mb-4">Field Mismatches Overview</h2>
+                <FieldMismatchChart fieldCounts={fieldCounts} />
+              </div>
+
+              <DashboardControls
+                showMismatches={showMismatches}
+                setShowMismatches={setShowMismatches}
+                search={search}
+                setSearch={setSearch}
+                filter={filter}
+                setFilter={setFilter}
+                csvFile={csvFile}
+                setCsvFile={setCsvFile}
+                csvOptions={csvOptions}
+                groupedView={groupedView}
+                setGroupedView={setGroupedView}
+                onDownloadCSV={downloadCSV}
+              />
+
+              <RowColorLegend />
+
+              {groupedView ? (
+                <GroupedTable
+                  filteredGroupedResults={filteredGroupedResults}
+                  reviewFields={reviewFields}
+                  results={results}
+                  onEditReview={editReview}
+                />
+              ) : (
+                <AdvancedTable filteredResults={filteredResults} onEditResult={editResult} />
+              )}
+
+              <div className="mt-8 text-sm text-gray-600">
+                <p>
+                  Showing {groupedView ? filteredGroupedResults.length : filteredResults.length} of{' '}
+                  {groupedView ? groupedResults.length : results.length} total{' '}
+                  {groupedView ? 'reviews' : 'comparisons'}
+                </p>
+              </div>
+
+              {/* Edit Modals */}
+              <EditReviewModal
+                isOpen={editReviewModal.isOpen}
+                onClose={() => setEditReviewModal((prev) => ({ ...prev, isOpen: false }))}
+                fields={editReviewModal.fields}
+                reviewFields={reviewFields}
+                onSave={handleSaveReview}
+              />
+
+              <EditResultModal
+                isOpen={editResultModal.isOpen}
+                onClose={() => setEditResultModal((prev) => ({ ...prev, isOpen: false }))}
+                result={editResultModal.result}
+                onSave={handleSaveResult}
+              />
+            </Tooltip.Provider>
           </div>
-
-          <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-400 rounded">
-            <h2 className="text-lg font-bold text-blue-900 mb-2">How to use this dashboard</h2>
-            <ul className="list-disc pl-6 text-blue-900 text-sm space-y-1">
-              <li>
-                <b>Bar graph</b>: Shows mismatches between AI analysis and available ground truth
-                data. <b>High bars for sentimentScore/verdict are EXPECTED</b> - these are AI-only
-                fields with no baseline data to compare against.
-              </li>
-              <li>
-                <b>Real Issues to Focus On</b>: Look for mismatches in{' '}
-                <b>pros, cons, reviewSummary, alsoRecommends</b> - these fields sometimes have
-                explicit mentions in transcripts that we can verify against.
-              </li>
-              <li>
-                <b>Grouped View</b>: Each row is a reviewId, with all fields shown as columns. Cell
-                colors: Red = mismatch detected, alternating white/yellow = normal.
-              </li>
-              <li>
-                <b>Advanced QA</b>: Each row is a single field comparison. Use this for detailed
-                analysis of specific mismatches.
-              </li>
-              <li>
-                <b>This is an internal QA tool</b> to help us fine-tune our AI analysis before
-                building user-facing features.
-              </li>
-            </ul>
-          </div>
-
-          {sweepSummary.length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Sweep Summary</h2>
-              <SweepSummaryChart sweepSummary={sweepSummary} />
-            </div>
-          )}
-
-          <div className="mb-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Field Mismatches Overview</h2>
-            <FieldMismatchChart fieldCounts={fieldCounts} />
-          </div>
-
-          <DashboardControls
-            showMismatches={showMismatches}
-            setShowMismatches={setShowMismatches}
-            search={search}
-            setSearch={setSearch}
-            filter={filter}
-            setFilter={setFilter}
-            csvFile={csvFile}
-            setCsvFile={setCsvFile}
-            csvOptions={csvOptions}
-            groupedView={groupedView}
-            setGroupedView={setGroupedView}
-            onDownloadCSV={downloadCSV}
-          />
-
-          <RowColorLegend />
-
-          {groupedView ? (
-            <GroupedTable
-              filteredGroupedResults={filteredGroupedResults}
-              reviewFields={reviewFields}
-              results={results}
-              onEditReview={editReview}
-            />
-          ) : (
-            <AdvancedTable filteredResults={filteredResults} onEditResult={editResult} />
-          )}
-
-          <div className="mt-8 text-sm text-gray-600">
-            <p>
-              Showing {groupedView ? filteredGroupedResults.length : filteredResults.length} of{' '}
-              {groupedView ? groupedResults.length : results.length} total{' '}
-              {groupedView ? 'reviews' : 'comparisons'}
-            </p>
-          </div>
-
-          {/* Edit Modals */}
-          <EditReviewModal
-            isOpen={editReviewModal.isOpen}
-            onClose={() => setEditReviewModal((prev) => ({ ...prev, isOpen: false }))}
-            fields={editReviewModal.fields}
-            reviewFields={reviewFields}
-            onSave={handleSaveReview}
-          />
-
-          <EditResultModal
-            isOpen={editResultModal.isOpen}
-            onClose={() => setEditResultModal((prev) => ({ ...prev, isOpen: false }))}
-            result={editResultModal.result}
-            onSave={handleSaveResult}
-          />
         </div>
-      </div>
-    </Tooltip.Provider>
+      </main>
+    </div>
   );
 }

@@ -1,0 +1,183 @@
+.noteworthy-section {
+  background: rgba(46, 53, 62, 0.9) url('../../dist/img/pattern-lg.png');
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: left;
+  overflow: hidden;
+
+  .container {
+    @include min(1200px) {
+      padding: 0;
+    }
+  }
+}
+
+.noteworthy-container {
+  clear: both;
+
+  @include max(1200px) {
+    padding: 0 15px;
+  }
+
+  @include min(1200px) {
+    width: 100%;
+    margin-left: 35%;
+    clear: none;
+  }
+
+  .slick-list {
+    &.ie11-transform-fix {
+      transform: none;
+    }
+  }
+}
+
+.noteworthy-controls {
+  margin: 1rem 0;
+
+  p {
+    color: $blue;
+    font-family: $roboto-medium;
+  }
+
+  h2 {
+    color: $white;
+  }
+
+  .arrows {
+    display: none;
+    position: relative;
+    width: 50px;
+    height: 50px;
+    margin-left: 30px;
+
+    .arrow-prev {
+      &:before {
+        content: '';
+        display: block;
+        width: 11px;
+        height: 20px;
+        background: url('../../dist/img/icons/arrow-prev.svg');
+        background-repeat: no-repeat;
+        background-size: cover;
+      }
+    }
+
+    .arrow-next {
+      &:before {
+        content: '';
+        display: block;
+        width: 11px;
+        height: 20px;
+        background: url('../../dist/img/icons/arrow-next.svg');
+        background-repeat: no-repeat;
+        background-size: cover;
+      }
+    }
+    @include min($sm) {
+      display: block;
+    }
+  }
+
+  @include min(1200px) {
+    width: 35%;
+    margin: 0;
+    padding-left: 1.5rem;
+  }
+}
+
+.noteworthy-item {
+  background-color: $white;
+  box-shadow: 0 6px 15px 0 rgba(0, 0, 0, 0.15);
+  margin-right: 1.6875rem;
+  max-width: 374px;
+  cursor: pointer;
+
+  @include max($sm) {
+    max-width: 270px;
+  }
+
+  // &:hover {
+  //     box-shadow: 0 112px 135px 0 rgba(0,0,0,0.15);
+  // }
+  //
+  // &:hover .card-cta:before {
+  //     opacity: 1;
+  //     width: 100%;
+  // }
+}
+
+.card {
+  position: relative;
+
+  .card-title {
+    color: $dark;
+    font-weight: 500;
+  }
+
+  .card-body {
+    padding: 1.625rem 1.625rem 2.1875rem;
+
+    @include max($sm) {
+      padding: 0.9375rem 0.9375rem 1.1875rem;
+    }
+
+    .card-text {
+      display: none;
+      margin-bottom: 1rem;
+
+      @include min($sm) {
+        display: block;
+      }
+    }
+  }
+
+  .card-cta {
+    position: relative;
+    font-family: $roboto-medium;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    color: $blue;
+    border-bottom: 1px solid transparent;
+
+    &:before {
+      content: '';
+      width: 0;
+      height: 2px;
+      background: $blue;
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      transition: all 0.3s;
+    }
+
+    &:after {
+      content: '';
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      margin-left: 5px;
+      background: url('../../dist/img/icons/arrow.svg');
+      background-size: cover;
+    }
+
+    &:hover:before {
+      opacity: 1;
+      width: 100%;
+    }
+  }
+
+  &:after {
+    content: attr(data-news-type);
+    position: absolute;
+    top: 21px;
+    left: 18px;
+    color: $dark;
+    background: $yellow;
+    font-family: $roboto-medium;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    padding: 5px 13px 6px 10px;
+  }
+}
