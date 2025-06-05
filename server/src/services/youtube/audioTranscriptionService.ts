@@ -224,15 +224,25 @@ export const estimateTranscriptionCost = (durationMinutes: number): number => {
  * Gets video duration from YouTube without downloading
  */
 export const getVideoDuration = async (videoId: string): Promise<number> => {
+  const cookiesPath = path.join(process.cwd(), 'src/cookies.txt');
+  console.log('cookiesPath', cookiesPath);
+  const cookiesExists = fs.existsSync(cookiesPath);
+  const cookiesContent = cookiesExists ? fs.readFileSync(cookiesPath, 'utf8') : '';
+  const crypto = require('crypto');
+  const cookiesHash = cookiesExists
+    ? crypto.createHash('sha256').update(cookiesContent).digest('hex')
+    : null;
+  // Debug logs
+  // eslint-disable-next-line no-console
+  console.log('[yt-dlp] cookies.txt path:', cookiesPath);
+  // eslint-disable-next-line no-console
+  console.log('[yt-dlp] cookies.txt exists:', cookiesExists);
+  // eslint-disable-next-line no-console
+  if (cookiesExists) console.log('[yt-dlp] cookies.txt sha256:', cookiesHash);
   const ytDlpWrap = new YTDlpWrap();
   const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
   try {
-    const out = await ytDlpWrap.execPromise([
-      videoUrl,
-      '--dump-json',
-      '--cookies',
-      path.join(process.cwd(), 'src/cookies.txt'),
-    ]);
+    const out = await ytDlpWrap.execPromise([videoUrl, '--dump-json', '--cookies', cookiesPath]);
     const info = JSON.parse(out);
     return Math.ceil((info.duration || 0) / 60); // Return duration in minutes
   } catch (error: any) {
