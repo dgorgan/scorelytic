@@ -19,7 +19,7 @@ export const env = cleanEnv(
         DISABLE_OPENAI: bool({ default: false }),
         LLM_PROMPT_STYLE: str({ default: 'DEFAULT' }),
         LOG_LLM_OUTPUT: bool({ default: false }),
-        PORT: port({ default: 5000 }),
+        PORT: port({ default: isTestOrDev ? 5000 : undefined }),
         YOUTUBE_API_KEY: str({ default: 'test-api-key' }),
         NODE_ENV: str({ default: 'development' }),
       }
