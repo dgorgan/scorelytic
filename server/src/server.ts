@@ -6,7 +6,7 @@ import app from '@/app';
 import logger from '@/logger';
 const Sentry = require('@sentry/node');
 import fs from 'fs';
-const cookiesPath = path.resolve(__dirname, '../../../cookies.txt');
+const cookiesPath = path.resolve(__dirname, 'cookies.txt');
 console.log('[startup] cookies.txt exists:', fs.existsSync(cookiesPath));
 if (fs.existsSync(cookiesPath)) {
   const stat = fs.statSync(cookiesPath);

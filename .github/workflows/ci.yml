@@ -171,58 +171,56 @@ jobs:
             client/.next
             server/dist
             shared/dist
-
-# unit-tests:
-#   needs: build-and-check
-#   environment: CI
-#   runs-on: ubuntu-latest
-#   env:
-#     SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'dummy' }}
-#     OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'dummy' }}
-#     LOGTAIL_SOURCE_TOKEN: ${{ secrets.LOGTAIL_SOURCE_TOKEN || 'dummy' }}
-#     YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY || 'dummy' }}
-#     SENTRY_DSN_SERVER: ${{ secrets.SENTRY_DSN_SERVER || 'dummy' }}
-#     SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN || 'dummy' }}
-#     NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'http://localhost:5000' }}
-#     NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321' }}
-#     NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy' }}
-#     SENTRY_PROJECT_CLIENT: ${{ vars.SENTRY_PROJECT_CLIENT || 'javascript-nextjs' }}
-#     SENTRY_PROJECT_SERVER: ${{ vars.SENTRY_PROJECT_SERVER || 'node-express' }}
-#     SENTRY_ENVIRONMENT: ${{ vars.SENTRY_ENVIRONMENT || 'production' }}
-#     SENTRY_ORG: ${{ vars.SENTRY_ORG || 'scorelytic' }}
-#     SUPABASE_URL: ${{ vars.SUPABASE_URL || 'http://localhost:54321' }}
-#     DISABLE_OPENAI: false
-#     LLM_PROMPT_STYLE: ${{ vars.LLM_PROMPT_STYLE || 'DEFAULT' }}
-#     LOG_LLM_OUTPUT: false
-#     NODE_ENV: production
-#     SENTRY_RELEASE: ${{ github.sha }}
-#     NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN_CLIENT || 'dummy' }}
-#     NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${{ vars.NEXT_PUBLIC_SENTRY_ENVIRONMENT || vars.SENTRY_ENVIRONMENT || 'production' }}
-#     NEXT_PUBLIC_SENTRY_RELEASE: ${{ github.sha }}
-#   steps:
-#     - uses: actions/checkout@v4
-#     - uses: actions/setup-node@v4
-#       with:
-#         node-version: 20
-#     - name: Set up cookies.txt from secret
-#       run: echo "${{ secrets.COOKIES_TXT }}" > ./server/src/cookies.txt
-#       shell: bash
-#     - name: Download build artifacts
-#       uses: actions/download-artifact@v4
-#       with:
-#         name: build-artifacts
-#     - name: Install pnpm globally
-#       run: npm install -g pnpm
-#     - name: Install dependencies
-#       run: pnpm install --prefer-offline --frozen-lockfile
-#     - name: Run unit tests
-#       run: pnpm turbo run test --concurrency=2 --cache-dir=.turbo
-#     - name: Upload coverage
-#       uses: actions/upload-artifact@v4
-#       with:
-#         name: coverage
-#         path: coverage
-
+  unit-tests:
+    needs: build-and-check
+    environment: CI
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'dummy' }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'dummy' }}
+      LOGTAIL_SOURCE_TOKEN: ${{ secrets.LOGTAIL_SOURCE_TOKEN || 'dummy' }}
+      YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY || 'dummy' }}
+      SENTRY_DSN_SERVER: ${{ secrets.SENTRY_DSN_SERVER || 'dummy' }}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN || 'dummy' }}
+      NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'http://localhost:5000' }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321' }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy' }}
+      SENTRY_PROJECT_CLIENT: ${{ vars.SENTRY_PROJECT_CLIENT || 'javascript-nextjs' }}
+      SENTRY_PROJECT_SERVER: ${{ vars.SENTRY_PROJECT_SERVER || 'node-express' }}
+      SENTRY_ENVIRONMENT: ${{ vars.SENTRY_ENVIRONMENT || 'production' }}
+      SENTRY_ORG: ${{ vars.SENTRY_ORG || 'scorelytic' }}
+      SUPABASE_URL: ${{ vars.SUPABASE_URL || 'http://localhost:54321' }}
+      DISABLE_OPENAI: false
+      LLM_PROMPT_STYLE: ${{ vars.LLM_PROMPT_STYLE || 'DEFAULT' }}
+      LOG_LLM_OUTPUT: false
+      NODE_ENV: production
+      SENTRY_RELEASE: ${{ github.sha }}
+      NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN_CLIENT || 'dummy' }}
+      NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${{ vars.NEXT_PUBLIC_SENTRY_ENVIRONMENT || vars.SENTRY_ENVIRONMENT || 'production' }}
+      NEXT_PUBLIC_SENTRY_RELEASE: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Set up cookies.txt from secret
+        run: echo "${{ secrets.COOKIES_TXT }}" > ./server/src/cookies.txt
+        shell: bash
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+      - name: Install pnpm globally
+        run: npm install -g pnpm
+      - name: Install dependencies
+        run: pnpm install --prefer-offline --frozen-lockfile
+      - name: Run unit tests
+        run: pnpm turbo run test --concurrency=2 --cache-dir=.turbo
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage
 # e2e:
 #   needs: unit-tests
 #   environment: CI
