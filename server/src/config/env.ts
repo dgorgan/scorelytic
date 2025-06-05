@@ -1,10 +1,10 @@
 import { cleanEnv, str, bool, port, url } from 'envalid';
 
-const isTest = process.env.NODE_ENV === 'test';
+const isTestOrDev = ['test', 'development'].includes(process.env.NODE_ENV ?? '');
 
 export const env = cleanEnv(
   process.env,
-  isTest
+  isTestOrDev
     ? {
         SUPABASE_URL: url({ default: 'http://localhost' }),
         SUPABASE_SERVICE_ROLE_KEY: str({ default: 'dummy' }),
