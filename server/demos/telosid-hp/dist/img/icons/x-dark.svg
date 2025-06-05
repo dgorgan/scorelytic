@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="17px" viewBox="0 0 16 17" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 49.2 (51160) - http://www.bohemiancoding.com/sketch -->
+    <title>Group</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="hp-mobile-copy" transform="translate(-283.000000, -22.000000)" fill="#515F73" stroke="#515F73" stroke-width="0.75">
+            <g id="expanded-submenu">
+                <g id="icon" transform="translate(283.000000, 22.000000)">
+                    <g id="Group">
+                        <path d="M17.92,8 L-1.52807692,8 C-1.78884615,8 -2,8.21461538 -2,8.47423077 C-2,8.73384615 -1.78884615,8.94615385 -1.52807692,8.94615385 L17.92,8.94615385 C18.1807692,8.94615385 18.3930769,8.73269231 18.3930769,8.47423077 C18.3919231,8.21346154 18.1807692,8 17.92,8" id="Fill-6" transform="translate(8.196538, 8.576923) rotate(-315.000000) translate(-8.196538, -8.576923) "></path>
+                        <path d="M17.92,8 L-1.52807692,8 C-1.78884615,8 -2,8.21346154 -2,8.47192308 C-2,8.73384615 -1.78884615,8.945 -1.52807692,8.945 L17.92,8.945 C18.1807692,8.945 18.3930769,8.73269231 18.3930769,8.47192308 C18.3919231,8.21346154 18.1807692,8 17.92,8" id="Fill-3" transform="translate(8.196538, 8.576923) rotate(-45.000000) translate(-8.196538, -8.576923) "></path>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
