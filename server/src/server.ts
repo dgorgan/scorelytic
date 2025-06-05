@@ -5,6 +5,13 @@ import { env } from '@/config/env';
 import app from '@/app';
 import logger from '@/logger';
 const Sentry = require('@sentry/node');
+import fs from 'fs';
+const cookiesPath = path.resolve(__dirname, '../../../cookies.txt');
+console.log('[startup] cookies.txt exists:', fs.existsSync(cookiesPath));
+if (fs.existsSync(cookiesPath)) {
+  const stat = fs.statSync(cookiesPath);
+  console.log('[startup] cookies.txt size:', stat.size);
+}
 
 // Use the port from env (Render injects it); fallback for local if needed
 const PORT = env.PORT;
