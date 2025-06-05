@@ -8,6 +8,7 @@ export const API_CONFIG = {
     YOUTUBE: {
       METADATA: '/api/youtube/metadata',
       PROCESS: '/api/youtube/process',
+      PROCESS_STREAM: '/api/youtube/process/stream',
       TRANSCRIPT: '/api/youtube/transcript',
     },
     GAMES: '/api/games',
@@ -60,4 +61,15 @@ export const buildYouTubeMetadataUrl = (videoId: string): string => {
 
 export const buildYouTubeProcessUrl = (): string => {
   return `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.YOUTUBE.PROCESS}`;
+};
+
+export const buildYouTubeProcessStreamUrl = (
+  videoId: string,
+  generalAnalysis?: boolean,
+): string => {
+  let url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.YOUTUBE.PROCESS_STREAM}?videoId=${encodeURIComponent(videoId)}`;
+  if (typeof generalAnalysis === 'boolean') {
+    url += `&generalAnalysis=${generalAnalysis}`;
+  }
+  return url;
 };

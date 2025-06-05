@@ -1,0 +1,27 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: $font-primary, sans-serif;
+  // background-color: rgba(218,224,225,0.35);
+  font-size: 16px;
+  color: $gray;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  &.landing {
+    background-color: #fff;
+  }
+}
+
+body {
+  background-color: rgba(218, 224, 225, 0.35);
+}
+
+img {
+  max-width: 100%;
+}

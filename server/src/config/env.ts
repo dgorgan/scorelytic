@@ -1,10 +1,10 @@
 import { cleanEnv, str, bool, port, url } from 'envalid';
 
-const isTest = process.env.NODE_ENV === 'test';
+const isTestOrDev = ['test', 'development'].includes(process.env.NODE_ENV ?? '');
 
 export const env = cleanEnv(
   process.env,
-  isTest
+  isTestOrDev
     ? {
         SUPABASE_URL: url({ default: 'http://localhost' }),
         SUPABASE_SERVICE_ROLE_KEY: str({ default: 'dummy' }),
@@ -19,7 +19,7 @@ export const env = cleanEnv(
         DISABLE_OPENAI: bool({ default: false }),
         LLM_PROMPT_STYLE: str({ default: 'DEFAULT' }),
         LOG_LLM_OUTPUT: bool({ default: false }),
-        PORT: port({ default: 5000 }),
+        PORT: port({ default: isTestOrDev ? 5000 : undefined }),
         YOUTUBE_API_KEY: str({ default: 'test-api-key' }),
         NODE_ENV: str({ default: 'development' }),
       }

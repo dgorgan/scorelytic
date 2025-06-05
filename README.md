@@ -2,6 +2,22 @@
 
 Scorelytic is a transparent, bias-aware video game review analysis platform. It ingests YouTube and critic reviews, extracts sentiment and bias, and provides both raw and bias-adjusted scores—empowering users to see how different perspectives shape review outcomes.
 
+<details>
+  <summary>Scorelytic Monorepo Boilerplate</summary>
+
+This monorepo architecture reflects months of careful design to support Scorelytic's unique blend of AI-driven sentiment analysis, bias adjustment, and transparent review aggregation.
+
+- **Modular**: Clear separation between frontend, backend, and shared logic.
+- **Type-safe**: Fully TypeScript powered for reliability and developer productivity.
+- **Scalable**: Designed to support future AI features, user profiles, and external integrations.
+- **Developer Friendly**: Uses pnpm workspaces and turbo repo-style workflows for blazing-fast installs and builds.
+
+The architecture balances ease of development with performance and maintainability, letting us move fast without sacrificing code quality.
+
+For the full architecture details, see the [Scorelytic Monorepo Boilerplate](README-boilerplate.md).
+
+</details>
+
 ## Key Features
 
 - **Hybrid transcript extraction** (captions + audio fallback)

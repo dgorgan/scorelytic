@@ -1,0 +1,69 @@
+.affiliate-logos {
+  padding: 1.5rem 0 2.3rem;
+
+  @include min($sm) {
+    padding: 2.25rem 0 5.6875rem;
+  }
+}
+.logos-wrap {
+  position: relative;
+}
+
+.logos-list {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .logo {
+    max-width: 100%;
+    height: 30px;
+    margin: 0 auto;
+
+    @include min($sm) {
+      margin: 0 1rem;
+      height: 45px;
+    }
+  }
+}
+
+.logos-arrows {
+  display: inline-block;
+  position: absolute;
+  margin-left: 30px;
+  top: 15px;
+  right: 15px;
+
+  .arrow-next {
+    &:before {
+      content: '';
+      display: block;
+      width: 7px;
+      height: 12px;
+      background: url('../../dist/img/icons/arrow-next-dark.svg');
+      background-repeat: no-repeat;
+      background-size: contain;
+    }
+  }
+
+  @include min($sm) {
+    display: none;
+  }
+}
+
+.about-telos {
+  padding: 2rem 0;
+
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+
+    @include min(1200px) {
+      padding: 0;
+    }
+  }
+
+  h3 {
+    font-family: $roboto-medium;
+  }
+}

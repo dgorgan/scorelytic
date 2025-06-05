@@ -1,0 +1,173 @@
+<!doctype html>
+<html class="landing">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <title>ROI Calculator</title>
+
+    <meta name="author" content="name" />
+    <meta name="description" content="Deltek ROI Calculator" />
+    <meta
+      name="keywords"
+      content="deltek, calculator, roi, bizdev, utilization, project profitability"
+    />
+
+    <link rel="shortcut icon" href="../scorelytic-favicon.png" type="image/vnd.microsoft.icon" />
+    <link rel="stylesheet" href="https://use.typekit.net/pbq7luy.css" />
+    <link rel="stylesheet" href="dist/css/style.css" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css?family=Inter:400,700&display=swap"
+    />
+    <style>
+      body {
+        font-family: 'Inter', Arial, sans-serif;
+        background: #f8fafc;
+        margin: 0;
+      }
+      .navbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #fff;
+        box-shadow: 0 2px 8px #0001;
+        padding: 16px 32px;
+      }
+      .navbar-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .navbar-logo {
+        height: 46px;
+        width: 100%;
+        vertical-align: middle;
+      }
+      .navbar-title {
+        font-weight: bold;
+        font-size: 1.5rem;
+        color: #222;
+        margin-left: 8px;
+      }
+      .navbar-link {
+        color: #374151;
+        text-decoration: none;
+        margin-left: 24px;
+        font-weight: 500;
+        transition: color 0.2s;
+      }
+      .navbar-link:hover {
+        color: #2563eb;
+      }
+      .navbar-right {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+      }
+      .back-link {
+        color: #2563eb;
+        text-decoration: none;
+        font-weight: 500;
+        margin-right: 24px;
+      }
+      .back-link:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+
+  <body class="landing">
+    <nav class="navbar">
+      <div class="navbar-left">
+        <a href="http://localhost:4000/dashboard" title="Go to Scorelytic App">
+          <img src="../scorelytic-logo.png" alt="Scorelytic Logo" class="navbar-logo" />
+        </a>
+        <a href="/demos/index.html" class="navbar-link">Demos</a>
+      </div>
+      <div class="navbar-right">
+        <a href="/demos/telosid-hp/index.html" class="navbar-link">TelosID HP</a>
+        <a href="/demos/index.html" class="back-link">&larr; Back to Demos</a>
+      </div>
+    </nav>
+    <div class="app-container">
+      <!-- app container-->
+
+      <div class="app-inner home">
+        <!-- app inner-->
+
+        <div class="hero-section">
+          <!--hero-section-->
+
+          <header>
+            <div class="hero">
+              <a href="javascript:void(0)" class="js-open home-cta">
+                <img src="dist/img/icons/deltek-logo.svg" class="logo home-cta" alt="Deltek Logo" />
+              </a>
+              <h1 class="hero-statement">Estimate your Optimized ROI</h1>
+              <h2 class="hero-substatement">
+                Increase win percentage. Optimize utilization to maximize profit. Make profitable
+                projects yield better results. With our Deltek Calculator you can better estimate
+                the Return on Investment your firm needs to be competetive in today's marketplace.
+                Share your insights with colleagues by email, post your results online, or print a
+                perfect plan forward.
+              </h2>
+            </div>
+          </header>
+
+          <main>
+            <div class="callout-wrap">
+              <div class="callout">
+                <img src="dist/img/icons/chart.svg" class="callout-icon" alt="" />
+                <h4 class="callout-title">Business Development</h4>
+                <p class="callout-statement">
+                  What if you could increase your win rate - and the value of each new opportunity?
+                </p>
+                <a href="calculator.html#business-development" class="btn">Calculate</a>
+              </div>
+              <div class="callout">
+                <img src="dist/img/icons/pie-chart.svg" class="callout-icon" alt="" />
+                <h4 class="callout-title">Utilization</h4>
+                <p class="callout-statement">
+                  Imagine the benefit of increasing the utilization of your valuable resources.
+                </p>
+                <a href="calculator.html#utilization" class="btn">Calculate</a>
+              </div>
+              <div class="callout">
+                <img src="dist/img/icons/piggy-bank.svg" class="callout-icon" alt="" />
+                <h4 class="callout-title">Project Profitability</h4>
+                <p class="callout-statement">
+                  Consider the impact to your buttom line when fewer projects are over budget.
+                </p>
+                <a href="calculator.html#project-profitability" class="btn">Calculate</a>
+              </div>
+            </div>
+          </main>
+        </div>
+        <!-- end hero section-->
+      </div>
+      <!-- end app inner-->
+
+      <footer class="footer-landing">
+        <div class="footer-inner">
+          <img
+            src="dist/img/icons/deltek-logo-dark.png"
+            width="90"
+            height="24"
+            class="logo"
+            alt="Deltek Logo"
+          />
+          <div class="footer-links">
+            <span>&copy; 2018 Deltek, Inc.</span> | <a href="#">Company Overview</a> |
+            <a href="#">Privacy Statement</a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <!-- end app container-->
+
+    <script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.min.js"></script>
+    <script src="src/js/fetch.js"></script>
+    <script src="dist/js/scripts.min.js"></script>
+  </body>
+</html>

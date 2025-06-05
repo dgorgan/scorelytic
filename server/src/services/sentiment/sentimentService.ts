@@ -116,7 +116,10 @@ Return a JSON object with these fields:
 - culturalContext: { justification, ideologicalThemes (array), audienceReactions: { aligned, neutral, opposed } }
 
 Rules:
-- Each field must be present. If not inferable, use null or an empty array.
+- Each field must be present in the output.
+- To calculate biasAdjustedScore, sum the scoreInfluence values from biasesDetected and add the total to originalScore. Clamp the result to [0, 10].
+- If the sum is zero, set biasAdjustedScore equal to originalScore and explain in the rationale why no adjustment was made.
+- Always provide a rationale, even if no adjustment is made.
 - Use clean, modern language. Do not hallucinate facts.
 - Respond ONLY with JSON. No extra commentary.
 
@@ -570,8 +573,12 @@ export const analyzeBiasImpact = async (
           'Fallback: Score adjusted based on detected biases and simple heuristics.',
       };
     }
-    // Clamp score to [0, 10]
-    result.biasAdjustedScore = Math.max(0, Math.min(10, result.biasAdjustedScore));
+    // Clamp score to [0, 10] and fallback if null
+    if (typeof result.biasAdjustedScore !== 'number' || isNaN(result.biasAdjustedScore)) {
+      result.biasAdjustedScore = result.originalScore;
+    } else {
+      result.biasAdjustedScore = Math.max(0, Math.min(10, result.biasAdjustedScore));
+    }
     return result;
   } catch (err) {
     biasAdjustmentApiErrorCount++;
@@ -628,7 +635,7 @@ export const analyzeTextWithBiasAdjustmentFull = async (
     reviewSummary: sentiment.reviewSummary || '',
   };
   // Bias adjustment phase
-  const biasAdjustmentRaw = await analyzeBiasImpact(
+  let biasAdjustmentRaw = await analyzeBiasImpact(
     {
       originalScore: biasDetection.originalScore,
       biasIndicators: sentiment.biasIndicators,
@@ -639,6 +646,38 @@ export const analyzeTextWithBiasAdjustmentFull = async (
     },
     preferredModel,
   );
+  // Fallback: If LLM did not adjust score or rationale is missing, synthesize adjustment
+  if (
+    biasAdjustmentRaw.biasAdjustedScore === biasDetection.originalScore ||
+    !biasAdjustmentRaw.adjustmentRationale ||
+    biasAdjustmentRaw.adjustmentRationale.trim() === ''
+  ) {
+    // Synthesize rationale and adjustment
+    const biasObjs = mapBiasLabelsToObjects(
+      sentiment.biasIndicators,
+      sentiment.reviewSummary || '',
+      sentiment.pros,
+      sentiment.cons,
+    );
+    const totalScoreAdjustment = biasObjs.reduce((sum, b) => sum + b.scoreInfluence, 0);
+    const biasAdjustedScore = Math.max(
+      0,
+      Math.min(10, Math.round((biasDetection.originalScore + totalScoreAdjustment) * 10) / 10),
+    );
+    const rationale =
+      totalScoreAdjustment === 0
+        ? 'No bias adjustment was made because no significant biases were detected.'
+        : `Score adjusted by ${totalScoreAdjustment > 0 ? '+' : ''}${totalScoreAdjustment} based on detected biases: ${biasObjs
+            .map((b) => b.biasName)
+            .join(', ')}.`;
+    biasAdjustmentRaw = {
+      ...biasAdjustmentRaw,
+      biasAdjustedScore,
+      totalScoreAdjustment,
+      adjustmentRationale: rationale,
+    };
+    logger.warn('[BiasAdjustment] Fallback adjustment/rationale used for review.');
+  }
   const biasAdjustment: BiasAdjustmentPhaseOutput = {
     biasAdjustedScore: biasAdjustmentRaw.biasAdjustedScore,
     totalScoreAdjustment: biasAdjustmentRaw.totalScoreAdjustment,
@@ -764,6 +803,32 @@ export const MOCK_FULL_BIAS_SCORING_OUTPUT: FullBiasScoringOutput = {
       opposed: 'Could be critical of perceived ideological or franchise-driven elements.',
     },
   },
+};
+
+export const analyzeGeneralSummary = async (
+  text: string,
+  preferredModel?: string,
+): Promise<{ summary: string; keyNotes: string[] }> => {
+  const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
+  const model = preferredModel || 'gpt-4o';
+  const prompt = `Summarize what this video is about and list any key notes or important points. Return a JSON object with two fields: summary (string), keyNotes (array of strings).`;
+  const messages = [
+    { role: 'system', content: 'You are an expert assistant for summarizing YouTube videos.' },
+    { role: 'user', content: prompt },
+    { role: 'user', content: `Transcript:\n${text}` },
+  ];
+  const completion = await openai.chat.completions.create({
+    model,
+    messages: messages as any,
+    ...(supportsJsonResponse(model) ? { response_format: { type: 'json_object' } } : {}),
+    temperature: 0.7,
+  });
+  const raw = completion.choices[0]?.message?.content?.trim() || '{}';
+  const parsed = JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0] || raw);
+  return {
+    summary: parsed.summary || '',
+    keyNotes: Array.isArray(parsed.keyNotes) ? parsed.keyNotes : [],
+  };
 };
 
 export { analyzeText as analyzeSentiment };

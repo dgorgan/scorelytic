@@ -24,4 +24,9 @@ module.exports = {
   },
   snapshotSerializers: ['@emotion/jest/serializer'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+  globals: {
+    'ts-jest': {
+      tsconfig: '<rootDir>/tsconfig.test.json',
+    },
+  },
 };

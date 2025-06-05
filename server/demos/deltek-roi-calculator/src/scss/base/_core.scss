@@ -1,0 +1,305 @@
+/** HERO **/
+.app-container {
+  width: 1440px;
+  margin: 0 auto;
+}
+
+.app-inner {
+  padding: 3rem 7.5rem;
+
+  &.home {
+    padding: 0;
+  }
+
+  &.results {
+    .calculator {
+      margin-bottom: 1.3125rem;
+      overflow: hidden;
+
+      input {
+        padding-left: 0;
+      }
+    }
+
+    .bizdev-section .field.range-field.row-field :last-child.wrap {
+      margin-left: -9.35rem;
+    }
+
+    .utilization-section .field.range-field.row-field :last-child.wrap {
+      margin-left: -9.85rem;
+    }
+
+    .profitability-section .field.range-field.row-field :last-child.wrap {
+      margin-left: -8rem;
+    }
+  }
+}
+
+.hero {
+  height: 500px;
+  background-color: #464646;
+  background: url('../img/icons/gradient.png');
+  background-size: contain;
+  font-size: 50px;
+  color: #ffffff;
+  letter-spacing: 0;
+  padding: 4.6875rem 0 6.25rem 7.5rem;
+
+  &.small {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100px;
+    padding: 0.9rem 7.5rem 0.9rem 7.5rem;
+    background-size: cover;
+
+    a {
+      display: inherit;
+    }
+  }
+
+  .hero-statement {
+    max-width: 63%;
+    margin-top: 1.1125rem;
+    margin-bottom: 0;
+    padding-top: 3.06875rem;
+    font-family: $font-secondary;
+    font-weight: 100;
+    font-size: 3.125rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .hero-substatement {
+    max-width: 60%;
+    margin: 0.75rem 0 0;
+    font-size: 1.1875rem;
+    font-family: $font-primary;
+    font-weight: 400;
+  }
+}
+
+/** CALLOUTs **/
+
+.callout-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 3.72rem 0 4.6875rem;
+  background-color: #fff;
+}
+
+.callout {
+  max-width: 350px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 0 2.375rem;
+  text-align: center;
+
+  .callout-title {
+    color: #1c191a;
+    font-family: $font-secondary;
+    font-size: 1.375rem;
+    font-weight: 400;
+    margin-top: 2.325rem;
+    margin-bottom: 0;
+
+    &.short-title {
+      max-width: 75%;
+    }
+
+    &.long-title {
+      max-width: 95%;
+    }
+  }
+
+  .callout-statement {
+    width: 100%;
+    font-size: 1.125rem;
+    font-weight: 300;
+  }
+
+  .btn {
+    margin-top: 1.28rem;
+  }
+}
+
+/** CALC NAV **/
+.calculator-nav {
+  height: 75px;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  background-color: #fff;
+  box-shadow: 0 1px 8px 2px rgba(70, 70, 70, 0.05);
+}
+
+a.nav-item {
+  display: flex;
+  position: relative;
+  // margin: 0 2.15rem;
+  padding: 0 2.15rem;
+  // margin-top: 1rem;
+  font-size: 1.125rem;
+  line-height: 75px;
+  border-bottom: 2px solid transparent;
+  color: #1c191a;
+  opacity: 1;
+  transition: all 0.3s;
+
+  &:hover,
+  &.active {
+    background-color: rgba(0, 183, 237, 0.15);
+  }
+
+  &:after {
+    content: '';
+    width: 0;
+    height: 2px;
+    background: #00b7ed;
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    transition: all 0.3s;
+  }
+
+  &:hover,
+  &.active {
+    opacity: 1;
+  }
+
+  &:hover:after,
+  &.active:after {
+    width: 100%;
+    opacity: 1;
+  }
+
+  &.biz-icon {
+    &:before {
+      content: '';
+      width: 25px;
+      height: 25px;
+      margin-right: 0.75rem;
+      margin-top: 27px;
+      background: url('../img/icons/chart.svg');
+      background-repeat: no-repeat;
+      background-size: contain;
+    }
+  }
+
+  &.util-icon {
+    &:before {
+      content: '';
+      width: 25px;
+      height: 25px;
+      margin-right: 0.75rem;
+      margin-top: 25px;
+      background: url('../img/icons/pie-chart.svg');
+      background-repeat: no-repeat;
+      background-size: contain;
+    }
+  }
+
+  &.profit-icon {
+    &:before {
+      content: '';
+      width: 25px;
+      height: 25px;
+      margin-right: 0.75rem;
+      margin-top: 25px;
+      background: url('../img/icons/piggy-bank.svg');
+      background-repeat: no-repeat;
+      background-size: contain;
+    }
+  }
+
+  &.results-icon {
+    &:before {
+      content: '';
+      width: 25px;
+      height: 25px;
+      margin-right: 0.75rem;
+      margin-top: 27px;
+      background: url('../img/icons/results.svg');
+      background-repeat: no-repeat;
+      background-size: contain;
+    }
+  }
+
+  &.home-icon {
+    &:before {
+      content: '';
+      width: 26px;
+      height: 25px;
+      margin-right: 0.5rem;
+      margin-top: 27px;
+      background: url('../img/icons/calculator.svg');
+      background-repeat: no-repeat;
+      background-size: contain;
+    }
+  }
+}
+
+.share-utility {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: $font-secondary;
+
+  h3 {
+    margin: 1.5625rem 0;
+  }
+
+  .share-utility-links {
+    display: flex;
+  }
+
+  .utility-link {
+    display: flex;
+    align-items: center;
+    margin: 0 1.09rem;
+    color: #007cbc;
+    font-family: $font-primary;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+
+    &:hover {
+      color: lighten(#007cbc, 15%);
+    }
+
+    &:nth-child(1):before {
+      display: inline-block;
+      content: '';
+      width: 15px;
+      height: 15px;
+      margin-right: 0.75rem;
+      background: url('../img/icons/share.svg');
+      background-repeat: no-repeat;
+      background-size: contain;
+    }
+
+    &:nth-child(2):before {
+      display: inline-block;
+      content: '';
+      width: 15px;
+      height: 15px;
+      margin-right: 0.75rem;
+      background: url('../img/icons/persona.svg');
+      background-repeat: no-repeat;
+      background-size: contain;
+    }
+
+    &:nth-child(3):before {
+      display: inline-block;
+      content: '';
+      width: 15px;
+      height: 15px;
+      margin-right: 0.28rem;
+      background: url('../img/icons/download.svg');
+      background-repeat: no-repeat;
+      background-size: contain;
+    }
+  }
+}

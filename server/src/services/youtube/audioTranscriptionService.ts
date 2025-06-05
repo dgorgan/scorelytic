@@ -4,6 +4,8 @@ import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
 import { env } from '@/config/env';
+import { execSync } from 'child_process';
+import ffmpeg from 'fluent-ffmpeg';
 
 const unlinkAsync = promisify(fs.unlink);
 
@@ -12,11 +14,16 @@ export interface TranscriptionOptions {
   audioQuality?: 'worst' | 'best'; // Default: worst (smaller files)
   tempDir?: string; // Default: /tmp
   language?: string; // Default: 'en'
+  forceEnglish?: boolean; // If true, use translation endpoint
 }
 
 export interface TranscriptionHelpers {
   downloadAudio: (videoUrl: string, audioPath: string, options: any) => Promise<void>;
-  transcribeAudioWithOpenAI: (audioPath: string, language: string) => Promise<string>;
+  transcribeAudioWithOpenAI: (
+    audioPath: string,
+    language: string,
+    forceEnglish?: boolean,
+  ) => Promise<string>;
   getVideoDuration: (videoId: string) => Promise<number>;
   fileExists: (filePath: string) => boolean;
   unlinkFile: (filePath: string) => Promise<void>;
@@ -26,6 +33,20 @@ export interface TranscriptionHelpers {
 
 const defaultHelpers: TranscriptionHelpers = {
   downloadAudio: async (videoUrl, audioPath, { maxDurationMinutes, audioQuality }) => {
+    const cookiesPath = path.join(process.cwd(), 'src/cookies.txt');
+    const cookiesExists = fs.existsSync(cookiesPath);
+    const cookiesContent = cookiesExists ? fs.readFileSync(cookiesPath, 'utf8') : '';
+    const crypto = require('crypto');
+    const cookiesHash = cookiesExists
+      ? crypto.createHash('sha256').update(cookiesContent).digest('hex')
+      : null;
+    // Debug logs
+    // eslint-disable-next-line no-console
+    console.log('[yt-dlp] cookies.txt path:', cookiesPath);
+    // eslint-disable-next-line no-console
+    console.log('[yt-dlp] cookies.txt exists:', cookiesExists);
+    // eslint-disable-next-line no-console
+    if (cookiesExists) console.log('[yt-dlp] cookies.txt sha256:', cookiesHash);
     const ytDlpWrap = new YTDlpWrap();
     await ytDlpWrap.execPromise([
       videoUrl,
@@ -39,6 +60,8 @@ const defaultHelpers: TranscriptionHelpers = {
       '--output',
       audioPath.replace('.mp3', '.%(ext)s'),
       '--no-playlist',
+      '--cookies',
+      cookiesPath,
     ]);
   },
   transcribeAudioWithOpenAI: async (audioPath, language) => {
@@ -52,15 +75,65 @@ const defaultHelpers: TranscriptionHelpers = {
     return transcription;
   },
   getVideoDuration: async (videoId) => {
+    const cookiesPath = path.join(process.cwd(), 'src/cookies.txt');
+    console.log('cookiesPath', cookiesPath);
+    const cookiesExists = fs.existsSync(cookiesPath);
+    const cookiesContent = cookiesExists ? fs.readFileSync(cookiesPath, 'utf8') : '';
+    const crypto = require('crypto');
+    const cookiesHash = cookiesExists
+      ? crypto.createHash('sha256').update(cookiesContent).digest('hex')
+      : null;
+    // Debug logs
+    // eslint-disable-next-line no-console
+    console.log('[yt-dlp] cookies.txt path:', cookiesPath);
+    // eslint-disable-next-line no-console
+    console.log('[yt-dlp] cookies.txt exists:', cookiesExists);
+    // eslint-disable-next-line no-console
+    if (cookiesExists) console.log('[yt-dlp] cookies.txt sha256:', cookiesHash);
     const ytDlpWrap = new YTDlpWrap();
     const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-    const info = await ytDlpWrap.getVideoInfo(videoUrl);
+    const out = await ytDlpWrap.execPromise([videoUrl, '--dump-json', '--cookies', cookiesPath]);
+    const info = JSON.parse(out);
     return Math.ceil((info.duration || 0) / 60);
   },
   fileExists: (filePath) => fs.existsSync(filePath),
   unlinkFile: (filePath) => unlinkAsync(filePath),
-  createReadStream: (filePath) => fs.createReadStream(filePath),
+  createReadStream: (filePath: string) => fs.createReadStream(filePath),
   getOpenAI: () => new OpenAI({ apiKey: env.OPENAI_API_KEY }),
+};
+
+// Helper: Get audio duration (seconds) using fluent-ffmpeg
+const getAudioDuration = (audioPath: string): Promise<number> =>
+  new Promise((resolve, reject) => {
+    ffmpeg.ffprobe(audioPath, (err: any, metadata: any) => {
+      if (err) return reject(err);
+      resolve(metadata.format.duration);
+    });
+  });
+
+// Helper: Split audio file into ≤25MB chunks using ffmpeg (async)
+const splitAudioFile = async (
+  audioPath: string,
+  maxChunkBytes = 25 * 1024 * 1024,
+): Promise<string[]> => {
+  const fs = require('fs');
+  const path = require('path');
+  const stat = fs.statSync(audioPath);
+  if (stat.size <= maxChunkBytes) return [audioPath];
+  // Get duration in seconds (async)
+  const duration = await getAudioDuration(audioPath);
+  // Estimate chunk duration
+  const numChunks = Math.ceil(stat.size / maxChunkBytes);
+  const chunkDuration = Math.ceil(duration / numChunks);
+  const chunkPaths: string[] = [];
+  for (let i = 0; i < numChunks; i++) {
+    const chunkPath = audioPath.replace(/\.mp3$/, `.chunk${i}.mp3`);
+    execSync(
+      `ffmpeg -y -i "${audioPath}" -ss ${i * chunkDuration} -t ${chunkDuration} -c copy "${chunkPath}"`,
+    );
+    chunkPaths.push(chunkPath);
+  }
+  return chunkPaths;
 };
 
 /**
@@ -80,6 +153,7 @@ export const transcribeYouTubeAudio = async (
     audioQuality = 'worst',
     tempDir = '/tmp',
     language = 'en',
+    forceEnglish = false,
   } = options;
 
   const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
@@ -93,20 +167,37 @@ export const transcribeYouTubeAudio = async (
     });
     if (!helpers.fileExists(audioPath)) {
       throw new Error(
-        `Audio extraction failed - file not created. Video may be too long (>${maxDurationMinutes}min) or unavailable.`,
+        `Audio extraction failed - file not created. Video may be too long (> ${maxDurationMinutes}min) or unavailable.`,
       );
     }
-    // Transcribe
-    const transcription = await helpers.transcribeAudioWithOpenAI(audioPath, language);
-    await helpers.unlinkFile(audioPath);
-    return transcription;
+    // --- Chunking logic ---
+    const fs = require('fs');
+    const stat = fs.statSync(audioPath);
+    let transcript = '';
+    if (stat.size > 25 * 1024 * 1024) {
+      // Split and transcribe each chunk
+      const chunkPaths = await splitAudioFile(audioPath);
+      for (const chunkPath of chunkPaths) {
+        transcript += await helpers.transcribeAudioWithOpenAI(chunkPath, language, forceEnglish);
+        await helpers.unlinkFile(chunkPath);
+      }
+      await helpers.unlinkFile(audioPath);
+      return transcript;
+    } else {
+      // Transcribe whole file
+      transcript = await helpers.transcribeAudioWithOpenAI(audioPath, language, forceEnglish);
+      await helpers.unlinkFile(audioPath);
+      return transcript;
+    }
   } catch (error: any) {
     try {
       if (helpers.fileExists(audioPath)) {
         await helpers.unlinkFile(audioPath);
       }
     } catch {}
-    if (error.message?.includes('duration')) {
+    // Only check actual duration if error is about duration or file not created
+    const duration = await helpers.getVideoDuration(videoId);
+    if (duration > maxDurationMinutes) {
       throw new Error(
         `Video ${videoId} is too long (>${maxDurationMinutes} minutes) for audio transcription`,
       );
@@ -133,11 +224,26 @@ export const estimateTranscriptionCost = (durationMinutes: number): number => {
  * Gets video duration from YouTube without downloading
  */
 export const getVideoDuration = async (videoId: string): Promise<number> => {
+  const cookiesPath = path.join(process.cwd(), 'src/cookies.txt');
+  console.log('cookiesPath', cookiesPath);
+  const cookiesExists = fs.existsSync(cookiesPath);
+  const cookiesContent = cookiesExists ? fs.readFileSync(cookiesPath, 'utf8') : '';
+  const crypto = require('crypto');
+  const cookiesHash = cookiesExists
+    ? crypto.createHash('sha256').update(cookiesContent).digest('hex')
+    : null;
+  // Debug logs
+  // eslint-disable-next-line no-console
+  console.log('[yt-dlp] cookies.txt path:', cookiesPath);
+  // eslint-disable-next-line no-console
+  console.log('[yt-dlp] cookies.txt exists:', cookiesExists);
+  // eslint-disable-next-line no-console
+  if (cookiesExists) console.log('[yt-dlp] cookies.txt sha256:', cookiesHash);
   const ytDlpWrap = new YTDlpWrap();
   const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-
   try {
-    const info = await ytDlpWrap.getVideoInfo(videoUrl);
+    const out = await ytDlpWrap.execPromise([videoUrl, '--dump-json', '--cookies', cookiesPath]);
+    const info = JSON.parse(out);
     return Math.ceil((info.duration || 0) / 60); // Return duration in minutes
   } catch (error: any) {
     throw new Error(`Failed to get video duration: ${error.message}`);

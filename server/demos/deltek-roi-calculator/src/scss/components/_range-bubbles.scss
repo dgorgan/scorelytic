@@ -1,0 +1,38 @@
+.range-wrap {
+  position: relative;
+}
+
+output {
+  position: absolute;
+  background-image: linear-gradient(#444444, #464646);
+  width: 36px;
+  height: 24px;
+  text-align: center;
+  color: #fff;
+  border-radius: 3px;
+  display: inline-block;
+  font-family: $font-primary;
+  font-size: 0.875rem;
+  font-weight: 500;
+  bottom: 130%;
+  left: 0;
+
+  &.right-output {
+    left: inherit;
+    right: inherit;
+  }
+}
+
+output:after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-top: 5px solid #464646;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  margin-top: -1px;
+}

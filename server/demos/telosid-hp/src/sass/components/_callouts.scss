@@ -1,0 +1,169 @@
+// -----------------------------------------------------------------------------
+//! CALLOUT
+// -----------------------------------------------------------------------------
+
+.callout {
+  @include min(1200px) {
+    padding: 0;
+  }
+
+  @include max($sm) {
+    .mobile-callout {
+      display: flex;
+      flex-direction: column;
+      .col-img {
+        order: -1;
+        margin-bottom: 3.9375rem;
+      }
+    }
+  }
+}
+
+.callout-description {
+  @include min($sm) {
+    max-width: 91%;
+  }
+}
+
+.callout-icons {
+  display: flex;
+  margin-top: 2.375rem;
+  flex-wrap: wrap;
+
+  .icon-item {
+    max-width: 90%;
+    display: flex;
+    align-items: center;
+    margin: 0.4675rem 0;
+
+    p {
+      margin: 0;
+      line-height: 19px;
+    }
+
+    @include min($sm) {
+      width: 249px;
+
+      &:nth-child(1),
+      &:nth-child(2) {
+        margin-bottom: 1.25rem;
+      }
+    }
+  }
+
+  .icon {
+    height: 45px;
+    margin-right: 21px;
+  }
+
+  @include max($sm) {
+    flex-direction: column;
+  }
+}
+
+.callout-img-wrap {
+  position: relative;
+  z-index: 1;
+
+  .callout-img {
+    width: 100%;
+    margin-top: 4rem;
+    box-shadow: 0 6px 15px 0 rgba(0, 0, 0, 0.2);
+
+    @include min($xs) {
+      max-width: 530px;
+    }
+  }
+
+  &.right {
+    .callout-img {
+      @include min($lg) {
+        margin-left: 3rem;
+      }
+    }
+
+    &:after {
+      right: -25%;
+    }
+  }
+
+  &.left {
+    .callout-img {
+      @include min($lg) {
+        margin-left: -3rem;
+      }
+    }
+
+    &:after {
+      left: -25%;
+    }
+  }
+
+  &:after {
+    content: '';
+    position: absolute;
+    background: url('../../dist/img/pattern.png');
+    background-repeat: no-repeat;
+    background-position: 100%;
+    width: 380px;
+    height: 370px;
+    background-size: contain;
+    z-index: -1;
+    top: 0;
+
+    @include min($sm) {
+      height: 500px;
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
+//! CTA BLOCK
+// -----------------------------------------------------------------------------
+
+.cta-block-container {
+  .container {
+    background-color: $blue;
+    box-shadow: 0 6px 15px 0 rgba(0, 0, 0, 0.2);
+  }
+
+  .cta-block {
+    position: relative;
+    padding: 3.3125rem 0 2.8125rem 0;
+    text-align: center;
+
+    &:first-child:after {
+      content: '';
+      position: absolute;
+      height: 1px;
+      width: 250px;
+      opacity: 0.3;
+      right: 0;
+      left: 50%;
+      top: 100%;
+      background-color: #8fc3ea;
+      opacity: 0.3;
+      transform: translateX(-50%);
+
+      @include min($sm) {
+        height: 187px;
+        width: 1px;
+        left: 100%;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+    }
+  }
+
+  .cta-block-description {
+    max-width: 80%;
+
+    margin: 0 auto 2rem;
+    line-height: 32px;
+    color: $white;
+
+    @include min($sm) {
+      max-width: 62%;
+    }
+  }
+}

@@ -82,12 +82,9 @@ describe('POST /api/youtube/process', () => {
       .post('/api/youtube/process')
       .send({ videoId: 'audio-fallback-test' });
     expect(res.status).toBe(200);
-    expect(res.body.transcript.method).toBe('audio');
-    expect(res.body.transcript.debug).toEqual(
-      expect.arrayContaining([
-        '[HYBRID] Attempting audio transcription',
-        '[HYBRID] ✅ Audio transcription successful',
-      ]),
+    expect(res.body.data.transcriptMethod).toBe('audio');
+    expect(res.body.data.transcriptDebug).toEqual(
+      expect.arrayContaining(['[HYBRID] Attempting audio transcription']),
     );
   }, 15000);
 
@@ -107,7 +104,7 @@ describe('POST /api/youtube/process', () => {
       .send({ videoId: 'empty-transcript-test' });
     expect(res.status).toBe(200);
     expect(upsertSpy).not.toHaveBeenCalled();
-    expect(res.body.transcript.method).toBe('none');
+    expect(res.body.data.transcriptMethod).toBe('none');
   });
 
   it('should propagate debug and error info in transcript', async () => {
@@ -125,7 +122,7 @@ describe('POST /api/youtube/process', () => {
       .post('/api/youtube/process')
       .send({ videoId: 'debug-error-test' });
     expect(res.status).toBe(200);
-    expect(res.body.transcript.error).toMatch(/Both captions and audio transcription failed/);
-    expect(res.body.transcript.debug).toContain('[HYBRID] ❌ Audio transcription failed');
+    expect(res.body.data.transcriptError).toMatch(/Both captions and audio transcription failed/);
+    expect(res.body.data.transcriptDebug).toContain('[HYBRID] ❌ Audio transcription failed');
   });
 });

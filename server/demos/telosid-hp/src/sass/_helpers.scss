@@ -1,0 +1,83 @@
+// -----------------------------------------------------------------------------
+//! Mixins
+// -----------------------------------------------------------------------------
+
+@mixin min($breakpoint) {
+  @media print, screen and (min-width: $breakpoint) {
+    @content;
+  }
+}
+
+@mixin max($breakpoint) {
+  $breakpoint: $breakpoint - 1;
+  @media screen and (max-width: $breakpoint) {
+    @content;
+  }
+}
+
+@mixin range($start, $end) {
+  $end: $end - 1;
+  @media screen and (min-width: $start) and (max-width: $end) {
+    @content;
+  }
+}
+
+@mixin psuedo-line($width: 1px, $height: 100%, $color: black) {
+  content: '';
+  position: absolute;
+  width: $width;
+  height: $height;
+  background: $color;
+}
+
+@mixin smoothing() {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// -----------------------------------------------------------------------------
+//! Classes
+// -----------------------------------------------------------------------------
+
+.cf:after {
+  content: '';
+  display: table;
+  clear: both;
+}
+
+.clear {
+  clear: both;
+}
+
+.nowrap {
+  overflow: auto;
+}
+
+&.no-padding-top {
+  padding-top: 0;
+}
+
+&.no-padding {
+  padding: 0 !important;
+}
+
+.text-highlight {
+  position: relative;
+
+  &:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 15px;
+    background-color: #fffa6e;
+    z-index: -1;
+  }
+
+  &.sm {
+    &:after {
+      height: 10px;
+    }
+  }
+}
