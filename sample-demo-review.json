@@ -1,0 +1,144 @@
+{
+  "reviewId": "https://www.youtube.com/watch?v=voX0IY71_jw",
+  "sentiment": {
+    "score": 7.5,
+    "sentimentScore": 7.5,
+    "summary": "The review of Doom: The Dark Ages presents the game as a nostalgic yet modern take on the Doom franchise, with a focus on its sound design and unique gameplay mechanics. While initially skeptical, the reviewer finds the game to be a fitting addition to the series, lauding its graphics and innovative features, though noting its higher cost compared to other games.",
+    "verdict": "positive",
+    "sentimentSummary": "Mostly positive",
+    "biasIndicators": ["nostalgia bias", "franchise bias"],
+    "alsoRecommends": [
+      "Doom 3",
+      "Doom Eternal",
+      "God of War",
+      "Halo",
+      "Dragon Ball",
+      "Titanfall",
+      "Red Dead",
+      "Metroid Dread"
+    ],
+    "pros": [
+      "Excellent sound design",
+      "Innovative gameplay mechanics",
+      "Nostalgic elements",
+      "Impressive graphics",
+      "Runs well on PC"
+    ],
+    "cons": ["Higher cost compared to similar games", "Feels similar to previous Doom games"],
+    "reviewSummary": "Doom: The Dark Ages is a nostalgic yet refreshing entry in the series, praised for its sound design and graphics, though it comes with a higher price tag.",
+    "biasDetection": {
+      "originalScore": 7.5,
+      "biasesDetected": [
+        {
+          "biasName": "nostalgia bias",
+          "severity": "moderate",
+          "impactOnExperience": "Nostalgia may cause the reviewer to overlook flaws or overrate positive aspects.",
+          "scoreInfluence": 0.4,
+          "explanation": "Nostalgia bias detected; reviewer may rate higher due to fondness for the franchise."
+        },
+        {
+          "biasName": "franchise bias",
+          "severity": "moderate",
+          "impactOnExperience": "Franchise loyalty may lead to higher scores.",
+          "scoreInfluence": 0.4,
+          "explanation": "Franchise bias detected."
+        }
+      ],
+      "reviewSummary": "Doom: The Dark Ages is a nostalgic yet refreshing entry in the series, praised for its sound design and graphics, though it comes with a higher price tag."
+    },
+    "biasAdjustment": {
+      "biasAdjustedScore": 8.3,
+      "totalScoreAdjustment": 0.8,
+      "rationale": "Score adjusted by +0.8 based on detected biases: nostalgia bias, franchise bias."
+    },
+    "sentimentSnapshot": {
+      "inferredScore": 7.5,
+      "verdict": "positive",
+      "confidenceLevel": "high",
+      "recommendationStrength": "strong"
+    },
+    "culturalContext": {
+      "justification": "Based on the review transcript, certain ideological themes and narrative framings may influence audience perception.",
+      "ideologicalThemes": ["representation", "studio reputation"],
+      "audienceReactions": {
+        "aligned": "Likely to resonate strongly with fans of inclusive narratives and franchise loyalists.",
+        "neutral": "May appreciate the technical and narrative strengths, but not be deeply moved.",
+        "opposed": "Could be critical of perceived ideological or franchise-driven elements."
+      }
+    }
+  },
+  "metadata": {
+    "title": "Doom: The Dark Ages",
+    "channelTitle": "videogamedunkey",
+    "channelId": "UCsvn_Po0SmunchJYOWpOxMg",
+    "publishedAt": "2025-05-15T19:30:16Z",
+    "description": "back then the best racing game was crusin usa\n\ngo bigmode store https://bigmode.com/shop",
+    "thumbnails": {
+      "default": {
+        "url": "https://i.ytimg.com/vi/voX0IY71_jw/default.jpg",
+        "width": 120,
+        "height": 90
+      },
+      "medium": {
+        "url": "https://i.ytimg.com/vi/voX0IY71_jw/mqdefault.jpg",
+        "width": 320,
+        "height": 180
+      },
+      "high": {
+        "url": "https://i.ytimg.com/vi/voX0IY71_jw/hqdefault.jpg",
+        "width": 480,
+        "height": 360
+      },
+      "standard": {
+        "url": "https://i.ytimg.com/vi/voX0IY71_jw/sddefault.jpg",
+        "width": 640,
+        "height": 480
+      },
+      "maxres": {
+        "url": "https://i.ytimg.com/vi/voX0IY71_jw/maxresdefault.jpg",
+        "width": 1280,
+        "height": 720
+      }
+    },
+    "tags": [
+      "dunkey",
+      "doom",
+      "doom dark ages",
+      "doom the dark ages",
+      "dark ages doom",
+      "doom eternal",
+      "doom eternal dunkview",
+      "dunkey doom",
+      "doom dunkey",
+      "doom 3",
+      "doom series",
+      "doom trilogy",
+      "doom 2015",
+      "fps",
+      "dunkey fps",
+      "fps dunkey",
+      "doom fps",
+      "first person shooter",
+      "single player fps",
+      "doom the dark ages review",
+      "doom dark ages review"
+    ]
+  },
+  "transcriptMethod": "captions",
+  "transcriptDebug": [
+    "[HYBRID] Starting hybrid transcript for voX0IY71_jw",
+    "Starting hybrid transcript for voX0IY71_jw",
+    "[HYBRID] Attempting captions for voX0IY71_jw",
+    "Attempting captions for voX0IY71_jw",
+    "[HYBRID] ✅ Captions successful: 2920 characters",
+    "✅ Captions successful: 2920 characters"
+  ],
+  "debug": [
+    "[HYBRID] Starting hybrid transcript for voX0IY71_jw",
+    "Starting hybrid transcript for voX0IY71_jw",
+    "[HYBRID] Attempting captions for voX0IY71_jw",
+    "Attempting captions for voX0IY71_jw",
+    "[HYBRID] ✅ Captions successful: 2920 characters",
+    "✅ Captions successful: 2920 characters"
+  ]
+}
