@@ -29,6 +29,8 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
   const [isSuccess, setIsSuccess] = useState(false);
   const stepsSet = useRef<Set<string>>(new Set());
   const resultRef = useRef<HTMLDivElement>(null);
+  const [showDetails, setShowDetails] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
 
   const fullResult = { ...result, ...(result?.data || {}) };
   const isGeneralAnalysis = !!fullResult.summary && Array.isArray(fullResult.keyNotes);
@@ -89,6 +91,11 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
       setSteps((prev) => [...prev, 'Success!']);
     }
   }, [isTrulySuccess, steps]);
+
+  useEffect(() => {
+    setShowDetails(false);
+    setShowVideo(false);
+  }, [result]);
 
   const resetProgress = () => {
     setProgressLogs([]);
@@ -314,7 +321,7 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
               ))}
             </ul>
             {isTrulySuccess && !error && (
-              <div className="flex items-center text-green-600 mt-2">
+              <div className="flex items-center text-green-600 mt-2" ref={resultRef}>
                 <CheckCircleIcon className="w-5 h-5 mr-2" />
                 <span className="font-semibold">Success!</span>
               </div>
@@ -341,56 +348,97 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
           const rationale = biasAdjustment?.rationale || biasAdjustment?.adjustmentRationale;
           const biasAdjustedScore = biasAdjustment?.biasAdjustedScore;
           const originalScore = biasDetection?.originalScore ?? sentiment?.score;
-          const [showDetails, setShowDetails] = useState(false);
           // If general analysis is checked and data is present, show ONLY the general analysis block
           if (generalAnalysis && isGeneralAnalysis) {
             return (
               <div className="mt-8">
                 {/* Metadata card (always show) */}
                 {meta && (
-                  <div
-                    ref={resultRef}
-                    className="bg-white rounded-lg shadow border border-gray-200 mb-6"
-                  >
-                    {meta.channelId ? (
+                  <div className="bg-white rounded-lg shadow border border-gray-200 mb-6">
+                    <div
+                      style={{
+                        position: 'relative',
+                        width: '100%',
+                        height: '656px',
+                        background: '#000',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      {showVideo ? (
+                        <iframe
+                          width="100%"
+                          height="100%"
+                          src={`https://www.youtube.com/embed/${extractVideoId(videoId.trim())}`}
+                          title={meta.title}
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                          }}
+                        />
+                      ) : (
+                        <>
+                          <Image
+                            src={
+                              meta.thumbnails?.maxres?.url ||
+                              meta.thumbnails?.high?.url ||
+                              meta.thumbnails?.default?.url
+                            }
+                            alt={meta.title}
+                            width={1920}
+                            height={1080}
+                            style={{ objectFit: 'cover', width: '100%', height: '656px' }}
+                            className="border-b"
+                          />
+                          <button
+                            onClick={() => setShowVideo(true)}
+                            style={{
+                              position: 'absolute',
+                              top: '50%',
+                              left: '50%',
+                              transform: 'translate(-50%, -50%)',
+                              background: 'rgba(0,0,0,0.6)',
+                              border: 'none',
+                              borderRadius: '50%',
+                              width: 72,
+                              height: 72,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              cursor: 'pointer',
+                              boxShadow: '0 2px 8px #0003',
+                            }}
+                            aria-label="Play video"
+                          >
+                            <svg
+                              width="40"
+                              height="40"
+                              viewBox="0 0 40 40"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <circle cx="20" cy="20" r="20" fill="rgba(255,255,255,0.85)" />
+                              <polygon points="16,12 30,20 16,28" fill="#a18aff" />
+                            </svg>
+                          </button>
+                        </>
+                      )}
+                    </div>
+                    <div className="p-6">
                       <a
+                        className="text-2xl font-bold text-gray-900 mb-2"
                         href={`https://www.youtube.com/watch?v=${extractVideoId(videoId.trim())}`}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        <Image
-                          src={
-                            meta.thumbnails?.maxres?.url ||
-                            meta.thumbnails?.high?.url ||
-                            meta.thumbnails?.default?.url
-                          }
-                          alt={meta.title}
-                          width={1920} // example width for 16:9 aspect ratio
-                          height={1080} // example height for 16:9 aspect ratio (h-96 ~ 384px, but use aspect ratio here)
-                          className="rounded-t-lg border-b hover:opacity-90 transition"
-                          style={{ objectFit: 'cover', width: '100%', height: '384px' }} // h-96 ≈ 384px
-                        />
+                        {meta.title}
                       </a>
-                    ) : (
-                      <Image
-                        src={
-                          meta.thumbnails?.maxres?.url ||
-                          meta.thumbnails?.high?.url ||
-                          meta.thumbnails?.default?.url
-                        }
-                        alt={meta.title}
-                        width={1920}
-                        height={1080} // h-64 ≈ 256px, but keep aspect ratio consistent, adjust style below
-                        className="rounded-t-lg border-b"
-                        style={{ objectFit: 'cover', width: '100%', height: '256px' }} // h-64 ≈ 256px
-                      />
-                    )}
-                    <div className="p-6">
-                      <div className="text-2xl font-bold text-gray-900 mb-2">{meta.title}</div>
                       <div className="flex items-center gap-3 mb-2">
                         {meta.channelId ? (
                           <a
-                            href={`https://www.youtube.com/watch?v=${extractVideoId(videoId.trim())}`}
+                            href={`https://www.youtube.com/channel/${meta.channelId}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-base text-gray-700 font-semibold hover:underline"
@@ -399,7 +447,7 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
                           </a>
                         ) : (
                           <a
-                            href={`https://www.youtube.com/watch?v=${extractVideoId(videoId.trim())}`}
+                            href={`https://www.youtube.com/channel/${meta.channelId}`}
                             className="text-base text-gray-700 font-semibold"
                           >
                             {meta.channelTitle}
@@ -479,13 +527,31 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
                 className="mt-8 bg-white rounded-lg shadow border border-gray-200"
               >
                 {/* Metadata card (same as general analysis) */}
-                <div className="bg-white rounded-t-lg border-b">
-                  {meta.channelId ? (
-                    <a
-                      href={`https://www.youtube.com/watch?v=${extractVideoId(videoId.trim())}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
+                <div
+                  style={{
+                    position: 'relative',
+                    width: '100%',
+                    height: '656px',
+                    background: '#000',
+                    overflow: 'hidden',
+                  }}
+                >
+                  {showVideo ? (
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      src={`https://www.youtube.com/embed/${extractVideoId(videoId.trim())}`}
+                      title={meta.title}
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                      }}
+                    />
+                  ) : (
+                    <>
                       <Image
                         src={
                           meta.thumbnails?.maxres?.url ||
@@ -493,88 +559,44 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
                           meta.thumbnails?.default?.url
                         }
                         alt={meta.title}
-                        width={1920} // 16:9 aspect ratio width
-                        height={1080} // 16:9 aspect ratio height
-                        className="rounded-t-lg border-b hover:opacity-90 transition"
-                        style={{ objectFit: 'cover', width: '100%', height: '384px' }} // h-96 ~ 384px
+                        width={1920}
+                        height={1080}
+                        style={{ objectFit: 'cover', width: '100%', height: '656px' }}
+                        className="border-b"
                       />
-                    </a>
-                  ) : (
-                    <Image
-                      src={
-                        meta.thumbnails?.maxres?.url ||
-                        meta.thumbnails?.high?.url ||
-                        meta.thumbnails?.default?.url
-                      }
-                      alt={meta.title}
-                      width={1920}
-                      height={1080}
-                      className="rounded-t-lg border-b"
-                      style={{ objectFit: 'cover', width: '100%', height: '256px' }} // h-64 ~ 256px
-                    />
-                  )}
-                  <div className="p-6">
-                    <div className="text-2xl font-bold text-gray-900 mb-2">{meta.title}</div>
-                    <div className="flex items-center gap-3 mb-2">
-                      {meta.channelId ? (
-                        <a
-                          href={`https://www.youtube.com/watch?v=${extractVideoId(videoId.trim())}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-base text-gray-700 font-semibold hover:underline"
-                        >
-                          {meta.channelTitle}
-                        </a>
-                      ) : (
-                        <a
-                          href={`https://www.youtube.com/watch?v=${extractVideoId(videoId.trim())}`}
-                          className="text-base text-gray-700 font-semibold"
-                        >
-                          {meta.channelTitle}
-                        </a>
-                      )}
-                      {meta.channelId && (
-                        <a
-                          href={`https://www.youtube.com/channel/${meta.channelId}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <button className="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow hover:bg-red-700 transition">
-                            Subscribe
-                          </button>
-                        </a>
-                      )}
-                    </div>
-                    {meta.publishedAt && (
-                      <div className="text-xs text-gray-500 mb-4">
-                        {new Date(meta.publishedAt).toLocaleDateString(undefined, {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                        })}
-                      </div>
-                    )}
-                    {meta.description && (
-                      <div
-                        className="text-sm text-gray-800 whitespace-pre-line mb-4"
-                        style={{ lineHeight: '1.6' }}
+                      <button
+                        onClick={() => setShowVideo(true)}
+                        style={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: '50%',
+                          transform: 'translate(-50%, -50%)',
+                          background: 'rgba(0,0,0,0.6)',
+                          border: 'none',
+                          borderRadius: '50%',
+                          width: 72,
+                          height: 72,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          boxShadow: '0 2px 8px #0003',
+                        }}
+                        aria-label="Play video"
                       >
-                        {meta.description}
-                      </div>
-                    )}
-                    {meta.tags && meta.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-2">
-                        {meta.tags.map((tag: string) => (
-                          <span
-                            key={tag}
-                            className="text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full text-xs font-medium"
-                          >
-                            #{tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                        <svg
+                          width="40"
+                          height="40"
+                          viewBox="0 0 40 40"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <circle cx="20" cy="20" r="20" fill="rgba(255,255,255,0.85)" />
+                          <polygon points="16,12 30,20 16,28" fill="#a18aff" />
+                        </svg>
+                      </button>
+                    </>
+                  )}
                 </div>
                 {/* Review summary, verdict, score, pros, cons */}
                 <div className="px-6 pb-6 mt-2">

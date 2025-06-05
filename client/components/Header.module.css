@@ -1,5 +1,7 @@
 .navbar {
-  @apply flex items-center justify-between bg-white shadow px-8 py-4;
+  @apply flex items-center justify-between shadow px-8 py-4;
+  background: linear-gradient(90deg, #e0b6f9 0%, #a18aff 60%, #6d5dfc 100%);
+  /* border-bottom: 2px solid #a18aff; */
 }
 .navbarLeft {
   @apply flex items-center gap-4;
@@ -17,8 +19,8 @@
   @apply flex items-center gap-6;
 }
 .navbarLink {
-  @apply text-gray-700 no-underline ml-6 font-medium transition-colors duration-200;
+  @apply text-white no-underline ml-6 font-medium transition-colors duration-200 text-xl;
 }
 .navbarLink:hover {
-  @apply text-blue-600;
+  @apply text-white;
 }
