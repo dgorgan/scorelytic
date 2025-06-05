@@ -31,7 +31,7 @@ env:
   DISABLE_OPENAI: false
   LLM_PROMPT_STYLE: ${{ vars.LLM_PROMPT_STYLE }}
   LOG_LLM_OUTPUT: false
-  NODE_ENV: production
+  NODE_ENV: test
   SENTRY_RELEASE: ${{ github.sha }}
   NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN_CLIENT }}
   NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${{ vars.NEXT_PUBLIC_SENTRY_ENVIRONMENT || vars.SENTRY_ENVIRONMENT }}
@@ -104,7 +104,7 @@ jobs:
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy' }}
       SENTRY_PROJECT_CLIENT: ${{ vars.SENTRY_PROJECT_CLIENT || 'javascript-nextjs' }}
       SENTRY_PROJECT_SERVER: ${{ vars.SENTRY_PROJECT_SERVER || 'node-express' }}
-      SENTRY_ENVIRONMENT: ${{ vars.SENTRY_ENVIRONMENT || 'production' }}
+      SENTRY_ENVIRONMENT: ${{ vars.SENTRY_ENVIRONMENT || 'test' }}
       SENTRY_ORG: ${{ vars.SENTRY_ORG || 'scorelytic' }}
       SUPABASE_URL: ${{ vars.SUPABASE_URL || 'http://localhost:54321' }}
       DISABLE_OPENAI: false
