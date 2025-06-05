@@ -46,6 +46,13 @@ jobs:
       - name: Set up cookies.txt from secret
         run: echo "${{ secrets.COOKIES_TXT }}" > ./server/src/cookies.txt
         shell: bash
+      - name: 'Debug: check cookies.txt exists'
+        run: |
+          echo '--- cookies.txt debug ---'
+          ls -l ./server/src/cookies.txt || echo 'cookies.txt missing!'
+          head -n 5 ./server/src/cookies.txt || echo 'cookies.txt empty or unreadable!'
+          echo '------------------------'
+
       - name: Cache node_modules
         uses: actions/cache@v4
         with:
