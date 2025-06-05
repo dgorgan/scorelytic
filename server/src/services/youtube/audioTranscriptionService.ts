@@ -46,6 +46,8 @@ const defaultHelpers: TranscriptionHelpers = {
       '--output',
       audioPath.replace('.mp3', '.%(ext)s'),
       '--no-playlist',
+      '--cookies',
+      path.resolve(__dirname, 'cookies.txt'),
     ]);
   },
   transcribeAudioWithOpenAI: async (audioPath, language) => {
@@ -61,7 +63,13 @@ const defaultHelpers: TranscriptionHelpers = {
   getVideoDuration: async (videoId) => {
     const ytDlpWrap = new YTDlpWrap();
     const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-    const info = await ytDlpWrap.getVideoInfo(videoUrl);
+    const out = await ytDlpWrap.execPromise([
+      videoUrl,
+      '--dump-json',
+      '--cookies',
+      path.resolve(__dirname, 'cookies.txt'),
+    ]);
+    const info = JSON.parse(out);
     return Math.ceil((info.duration || 0) / 60);
   },
   fileExists: (filePath) => fs.existsSync(filePath),
@@ -194,9 +202,14 @@ export const estimateTranscriptionCost = (durationMinutes: number): number => {
 export const getVideoDuration = async (videoId: string): Promise<number> => {
   const ytDlpWrap = new YTDlpWrap();
   const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-
   try {
-    const info = await ytDlpWrap.getVideoInfo(videoUrl);
+    const out = await ytDlpWrap.execPromise([
+      videoUrl,
+      '--dump-json',
+      '--cookies',
+      path.resolve(__dirname, 'cookies.txt'),
+    ]);
+    const info = JSON.parse(out);
     return Math.ceil((info.duration || 0) / 60); // Return duration in minutes
   } catch (error: any) {
     throw new Error(`Failed to get video duration: ${error.message}`);

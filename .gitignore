@@ -107,3 +107,6 @@ node_modules/
 # Ignore generated JS files and build outputs in shared
 shared/dist/
 shared/dist/types/
+
+# Ignore cookies.txt
+cookies.txt
