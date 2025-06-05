@@ -33,7 +33,7 @@ export interface TranscriptionHelpers {
 
 const defaultHelpers: TranscriptionHelpers = {
   downloadAudio: async (videoUrl, audioPath, { maxDurationMinutes, audioQuality }) => {
-    const cookiesPath = path.resolve(__dirname, '../../cookies.txt');
+    const cookiesPath = path.join(process.cwd(), 'src/cookies.txt');
     const cookiesExists = fs.existsSync(cookiesPath);
     const cookiesContent = cookiesExists ? fs.readFileSync(cookiesPath, 'utf8') : '';
     const crypto = require('crypto');
@@ -75,7 +75,7 @@ const defaultHelpers: TranscriptionHelpers = {
     return transcription;
   },
   getVideoDuration: async (videoId) => {
-    const cookiesPath = path.resolve(__dirname, '../../cookies.txt');
+    const cookiesPath = path.join(process.cwd(), 'src/cookies.txt');
     console.log('cookiesPath', cookiesPath);
     const cookiesExists = fs.existsSync(cookiesPath);
     const cookiesContent = cookiesExists ? fs.readFileSync(cookiesPath, 'utf8') : '';
@@ -231,7 +231,7 @@ export const getVideoDuration = async (videoId: string): Promise<number> => {
       videoUrl,
       '--dump-json',
       '--cookies',
-      path.resolve(__dirname, '../../cookies.txt'),
+      path.join(process.cwd(), 'src/cookies.txt'),
     ]);
     const info = JSON.parse(out);
     return Math.ceil((info.duration || 0) / 60); // Return duration in minutes
