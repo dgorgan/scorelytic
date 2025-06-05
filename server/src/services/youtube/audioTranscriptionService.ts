@@ -33,6 +33,20 @@ export interface TranscriptionHelpers {
 
 const defaultHelpers: TranscriptionHelpers = {
   downloadAudio: async (videoUrl, audioPath, { maxDurationMinutes, audioQuality }) => {
+    const cookiesPath = path.resolve(__dirname, '../../../cookies.txt');
+    const cookiesExists = fs.existsSync(cookiesPath);
+    const cookiesContent = cookiesExists ? fs.readFileSync(cookiesPath, 'utf8') : '';
+    const crypto = require('crypto');
+    const cookiesHash = cookiesExists
+      ? crypto.createHash('sha256').update(cookiesContent).digest('hex')
+      : null;
+    // Debug logs
+    // eslint-disable-next-line no-console
+    console.log('[yt-dlp] cookies.txt path:', cookiesPath);
+    // eslint-disable-next-line no-console
+    console.log('[yt-dlp] cookies.txt exists:', cookiesExists);
+    // eslint-disable-next-line no-console
+    if (cookiesExists) console.log('[yt-dlp] cookies.txt sha256:', cookiesHash);
     const ytDlpWrap = new YTDlpWrap();
     await ytDlpWrap.execPromise([
       videoUrl,
@@ -47,7 +61,7 @@ const defaultHelpers: TranscriptionHelpers = {
       audioPath.replace('.mp3', '.%(ext)s'),
       '--no-playlist',
       '--cookies',
-      path.resolve(__dirname, 'cookies.txt'),
+      cookiesPath,
     ]);
   },
   transcribeAudioWithOpenAI: async (audioPath, language) => {
@@ -61,20 +75,29 @@ const defaultHelpers: TranscriptionHelpers = {
     return transcription;
   },
   getVideoDuration: async (videoId) => {
+    const cookiesPath = path.resolve(__dirname, '../../../cookies.txt');
+    const cookiesExists = fs.existsSync(cookiesPath);
+    const cookiesContent = cookiesExists ? fs.readFileSync(cookiesPath, 'utf8') : '';
+    const crypto = require('crypto');
+    const cookiesHash = cookiesExists
+      ? crypto.createHash('sha256').update(cookiesContent).digest('hex')
+      : null;
+    // Debug logs
+    // eslint-disable-next-line no-console
+    console.log('[yt-dlp] cookies.txt path:', cookiesPath);
+    // eslint-disable-next-line no-console
+    console.log('[yt-dlp] cookies.txt exists:', cookiesExists);
+    // eslint-disable-next-line no-console
+    if (cookiesExists) console.log('[yt-dlp] cookies.txt sha256:', cookiesHash);
     const ytDlpWrap = new YTDlpWrap();
     const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-    const out = await ytDlpWrap.execPromise([
-      videoUrl,
-      '--dump-json',
-      '--cookies',
-      path.resolve(__dirname, 'cookies.txt'),
-    ]);
+    const out = await ytDlpWrap.execPromise([videoUrl, '--dump-json', '--cookies', cookiesPath]);
     const info = JSON.parse(out);
     return Math.ceil((info.duration || 0) / 60);
   },
   fileExists: (filePath) => fs.existsSync(filePath),
   unlinkFile: (filePath) => unlinkAsync(filePath),
-  createReadStream: (filePath) => fs.createReadStream(filePath),
+  createReadStream: (filePath: string) => fs.createReadStream(filePath),
   getOpenAI: () => new OpenAI({ apiKey: env.OPENAI_API_KEY }),
 };
 
@@ -207,7 +230,7 @@ export const getVideoDuration = async (videoId: string): Promise<number> => {
       videoUrl,
       '--dump-json',
       '--cookies',
-      path.resolve(__dirname, 'cookies.txt'),
+      path.resolve(__dirname, '../../../cookies.txt'),
     ]);
     const info = JSON.parse(out);
     return Math.ceil((info.duration || 0) / 60); // Return duration in minutes

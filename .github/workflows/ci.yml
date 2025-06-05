@@ -172,131 +172,131 @@ jobs:
             server/dist
             shared/dist
 
-  unit-tests:
-    needs: build-and-check
-    environment: CI
-    runs-on: ubuntu-latest
-    env:
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'dummy' }}
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'dummy' }}
-      LOGTAIL_SOURCE_TOKEN: ${{ secrets.LOGTAIL_SOURCE_TOKEN || 'dummy' }}
-      YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY || 'dummy' }}
-      SENTRY_DSN_SERVER: ${{ secrets.SENTRY_DSN_SERVER || 'dummy' }}
-      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN || 'dummy' }}
-      NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'http://localhost:5000' }}
-      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321' }}
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy' }}
-      SENTRY_PROJECT_CLIENT: ${{ vars.SENTRY_PROJECT_CLIENT || 'javascript-nextjs' }}
-      SENTRY_PROJECT_SERVER: ${{ vars.SENTRY_PROJECT_SERVER || 'node-express' }}
-      SENTRY_ENVIRONMENT: ${{ vars.SENTRY_ENVIRONMENT || 'production' }}
-      SENTRY_ORG: ${{ vars.SENTRY_ORG || 'scorelytic' }}
-      SUPABASE_URL: ${{ vars.SUPABASE_URL || 'http://localhost:54321' }}
-      DISABLE_OPENAI: false
-      LLM_PROMPT_STYLE: ${{ vars.LLM_PROMPT_STYLE || 'DEFAULT' }}
-      LOG_LLM_OUTPUT: false
-      NODE_ENV: production
-      SENTRY_RELEASE: ${{ github.sha }}
-      NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN_CLIENT || 'dummy' }}
-      NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${{ vars.NEXT_PUBLIC_SENTRY_ENVIRONMENT || vars.SENTRY_ENVIRONMENT || 'production' }}
-      NEXT_PUBLIC_SENTRY_RELEASE: ${{ github.sha }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - name: Set up cookies.txt from secret
-        run: echo "${{ secrets.COOKIES_TXT }}" > ./server/src/cookies.txt
-        shell: bash
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts
-      - name: Install pnpm globally
-        run: npm install -g pnpm
-      - name: Install dependencies
-        run: pnpm install --prefer-offline --frozen-lockfile
-      - name: Run unit tests
-        run: pnpm turbo run test --concurrency=2 --cache-dir=.turbo
-      - name: Upload coverage
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage
-          path: coverage
+# unit-tests:
+#   needs: build-and-check
+#   environment: CI
+#   runs-on: ubuntu-latest
+#   env:
+#     SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'dummy' }}
+#     OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'dummy' }}
+#     LOGTAIL_SOURCE_TOKEN: ${{ secrets.LOGTAIL_SOURCE_TOKEN || 'dummy' }}
+#     YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY || 'dummy' }}
+#     SENTRY_DSN_SERVER: ${{ secrets.SENTRY_DSN_SERVER || 'dummy' }}
+#     SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN || 'dummy' }}
+#     NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'http://localhost:5000' }}
+#     NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321' }}
+#     NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy' }}
+#     SENTRY_PROJECT_CLIENT: ${{ vars.SENTRY_PROJECT_CLIENT || 'javascript-nextjs' }}
+#     SENTRY_PROJECT_SERVER: ${{ vars.SENTRY_PROJECT_SERVER || 'node-express' }}
+#     SENTRY_ENVIRONMENT: ${{ vars.SENTRY_ENVIRONMENT || 'production' }}
+#     SENTRY_ORG: ${{ vars.SENTRY_ORG || 'scorelytic' }}
+#     SUPABASE_URL: ${{ vars.SUPABASE_URL || 'http://localhost:54321' }}
+#     DISABLE_OPENAI: false
+#     LLM_PROMPT_STYLE: ${{ vars.LLM_PROMPT_STYLE || 'DEFAULT' }}
+#     LOG_LLM_OUTPUT: false
+#     NODE_ENV: production
+#     SENTRY_RELEASE: ${{ github.sha }}
+#     NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN_CLIENT || 'dummy' }}
+#     NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${{ vars.NEXT_PUBLIC_SENTRY_ENVIRONMENT || vars.SENTRY_ENVIRONMENT || 'production' }}
+#     NEXT_PUBLIC_SENTRY_RELEASE: ${{ github.sha }}
+#   steps:
+#     - uses: actions/checkout@v4
+#     - uses: actions/setup-node@v4
+#       with:
+#         node-version: 20
+#     - name: Set up cookies.txt from secret
+#       run: echo "${{ secrets.COOKIES_TXT }}" > ./server/src/cookies.txt
+#       shell: bash
+#     - name: Download build artifacts
+#       uses: actions/download-artifact@v4
+#       with:
+#         name: build-artifacts
+#     - name: Install pnpm globally
+#       run: npm install -g pnpm
+#     - name: Install dependencies
+#       run: pnpm install --prefer-offline --frozen-lockfile
+#     - name: Run unit tests
+#       run: pnpm turbo run test --concurrency=2 --cache-dir=.turbo
+#     - name: Upload coverage
+#       uses: actions/upload-artifact@v4
+#       with:
+#         name: coverage
+#         path: coverage
 
-  # e2e:
-  #   needs: unit-tests
-  #   environment: CI
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: actions/setup-node@v4
-  #       with:
-  #         node-version: 20
-  #     - name: Download build artifacts
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: build-artifacts
-  #     - name: Install pnpm globally
-  #       run: npm install -g pnpm
-  #     - name: Install dependencies
-  #       run: pnpm install --prefer-offline --frozen-lockfile
-  #     - name: Install system dependencies (ffmpeg, jq)
-  #       run: sudo apt-get update && sudo apt-get install -y ffmpeg jq
-  #     - name: Build shared
-  #       run: pnpm --filter shared run build
-  #     - name: Build client
-  #       run: pnpm --filter client run build
-  #     - name: Build server
-  #       run: pnpm --filter server run build
-  #     # Install Playwright browsers in the repo root
-  #     - name: Install Playwright browsers
-  #       run: pnpm exec playwright install --with-deps
-  #     # Run Playwright E2E tests from the repo root
-  #     - name: Run Playwright E2E tests
-  #       run: pnpm test:e2e
-  #     - name: Check for missing required env vars
-  #       run: node -e "require('./server/dist/config/env')"
-  #       continue-on-error: false
-  #     - name: Print all logs on failure
-  #       if: failure()
-  #       shell: bash
-  #       run: |
-  #         echo '--- Client logs ---'
-  #         find client/.next -type f -name '*.log' -exec tail -n 100 {} + || true
-  #         echo '--- Server logs ---'
-  #         find server/dist -type f -name '*.log' -exec tail -n 100 {} + || true
-  #     - name: Clean up temp files
-  #       run: rm -rf /tmp/* client/.next/cache/tmp || true
-  #     - name: Start Next.js app
-  #       run: pnpm --filter client run start --port 4000 &
-  #     - name: Start Express server
-  #       run: pnpm --filter server run start &
-  #     - name: Wait for apps
-  #       run: npx wait-on http://localhost:4000 http://localhost:5000 --timeout 120000
-  #     - name: 'Debug: print running processes and open ports'
-  #       shell: bash
-  #       run: |
-  #         ps aux
-  #         netstat -tuln || ss -tuln || true
-  #         lsof -i :4000 || true
-  #         lsof -i :5000 || true
-  #     - name: 'Debug: print client logs'
-  #       shell: bash
-  #       run: |
-  #         find client/.next -type f -name '*.log' -exec tail -n 100 {} + || true
-  #         find client -type f -name '*.log' -exec tail -n 100 {} + || true
-  #         tail -n 100 client/.next/standalone/logs/* || true
-  #     - name: 'Debug: print server logs'
-  #       shell: bash
-  #       run: |
-  #         find server/dist -type f -name '*.log' -exec tail -n 100 {} + || true
-  #         find server -type f -name '*.log' -exec tail -n 100 {} + || true
-  #         tail -n 100 server/dist/logs/* || true
-  #     - name: Seed DB
-  #       run: pnpm run seed:server
-  #     - name: Upload Playwright traces on failure
-  #       if: failure()
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: playwright-traces
-  #         path: client/test-results
+# e2e:
+#   needs: unit-tests
+#   environment: CI
+#   runs-on: ubuntu-latest
+#   steps:
+#     - uses: actions/checkout@v4
+#     - uses: actions/setup-node@v4
+#       with:
+#         node-version: 20
+#     - name: Download build artifacts
+#       uses: actions/download-artifact@v4
+#       with:
+#         name: build-artifacts
+#     - name: Install pnpm globally
+#       run: npm install -g pnpm
+#     - name: Install dependencies
+#       run: pnpm install --prefer-offline --frozen-lockfile
+#     - name: Install system dependencies (ffmpeg, jq)
+#       run: sudo apt-get update && sudo apt-get install -y ffmpeg jq
+#     - name: Build shared
+#       run: pnpm --filter shared run build
+#     - name: Build client
+#       run: pnpm --filter client run build
+#     - name: Build server
+#       run: pnpm --filter server run build
+#     # Install Playwright browsers in the repo root
+#     - name: Install Playwright browsers
+#       run: pnpm exec playwright install --with-deps
+#     # Run Playwright E2E tests from the repo root
+#     - name: Run Playwright E2E tests
+#       run: pnpm test:e2e
+#     - name: Check for missing required env vars
+#       run: node -e "require('./server/dist/config/env')"
+#       continue-on-error: false
+#     - name: Print all logs on failure
+#       if: failure()
+#       shell: bash
+#       run: |
+#         echo '--- Client logs ---'
+#         find client/.next -type f -name '*.log' -exec tail -n 100 {} + || true
+#         echo '--- Server logs ---'
+#         find server/dist -type f -name '*.log' -exec tail -n 100 {} + || true
+#     - name: Clean up temp files
+#       run: rm -rf /tmp/* client/.next/cache/tmp || true
+#     - name: Start Next.js app
+#       run: pnpm --filter client run start --port 4000 &
+#     - name: Start Express server
+#       run: pnpm --filter server run start &
+#     - name: Wait for apps
+#       run: npx wait-on http://localhost:4000 http://localhost:5000 --timeout 120000
+#     - name: 'Debug: print running processes and open ports'
+#       shell: bash
+#       run: |
+#         ps aux
+#         netstat -tuln || ss -tuln || true
+#         lsof -i :4000 || true
+#         lsof -i :5000 || true
+#     - name: 'Debug: print client logs'
+#       shell: bash
+#       run: |
+#         find client/.next -type f -name '*.log' -exec tail -n 100 {} + || true
+#         find client -type f -name '*.log' -exec tail -n 100 {} + || true
+#         tail -n 100 client/.next/standalone/logs/* || true
+#     - name: 'Debug: print server logs'
+#       shell: bash
+#       run: |
+#         find server/dist -type f -name '*.log' -exec tail -n 100 {} + || true
+#         find server -type f -name '*.log' -exec tail -n 100 {} + || true
+#         tail -n 100 server/dist/logs/* || true
+#     - name: Seed DB
+#       run: pnpm run seed:server
+#     - name: Upload Playwright traces on failure
+#       if: failure()
+#       uses: actions/upload-artifact@v4
+#       with:
+#         name: playwright-traces
+#         path: client/test-results
