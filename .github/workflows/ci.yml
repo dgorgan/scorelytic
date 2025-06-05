@@ -117,7 +117,7 @@ jobs:
       DISABLE_OPENAI: false
       LLM_PROMPT_STYLE: ${{ vars.LLM_PROMPT_STYLE || 'DEFAULT' }}
       LOG_LLM_OUTPUT: false
-      NODE_ENV: production
+      NODE_ENV: test
       SENTRY_RELEASE: ${{ github.sha }}
       NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN_CLIENT || 'dummy' }}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${{ vars.NEXT_PUBLIC_SENTRY_ENVIRONMENT || vars.SENTRY_ENVIRONMENT || 'production' }}
@@ -200,7 +200,7 @@ jobs:
       DISABLE_OPENAI: false
       LLM_PROMPT_STYLE: ${{ vars.LLM_PROMPT_STYLE || 'DEFAULT' }}
       LOG_LLM_OUTPUT: false
-      NODE_ENV: production
+      NODE_ENV: test
       SENTRY_RELEASE: ${{ github.sha }}
       NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN_CLIENT || 'dummy' }}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${{ vars.NEXT_PUBLIC_SENTRY_ENVIRONMENT || vars.SENTRY_ENVIRONMENT || 'production' }}

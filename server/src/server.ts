@@ -8,6 +8,8 @@ const Sentry = require('@sentry/node');
 import fs from 'fs';
 const cookiesPath = path.resolve(__dirname, 'cookies.txt');
 console.log('[startup] cookies.txt exists:', fs.existsSync(cookiesPath));
+console.log('[startup] process.cwd():', process.cwd());
+console.log('[startup] __dirname:', __dirname);
 if (fs.existsSync(cookiesPath)) {
   const stat = fs.statSync(cookiesPath);
   console.log('[startup] cookies.txt size:', stat.size);
