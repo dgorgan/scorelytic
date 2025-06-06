@@ -45,8 +45,6 @@ export default function Home() {
             width={50}
             height={50}
             style={{
-              width: '50px',
-              height: 'auto',
               objectFit: 'contain',
               maxWidth: '100%',
               marginBottom: '24px',
