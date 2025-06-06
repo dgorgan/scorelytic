@@ -19,18 +19,18 @@ async function getDemoReviews() {
 export default async function GameDemosPage() {
   const reviews = await getDemoReviews();
   return (
-    <main className="max-w-7xl mx-auto px-4 py-10">
-      <h1 className="text-center mb-14 flex items-center justify-center gap-4">
-        <span className="text-5xl drop-shadow-lg">🎮</span>
-        <span className="text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-violet-300 via-fuchsia-400 to-violet-600 drop-shadow-lg tracking-tight relative">
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+      <h1 className="text-center mb-14 flex flex-col xs:flex-row items-center justify-center gap-2 xs:gap-4 font-orbitron uppercase tracking-wide">
+        <span className="text-4xl sm:text-5xl drop-shadow-lg">🎮</span>
+        <span className="text-4xl sm:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-violet-300 via-fuchsia-400 to-violet-600 drop-shadow-lg tracking-tight relative font-orbitron uppercase">
           Game Review{' '}
-          <span className="relative text-white font-black px-2">
+          <span className="relative text-white font-black px-2 font-orbitron uppercase">
             Demos
             <span className="absolute left-0 right-0 -bottom-1 h-1 bg-gradient-to-r from-fuchsia-400 to-violet-500 rounded-full blur-sm opacity-70 animate-pulse" />
           </span>
         </span>
       </h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-9">
         {reviews.map((r: any) => {
           const meta = r.data?.metadata || r.data?.data?.metadata || {};
           const thumb =
@@ -38,11 +38,22 @@ export default async function GameDemosPage() {
             meta.thumbnails?.high?.url ||
             meta.thumbnails?.default?.url ||
             '/game-case-placeholder.png';
+          const slug =
+            meta.slug ||
+            (meta.title
+              ? meta.title
+                  .toLowerCase()
+                  .replace(/[^a-z0-9\s-]/g, '')
+                  .replace(/\s+/g, '-')
+                  .replace(/-+/g, '-')
+                  .replace(/^-+|-+$/g, '')
+                  .trim()
+              : r.id);
           return (
             <Link
               key={r.id}
-              href={`/game-demos/${r.id}`}
-              className="group relative block rounded-2xl overflow-hidden shadow-xl border-4 border-violet-700 bg-violet-900 hover:scale-105 transition-transform"
+              href={`/game-demos/${slug}`}
+              className="group relative block max-w-sm w-full mx-auto rounded-xl sm:rounded-2xl overflow-hidden shadow-lg sm:shadow-2xl border-4 border-violet-700 bg-violet-900 hover:scale-105 transition-transform"
               style={{ minHeight: 420 }}
             >
               <div className="relative aspect-[1] w-full h-86 overflow-hidden flex items-end justify-center">
