@@ -12,12 +12,15 @@ function extractVideoId(url: string) {
   return match ? match[1] : url;
 }
 
-export default async function GameDemoDetailPage({ params }: { params: { id: string } }) {
+export default async function GameDemoDetailPage({ params }: { params: { slug: string } }) {
+  const { slug } = await params;
   const { data, error } = await supabase
     .from('demo_reviews')
-    .select('id, video_url, data')
-    .eq('id', params.id)
+    .select('*')
+    .eq('slug', slug)
     .maybeSingle();
+  console.log('data', data);
+  console.log('slug', slug);
   if (error || !data) {
     return <div className="text-center text-red-500 mt-20">Demo review not found.</div>;
   }
@@ -32,7 +35,16 @@ export default async function GameDemoDetailPage({ params }: { params: { id: str
     '/game-case-placeholder.png';
 
   return (
-    <main className="max-w-5xl mx-auto px-4 py-12">
+    <main className="max-w-5xl mx-auto px-6 sm:px-8 py-10 sm:py-14">
+      {/* Top back button */}
+      <div className="mb-6">
+        <Link
+          href="/game-demos"
+          className="inline-flex items-center gap-2 font-orbitron font-bold uppercase tracking-wide text-violet-400 hover:text-fuchsia-400 transition text-lg"
+        >
+          <span className="text-2xl">&#8592;</span> Back to Demos
+        </Link>
+      </div>
       {/* Full-width video player */}
       <div className="w-full aspect-[16/8] rounded-2xl overflow-hidden shadow-2xl border-4 border-violet-700 bg-black relative">
         <div className="absolute top-4 left-4 z-10">
@@ -97,7 +109,7 @@ export default async function GameDemoDetailPage({ params }: { params: { id: str
       </div>
       {/* Cover art, title, published date, tags */}
       <div className="flex flex-col items-center mb-8">
-        <div className="text-4xl font-extrabold text-white text-center drop-shadow mb-1">
+        <div className="text-4xl font-extrabold text-white text-center drop-shadow mb-1 font-orbitron uppercase tracking-wide">
           {meta.title || 'Untitled Game'}
         </div>
         {meta.publishedAt && (
@@ -111,11 +123,11 @@ export default async function GameDemoDetailPage({ params }: { params: { id: str
           </div>
         )}
         {meta.tags && meta.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-2 justify-center">
+          <div className="flex flex-wrap gap-2 gap-y-1 mb-2 justify-center">
             {meta.tags.map((tag: string) => (
               <span
                 key={tag}
-                className="text-lg px-3 py-1 rounded-full font-bold text-blue-700 bg-blue-100"
+                className="text-sm sm:text-lg px-3 py-1 rounded-full font-bold text-blue-700 bg-blue-100"
               >
                 #{tag}
               </span>
@@ -123,41 +135,31 @@ export default async function GameDemoDetailPage({ params }: { params: { id: str
           </div>
         )}
         {meta.description && (
-          <div className="text-base text-gray-200 whitespace-pre-line mb-2 text-center max-w-xl">
+          <div className="text-base text-gray-200 whitespace-pre-line mb-2 text-center">
             {meta.description}
           </div>
         )}
       </div>
       {/* Review/analysis info */}
       <div className="bg-gradient-to-br from-violet-900/80 to-gray-900/90 rounded-3xl shadow-2xl p-8 mb-8">
-        <div className="text-3xl font-extrabold text-violet-200 mb-2 text-center">
+        <div className="text-2xl sm:text-3xl font-extrabold text-violet-200 mb-4 text-center font-orbitron uppercase tracking-wide">
           Scorelytic Assessment
         </div>
-        <div className="text-lg italic text-violet-300 mb-6 text-center">
+        <div className="text-base sm:text-lg italic text-violet-300 mb-6 text-center">
           This is an AI-generated summary and score based on the video review, not the original
-          reviewer's verdict.
+          reviewer&apos;s verdict.
         </div>
-        <div className="flex flex-wrap gap-12 justify-center mb-8">
-          <div className="flex flex-col items-center bg-gradient-to-br from-green-500/20 to-green-900/30 rounded-2xl px-8 py-6 shadow">
-            <div className="text-2xl font-bold text-green-400 mb-1 flex items-center gap-2">
-              <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M2 12l5 5L22 4"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+        <div className="flex flex-wrap gap-8 sm:gap-12 justify-center mb-8">
+          <div className="flex flex-col items-center bg-gradient-to-br from-green-500/20 to-green-900/30 rounded-2xl px-6 sm:px-8 py-4 sm:py-6 shadow">
+            <div className="text-lg sm:text-2xl font-bold text-green-400 mb-1 flex items-center gap-2 font-orbitron uppercase tracking-wide">
               Verdict
             </div>
-            <div className="text-3xl font-extrabold text-green-300 capitalize">
+            <div className="text-2xl sm:text-3xl font-extrabold text-green-300 capitalize font-orbitron tracking-wide drop-shadow">
               {sentiment.verdict}
             </div>
           </div>
-          <div className="flex flex-col items-center bg-gradient-to-br from-blue-500/20 to-blue-900/30 rounded-2xl px-8 py-6 shadow">
-            <div className="text-2xl font-bold text-blue-400 mb-1 flex items-center gap-2">
+          <div className="flex flex-col items-center bg-gradient-to-br from-blue-500/20 to-blue-900/30 rounded-2xl px-6 sm:px-8 py-4 sm:py-6 shadow">
+            <div className="text-lg sm:text-2xl font-bold text-blue-400 mb-1 flex items-center gap-2 font-orbitron uppercase tracking-wide">
               <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
                 <path
                   d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
@@ -166,12 +168,12 @@ export default async function GameDemoDetailPage({ params }: { params: { id: str
               </svg>
               Score
             </div>
-            <div className="text-3xl font-extrabold text-blue-200">
+            <div className="text-2xl sm:text-3xl font-extrabold text-blue-200 font-orbitron tracking-wide drop-shadow">
               {sentiment.sentimentScore ?? sentiment.score}
             </div>
           </div>
-          <div className="flex flex-col items-center bg-gradient-to-br from-violet-500/20 to-violet-900/30 rounded-2xl px-8 py-6 shadow">
-            <div className="text-2xl font-bold text-violet-300 mb-1 flex items-center gap-2">
+          <div className="flex flex-col items-center bg-gradient-to-br from-violet-500/20 to-violet-900/30 rounded-2xl px-6 sm:px-8 py-4 sm:py-6 shadow">
+            <div className="text-lg sm:text-2xl font-bold text-violet-300 mb-1 flex items-center gap-2 font-orbitron uppercase tracking-wide">
               <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
                 <path
                   d="M12 2v20m10-10H2"
@@ -182,44 +184,82 @@ export default async function GameDemoDetailPage({ params }: { params: { id: str
               </svg>
               Bias-Adjusted
             </div>
-            <div className="text-3xl font-extrabold text-violet-200">
+            <div className="text-2xl sm:text-3xl font-extrabold text-violet-200 font-orbitron tracking-wide drop-shadow">
               {sentiment.biasAdjustment?.biasAdjustedScore ?? '—'}
             </div>
           </div>
         </div>
         {sentiment.summary && (
-          <div className="text-xl text-white mb-4 text-center">
+          <div className="text-base sm:text-xl text-white mb-4 text-center">
             <span className="font-semibold text-violet-200">Summary:</span> {sentiment.summary}
           </div>
         )}
         {sentiment.pros && sentiment.pros.length > 0 && (
           <div className="mb-4">
-            <div className="text-xl font-bold text-green-400 mb-1">Pros</div>
-            <ul className="list-disc list-inside text-lg text-gray-200">
+            <div className="text-lg sm:text-xl font-bold text-green-400 mb-1 font-orbitron uppercase tracking-wide">
+              Pros
+            </div>
+            <ul className="space-y-2">
               {sentiment.pros.map((pro: string) => (
-                <li key={pro}>{pro}</li>
+                <li
+                  key={pro}
+                  className="flex items-start gap-2 bg-green-900/10 border-l-4 border-green-400 rounded px-3 py-2 shadow-sm"
+                >
+                  <span className="mt-0.5 text-green-400">
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+                      <path
+                        d="M5 13l4 4L19 7"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  </span>
+                  <span className="text-green-100">{pro}</span>
+                </li>
               ))}
             </ul>
           </div>
         )}
         {sentiment.cons && sentiment.cons.length > 0 && (
           <div className="mb-4">
-            <div className="text-xl font-bold text-red-400 mb-1">Cons</div>
-            <ul className="list-disc list-inside text-lg text-gray-200">
+            <div className="text-lg sm:text-xl font-bold text-red-400 mb-1 font-orbitron uppercase tracking-wide">
+              Cons
+            </div>
+            <ul className="space-y-2">
               {sentiment.cons.map((con: string) => (
-                <li key={con}>{con}</li>
+                <li
+                  key={con}
+                  className="flex items-start gap-2 bg-red-900/10 border-l-4 border-red-400 rounded px-3 py-2 shadow-sm"
+                >
+                  <span className="mt-0.5 text-red-400">
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
+                      <path
+                        d="M12 8v4"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                      <circle cx="12" cy="16" r="1" fill="currentColor" />
+                    </svg>
+                  </span>
+                  <span className="text-red-100">{con}</span>
+                </li>
               ))}
             </ul>
           </div>
         )}
         {sentiment.biasIndicators && sentiment.biasIndicators.length > 0 && (
           <div className="mb-4">
-            <div className="text-xl font-bold text-yellow-400 mb-1">Bias Indicators</div>
-            <ul className="flex flex-wrap gap-3">
+            <div className="text-lg sm:text-xl font-bold text-yellow-400 mb-1 font-orbitron uppercase tracking-wide">
+              Bias Indicators
+            </div>
+            <ul className="flex flex-wrap gap-2 sm:gap-3">
               {sentiment.biasIndicators.map((b: string) => (
                 <li
                   key={b}
-                  className="bg-gradient-to-br from-yellow-200 to-yellow-400 px-5 py-2 rounded-full text-lg text-yellow-900 font-bold shadow border border-yellow-300"
+                  className="bg-gradient-to-br from-yellow-200 to-yellow-400 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full text-base sm:text-lg text-yellow-900 font-bold shadow border border-yellow-300"
                 >
                   {b}
                 </li>
@@ -229,12 +269,14 @@ export default async function GameDemoDetailPage({ params }: { params: { id: str
         )}
         {sentiment.alsoRecommends && sentiment.alsoRecommends.length > 0 && (
           <div className="mb-4">
-            <div className="text-xl font-bold text-blue-400 mb-1">Also Recommends</div>
-            <ul className="flex flex-wrap gap-3">
+            <div className="text-lg sm:text-xl font-bold text-blue-400 mb-1 font-orbitron uppercase tracking-wide">
+              Also Recommends
+            </div>
+            <ul className="flex flex-wrap gap-2 sm:gap-3">
               {sentiment.alsoRecommends.map((rec: string) => (
                 <li
                   key={rec}
-                  className="bg-gradient-to-br from-blue-200 to-blue-400 px-5 py-2 rounded-full text-lg text-blue-900 font-bold shadow border border-blue-300"
+                  className="bg-gradient-to-br from-blue-200 to-blue-400 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full text-base sm:text-lg text-blue-900 font-bold shadow border border-blue-300"
                 >
                   {rec}
                 </li>
@@ -246,13 +288,15 @@ export default async function GameDemoDetailPage({ params }: { params: { id: str
       {/* Advanced details: bias, context, transcript, debug */}
       <div className="bg-gradient-to-br from-gray-900/80 to-violet-900/80 rounded-2xl shadow-xl p-4 mt-10">
         <details open>
-          <summary className="cursor-pointer text-xl text-violet-300 font-bold mb-4 select-none">
+          <summary className="cursor-pointer text-lg sm:text-xl text-violet-300 font-bold mb-4 select-none font-orbitron uppercase tracking-wide">
             Advanced Analysis
           </summary>
           <div className="mt-4 space-y-6">
             {sentiment.biasDetection && sentiment.biasDetection.biasesDetected && (
               <div>
-                <div className="text-lg font-bold text-yellow-400 mb-2">Detected Biases</div>
+                <div className="text-base sm:text-lg font-bold text-yellow-400 mb-2 font-orbitron uppercase tracking-wide">
+                  Detected Biases
+                </div>
                 <ul className="flex flex-wrap gap-3 flex-start">
                   {sentiment.biasDetection.biasesDetected.map((b: any, i: number) => (
                     <li
@@ -289,7 +333,9 @@ export default async function GameDemoDetailPage({ params }: { params: { id: str
             )}
             {sentiment.culturalContext && (
               <div>
-                <div className="text-lg font-bold text-purple-300 mb-2">Cultural Context</div>
+                <div className="text-base sm:text-lg font-bold text-purple-300 mb-2 font-orbitron uppercase tracking-wide">
+                  Cultural Context
+                </div>
                 <div className="text-base text-purple-100 mb-1 italic">
                   {sentiment.culturalContext.justification}
                 </div>
@@ -324,7 +370,9 @@ export default async function GameDemoDetailPage({ params }: { params: { id: str
             )}
             {review.debug && review.debug.length > 0 && (
               <div>
-                <div className="text-lg font-bold text-gray-300 mb-2">Debug Log</div>
+                <div className="text-base sm:text-lg font-bold text-gray-300 mb-2 font-orbitron uppercase tracking-wide">
+                  Debug Log
+                </div>
                 <pre className="text-sm text-gray-200 bg-gray-800 rounded-lg p-3 mt-1 max-h-48 overflow-auto whitespace-pre-wrap shadow-inner">
                   {review.debug.join('\n')}
                 </pre>
@@ -334,7 +382,10 @@ export default async function GameDemoDetailPage({ params }: { params: { id: str
         </details>
       </div>
       <div className="mt-8 text-center">
-        <Link href="/game-demos" className="text-violet-400 hover:underline font-semibold">
+        <Link
+          href="/game-demos"
+          className="inline-flex items-center gap-2 font-orbitron font-bold uppercase tracking-wide text-violet-400 hover:text-fuchsia-400 transition text-lg"
+        >
           ← Back to Demos
         </Link>
       </div>
