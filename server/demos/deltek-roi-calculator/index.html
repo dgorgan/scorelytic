@@ -19,6 +19,10 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css?family=Inter:400,700&display=swap"
     />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap"
+    />
     <style>
       body {
         font-family: 'Inter', Arial, sans-serif;
@@ -29,9 +33,11 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        background: #fff;
+        background: linear-gradient(90deg, #e0b6f9 0%, #a18aff 60%, #6d5dfc 100%);
         box-shadow: 0 2px 8px #0001;
         padding: 16px 32px;
+        position: relative;
+        z-index: 10;
       }
       .navbar-left {
         display: flex;
@@ -40,55 +46,144 @@
       }
       .navbar-logo {
         height: 46px;
-        width: 100%;
+        width: auto;
         vertical-align: middle;
-      }
-      .navbar-title {
-        font-weight: bold;
-        font-size: 1.5rem;
-        color: #222;
-        margin-left: 8px;
-      }
-      .navbar-link {
-        color: #374151;
-        text-decoration: none;
-        margin-left: 24px;
-        font-weight: 500;
-        transition: color 0.2s;
-      }
-      .navbar-link:hover {
-        color: #2563eb;
+        max-width: 140px;
+        object-fit: contain;
+        display: block;
       }
       .navbar-right {
         display: flex;
         align-items: center;
         gap: 24px;
       }
-      .back-link {
-        color: #2563eb;
+      .navbar-link {
+        color: #fff;
         text-decoration: none;
-        font-weight: 500;
-        margin-right: 24px;
+        margin-left: 24px;
+        font-family: 'Orbitron', sans-serif;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-size: 1.15rem;
+        transition: color 0.2s;
+        position: relative;
       }
-      .back-link:hover {
-        text-decoration: underline;
+      .navbar-link:hover {
+        color: #f0abfc;
+      }
+      .navbar-hamburger {
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 40px;
+        height: 40px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        z-index: 20;
+      }
+      .navbar-hamburger span {
+        display: block;
+        width: 28px;
+        height: 4px;
+        background: #fff;
+        margin: 3px 0;
+        border-radius: 2px;
+        transition: all 0.3s;
+      }
+      .navbar-mobile {
+        display: none;
+      }
+      @media (max-width: 900px) {
+        .navbar {
+          padding: 12px 16px;
+        }
+        .navbar-right {
+          display: none;
+        }
+        .navbar-hamburger {
+          display: flex;
+        }
+        .navbar-mobile {
+          display: flex;
+          flex-direction: column;
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          background: linear-gradient(90deg, #e0b6f9 0%, #a18aff 60%, #6d5dfc 100%);
+          box-shadow: 0 2px 8px #0002;
+          z-index: 100;
+          padding-top: 80px;
+          padding-bottom: 32px;
+          align-items: center;
+          animation: slideDown 0.25s;
+        }
+        .navbar-mobile .navbar-link {
+          margin: 18px 0;
+          font-size: 1.3rem;
+        }
+      }
+      @keyframes slideDown {
+        from {
+          transform: translateY(-40px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
       }
     </style>
+    <script>
+      function toggleMobileNav() {
+        const mobileNav = document.getElementById('navbar-mobile');
+        const overlay = document.getElementById('navbar-overlay');
+        if (mobileNav.style.display === 'flex') {
+          mobileNav.style.display = 'none';
+          overlay.style.display = 'none';
+        } else {
+          mobileNav.style.display = 'flex';
+          overlay.style.display = 'block';
+        }
+      }
+      window.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('navbar-hamburger').addEventListener('click', toggleMobileNav);
+        document.getElementById('navbar-overlay').addEventListener('click', toggleMobileNav);
+        document.querySelectorAll('.navbar-mobile .navbar-link').forEach((link) => {
+          link.addEventListener('click', () => {
+            document.getElementById('navbar-mobile').style.display = 'none';
+            document.getElementById('navbar-overlay').style.display = 'none';
+          });
+        });
+      });
+    </script>
   </head>
 
   <body class="landing">
     <nav class="navbar">
       <div class="navbar-left">
-        <a href="http://localhost:4000/dashboard" title="Go to Scorelytic App">
+        <a href="__SCORELYTIC_URL__" title="Go to Scorelytic App">
           <img src="../scorelytic-logo.png" alt="Scorelytic Logo" class="navbar-logo" />
         </a>
         <a href="/demos/index.html" class="navbar-link">Demos</a>
       </div>
       <div class="navbar-right">
         <a href="/demos/telosid-hp/index.html" class="navbar-link">TelosID HP</a>
-        <a href="/demos/index.html" class="back-link">&larr; Back to Demos</a>
+      </div>
+      <button id="navbar-hamburger" class="navbar-hamburger" aria-label="Open menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <div id="navbar-mobile" class="navbar-mobile" style="display: none">
+        <a href="/demos/index.html" class="navbar-link">Demos</a>
+        <a href="/demos/telosid-hp/index.html" class="navbar-link">TelosID HP</a>
       </div>
     </nav>
+
     <div class="app-container">
       <!-- app container-->
 
