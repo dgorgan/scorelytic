@@ -660,7 +660,12 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
+    <div className="bg-white p-6 rounded-lg shadow border border-gray-200 relative">
+      <div className="absolute top-4 right-4">
+        <span className="bg-yellow-200 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full border border-yellow-400 shadow-sm uppercase tracking-wide">
+          Local Only
+        </span>
+      </div>
       <h3 className="text-lg font-bold text-gray-900 mb-4">YouTube Video Processor</h3>
 
       <div className="space-y-4">
@@ -716,6 +721,21 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
           >
             {processing ? 'Processing...' : 'Full Process'}
           </button>
+        </div>
+
+        <div className="mb-4">
+          <div className="bg-blue-50 border-l-4 border-blue-500 text-blue-900 p-4 rounded-lg">
+            <span className="font-bold">Demo LLM Analysis Buttons:</span>
+            <span className="block mt-1 text-sm">
+              Instantly preview the full LLM bias analysis pipeline{' '}
+              <b>without hitting YouTube or OpenAI</b>.<br />
+              These buttons load a real review, transcript, and metadata as if it was processed
+              live, so you can see the exact output and UI for a positive (Mario Wonder) and
+              negative (Concord) review.
+              <br />
+              <b>No API calls, no rate limits, no YouTube required.</b>
+            </span>
+          </div>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-2 mb-4">
