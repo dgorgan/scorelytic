@@ -422,6 +422,33 @@ export default function Dashboard() {
     >
       <main className="w-full">
         <div className="max-w-[1300px] w-full mx-auto px-4 py-8">
+          <div className="mb-8">
+            <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-900 p-4 rounded-lg flex flex-col sm:flex-row items-start sm:items-center gap-2">
+              <span className="font-bold text-lg">⚠️ YouTube Processor Notice:</span>
+              <span className="text-base">
+                The YouTube Processor currently <b>only works on localhost</b> due to YouTube API
+                rate limiting (429 errors).
+                <br />
+                Please run this locally and see the{' '}
+                <a
+                  href="https://github.com/dgorgan/scorelytic#installation"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline text-blue-700"
+                >
+                  README
+                </a>{' '}
+                for setup instructions.
+                <br />
+                <a
+                  href="/game-demos"
+                  className="inline-block mt-2 px-4 py-1 bg-violet-700 text-white rounded-full font-bold hover:bg-fuchsia-600 transition"
+                >
+                  View Working Game Demos
+                </a>
+              </span>
+            </div>
+          </div>
           <div
             style={{
               background: 'rgba(255,255,255,0.95)',
