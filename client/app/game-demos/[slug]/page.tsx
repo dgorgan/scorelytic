@@ -1,32 +1,34 @@
-import { createClient } from '@supabase/supabase-js';
-import Image from 'next/image';
+import { fetchDemoReviewBySlug, fetchDemoReviewSlugs } from '@/services/supabase';
+import { DemoReview } from '@scorelytic/shared/types';
 import Link from 'next/link';
+import SkeletonDetail from '@/components/SkeletonDetail';
+import GameDemoVideo from './GameDemoVideo';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-);
+export const revalidate = 60;
+
+export async function generateStaticParams() {
+  const slugs = await fetchDemoReviewSlugs();
+  return slugs.map((slug) => ({ slug }));
+}
 
 function extractVideoId(url: string) {
   const match = url.match(/[?&]v=([\w-]{11})/) || url.match(/youtu\.be\/([\w-]{11})/);
   return match ? match[1] : url;
 }
 
-export default async function GameDemoDetailPage({ params }: { params: { slug: string } }) {
-  const { slug } = await params;
-  const { data, error } = await supabase
-    .from('demo_reviews')
-    .select('*')
-    .eq('slug', slug)
-    .maybeSingle();
-  console.log('data', data);
-  console.log('slug', slug);
-  if (error || !data) {
-    return <div className="text-center text-red-500 mt-20">Demo review not found.</div>;
+type Props = {
+  params: { slug: string };
+};
+
+export default async function GameDemoDetailPage({ params }: Props) {
+  console.log('Received params:', params);
+  const { slug } = params;
+  const data: DemoReview | null = await fetchDemoReviewBySlug(slug);
+  if (!data) {
+    return <SkeletonDetail />;
   }
-  const review = data.data || {};
-  const meta = review.metadata || review.data?.metadata || {};
-  const sentiment = review.sentiment || review.data?.sentiment || {};
+  const meta = data.data?.metadata || {};
+  const sentiment = data.data?.sentiment || {};
   const videoId = extractVideoId(data.video_url);
   const thumb =
     meta.thumbnails?.maxres?.url ||
@@ -46,50 +48,37 @@ export default async function GameDemoDetailPage({ params }: { params: { slug: s
         </Link>
       </div>
       {/* Full-width video player */}
-      <div className="w-full aspect-[16/8] rounded-2xl overflow-hidden shadow-2xl border-4 border-violet-700 bg-black relative">
-        <div className="absolute top-4 left-4 z-10">
-          <Image
-            src={thumb}
-            alt={meta.title || 'Game cover'}
-            width={64}
-            height={86}
-            className="rounded-lg shadow-lg border-2 border-violet-500 bg-white"
-            style={{ aspectRatio: '3/4', objectFit: 'cover' }}
-          />
-        </div>
-        <iframe
-          src={`https://www.youtube.com/embed/${videoId}`}
-          title={meta.title}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          className="w-full h-full min-h-[240px]"
-        />
-      </div>
+      <GameDemoVideo thumb={thumb} videoId={videoId} title={meta.title} />
       {/* Channel credit and subscribe */}
-      <div className="flex items-center justify-between mt-3 mb-6 px-4 py-2 bg-violet-900/70 rounded-lg border border-violet-700 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-3 mb-6 px-2 sm:px-4 py-2 bg-violet-900/70 rounded-lg border border-violet-700 shadow-sm">
         {/* Left: YouTube icon + channel name + subscribe */}
-        <div className="flex items-center gap-3">
-          <svg
-            width="28"
-            height="20"
-            viewBox="0 0 28 20"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <rect width="28" height="20" rx="4" fill="#FF0000" />
-            <polygon points="11,6 20,10 11,14" fill="white" />
-          </svg>
-          {meta.channelTitle && (
-            <span className="text-lg font-bold text-violet-200">{meta.channelTitle}</span>
-          )}
+        <div className="flex flex-col xs:flex-row items-center gap-2 sm:gap-3 w-full sm:w-auto">
+          <div className="flex items-center gap-2">
+            <svg
+              width="24"
+              height="16"
+              viewBox="0 0 28 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="shrink-0"
+            >
+              <rect width="28" height="20" rx="4" fill="#FF0000" />
+              <polygon points="11,6 20,10 11,14" fill="white" />
+            </svg>
+            {meta.channelTitle && (
+              <span className="text-base sm:text-lg font-bold text-violet-200 truncate max-w-[120px] sm:max-w-none">
+                {meta.channelTitle}
+              </span>
+            )}
+          </div>
           {meta.channelId && (
             <a
               href={`https://www.youtube.com/channel/${meta.channelId}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block"
+              className="w-full sm:w-auto"
             >
-              <button className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow hover:bg-red-700 transition">
+              <button className="w-full sm:w-auto bg-red-600 text-white text-xs sm:text-xs font-bold px-3 sm:px-4 py-1 rounded-full shadow hover:bg-red-700 transition mt-1 sm:mt-0">
                 Subscribe
               </button>
             </a>
@@ -100,20 +89,20 @@ export default async function GameDemoDetailPage({ params }: { params: { slug: s
           href={`https://www.youtube.com/watch?v=${videoId}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-block"
+          className="w-full sm:w-auto"
         >
-          <button className="bg-white text-red-600 text-xs font-bold px-4 py-1 rounded-full shadow hover:bg-red-100 border border-red-200 transition">
+          <button className="w-full sm:w-auto bg-white text-red-600 text-xs sm:text-xs font-bold px-3 sm:px-4 py-1 rounded-full shadow hover:bg-red-100 border border-red-200 transition mt-1 sm:mt-0">
             View on YouTube
           </button>
         </a>
       </div>
       {/* Cover art, title, published date, tags */}
       <div className="flex flex-col items-center mb-8">
-        <div className="text-4xl font-extrabold text-white text-center drop-shadow mb-1 font-orbitron uppercase tracking-wide">
+        <div className="text-2xl sm:text-4xl font-extrabold text-white text-center drop-shadow mb-1 font-orbitron uppercase tracking-wide break-words">
           {meta.title || 'Untitled Game'}
         </div>
         {meta.publishedAt && (
-          <div className="text-lg font-semibold text-violet-200 font-semibold text-center mb-2">
+          <div className="text-base sm:text-lg font-semibold text-violet-200 text-center mb-2">
             Released:{' '}
             {new Date(meta.publishedAt).toLocaleDateString(undefined, {
               year: 'numeric',
@@ -123,11 +112,11 @@ export default async function GameDemoDetailPage({ params }: { params: { slug: s
           </div>
         )}
         {meta.tags && meta.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 gap-y-1 mb-2 justify-center">
+          <div className="flex flex-wrap gap-1 sm:gap-2 mb-2 justify-center">
             {meta.tags.map((tag: string) => (
               <span
                 key={tag}
-                className="text-sm sm:text-lg px-3 py-1 rounded-full font-bold text-blue-700 bg-blue-100"
+                className="text-xs sm:text-lg px-2 sm:px-3 py-0.5 sm:py-1 rounded-full font-bold text-blue-700 bg-blue-100"
               >
                 #{tag}
               </span>
@@ -135,31 +124,31 @@ export default async function GameDemoDetailPage({ params }: { params: { slug: s
           </div>
         )}
         {meta.description && (
-          <div className="text-base text-gray-200 whitespace-pre-line mb-2 text-center">
+          <div className="text-sm sm:text-base text-gray-200 whitespace-pre-line mb-2 text-center">
             {meta.description}
           </div>
         )}
       </div>
       {/* Review/analysis info */}
-      <div className="bg-gradient-to-br from-violet-900/80 to-gray-900/90 rounded-3xl shadow-2xl p-8 mb-8">
-        <div className="text-2xl sm:text-3xl font-extrabold text-violet-200 mb-4 text-center font-orbitron uppercase tracking-wide">
+      <div className="bg-gradient-to-br from-violet-900/80 to-gray-900/90 rounded-3xl shadow-2xl p-4 sm:p-8 mb-8">
+        <div className="text-xl sm:text-2xl font-extrabold text-violet-200 mb-4 text-center font-orbitron uppercase tracking-wide">
           Scorelytic Assessment
         </div>
-        <div className="text-base sm:text-lg italic text-violet-300 mb-6 text-center">
+        <div className="text-sm sm:text-base italic text-violet-300 mb-6 text-center">
           This is an AI-generated summary and score based on the video review, not the original
           reviewer&apos;s verdict.
         </div>
-        <div className="flex flex-wrap gap-8 sm:gap-12 justify-center mb-8">
-          <div className="flex flex-col items-center bg-gradient-to-br from-green-500/20 to-green-900/30 rounded-2xl px-6 sm:px-8 py-4 sm:py-6 shadow">
-            <div className="text-lg sm:text-2xl font-bold text-green-400 mb-1 flex items-center gap-2 font-orbitron uppercase tracking-wide">
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-12 justify-center mb-8">
+          <div className="flex flex-col items-center bg-gradient-to-br from-green-500/20 to-green-900/30 rounded-2xl px-4 sm:px-8 py-4 sm:py-6 shadow w-full max-w-xs mx-auto">
+            <div className="text-base sm:text-2xl font-bold text-green-400 mb-1 flex items-center gap-2 font-orbitron uppercase tracking-wide">
               Verdict
             </div>
-            <div className="text-2xl sm:text-3xl font-extrabold text-green-300 capitalize font-orbitron tracking-wide drop-shadow">
+            <div className="text-xl sm:text-3xl font-extrabold text-green-300 capitalize font-orbitron tracking-wide drop-shadow">
               {sentiment.verdict}
             </div>
           </div>
-          <div className="flex flex-col items-center bg-gradient-to-br from-blue-500/20 to-blue-900/30 rounded-2xl px-6 sm:px-8 py-4 sm:py-6 shadow">
-            <div className="text-lg sm:text-2xl font-bold text-blue-400 mb-1 flex items-center gap-2 font-orbitron uppercase tracking-wide">
+          <div className="flex flex-col items-center bg-gradient-to-br from-blue-500/20 to-blue-900/30 rounded-2xl px-4 sm:px-8 py-4 sm:py-6 shadow w-full max-w-xs mx-auto">
+            <div className="text-base sm:text-2xl font-bold text-blue-400 mb-1 flex items-center gap-2 font-orbitron uppercase tracking-wide">
               <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
                 <path
                   d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
@@ -168,12 +157,12 @@ export default async function GameDemoDetailPage({ params }: { params: { slug: s
               </svg>
               Score
             </div>
-            <div className="text-2xl sm:text-3xl font-extrabold text-blue-200 font-orbitron tracking-wide drop-shadow">
+            <div className="text-xl sm:text-3xl font-extrabold text-blue-200 font-orbitron tracking-wide drop-shadow">
               {sentiment.sentimentScore ?? sentiment.score}
             </div>
           </div>
-          <div className="flex flex-col items-center bg-gradient-to-br from-violet-500/20 to-violet-900/30 rounded-2xl px-6 sm:px-8 py-4 sm:py-6 shadow">
-            <div className="text-lg sm:text-2xl font-bold text-violet-300 mb-1 flex items-center gap-2 font-orbitron uppercase tracking-wide">
+          <div className="flex flex-col items-center bg-gradient-to-br from-violet-500/20 to-violet-900/30 rounded-2xl px-4 sm:px-8 py-4 sm:py-6 shadow w-full max-w-xs mx-auto">
+            <div className="text-base sm:text-2xl font-bold text-violet-300 mb-1 flex items-center gap-2 font-orbitron uppercase tracking-wide">
               <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
                 <path
                   d="M12 2v20m10-10H2"
@@ -184,7 +173,7 @@ export default async function GameDemoDetailPage({ params }: { params: { slug: s
               </svg>
               Bias-Adjusted
             </div>
-            <div className="text-2xl sm:text-3xl font-extrabold text-violet-200 font-orbitron tracking-wide drop-shadow">
+            <div className="text-xl sm:text-3xl font-extrabold text-violet-200 font-orbitron tracking-wide drop-shadow">
               {sentiment.biasAdjustment?.biasAdjustedScore ?? '—'}
             </div>
           </div>
@@ -368,13 +357,13 @@ export default async function GameDemoDetailPage({ params }: { params: { slug: s
                 </ul>
               </div>
             )}
-            {review.debug && review.debug.length > 0 && (
+            {data.data?.debug && data.data?.debug.length > 0 && (
               <div>
                 <div className="text-base sm:text-lg font-bold text-gray-300 mb-2 font-orbitron uppercase tracking-wide">
                   Debug Log
                 </div>
                 <pre className="text-sm text-gray-200 bg-gray-800 rounded-lg p-3 mt-1 max-h-48 overflow-auto whitespace-pre-wrap shadow-inner">
-                  {review.debug.join('\n')}
+                  {data.data.debug.join('\n')}
                 </pre>
               </div>
             )}

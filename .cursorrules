@@ -1,8 +1,8 @@
 # General behavior
 behavior:
-  verbose: false                  # Keep responses concise by default
-  prefer_code_only: true          # Prioritize code over explanations unless asked
-  max_response_tokens: 800        # Limit length to keep responses manageable
+  verbose: false # Keep responses concise by default
+  prefer_code_only: true # Prioritize code over explanations unless asked
+  max_response_tokens: 800 # Limit length to keep responses manageable
 
 # Code style & conventions
 style_guidelines:
@@ -28,12 +28,123 @@ frontend_framework:
     prefer_function_components: true
     use_hooks: true
     hooks_rules:
-      useEffect: "dependencies must be explicit"
-      useCallback: "only when necessary"
+      useEffect: 'dependencies must be explicit'
+      useCallback: 'only when necessary'
     styling:
       css_modules: true
       tailwind_css: true
       avoid_inline_styles: true
+
+    # Folder & File Structure Best Practices
+    structure_guidelines:
+      route_pages:
+        location: 'app/<route>/page.tsx'
+        description: 'Main page entry; server component by default'
+      route_specific_client_components:
+        location: 'app/<route>/ComponentName.tsx'
+        usage: 'Only used by one page; includes SWR, useEffect, etc.'
+        rules:
+          - must_use_client_directive: true
+      shared_components:
+        location: 'components/'
+        description: 'Reusable UI components shared across routes'
+      utilities:
+        location: 'lib/ or utils/'
+        description: 'Pure functions, formatters, helpers'
+      services:
+        location: 'services/'
+        description: 'API clients, Supabase logic, business logic'
+      colocated_tests:
+        location: '__tests__/ inside the feature folder'
+        description: 'Tests should be placed next to the code they validate'
+      disallowed_patterns:
+        - pattern: 'components/page.tsx'
+          reason: 'Avoid placing page logic inside components/'
+        - pattern: 'utils/ComponentName.tsx'
+          reason: 'React components should never live in utility folders'
+
+      loading_ui:
+        use_loading_tsx_for_app_routes: true # Use /loading.tsx for App Router route-level loading
+        require_loader_component_for_swr: true # Always use a <Loader /> or <Skeleton /> with client-side loading states (e.g. SWR)
+        loader_component:
+          name: Loader
+          location: 'client/components/common/Loader.tsx' # or wherever it actually lives
+          style: tailwind_css
+          avoid_inline_spinners: true # No raw <div>Loading...</div>, use Loader instead
+        skeleton_component:
+          name: Skeleton
+          location: 'client/components/common/Skeleton.tsx'
+          style: tailwind_css
+          use_for:
+            - tables
+            - cards
+            - list-items
+            - image_placeholders
+          guidelines:
+            - mimic final layout structure
+            - use animation-pulse or animation-shimmer classes
+        fallback_loading_text:
+          discourage_raw_text: true
+          recommended: 'Use <Loader /> or a styled <Skeleton /> for consistent UX'
+
+    # ===
+    # Next.js 15+ async routing API awareness
+    # This section adds rules and guidance around the new async nature
+    # of `params` and `searchParams` in Next.js 15+ server components.
+    # These help prevent common runtime errors related to accessing
+    # properties on unresolved promises.
+    # ===
+    nextjs15:
+      async_request_api: true
+
+      route_handler_rules:
+        async_params:
+          enforce_async_params: true
+          usage_note: |
+            In Next.js 15+, the `params` object is a Promise that must be awaited
+            before you can access its properties like `slug`.
+            Failing to await causes runtime errors like:
+            "params is a Promise, cannot read property 'slug'".
+            Always `await params` in your async page or route handler.
+
+          examples:
+            correct: |
+              export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
+                const { slug } = await params;
+                return <div>{slug}</div>;
+              }
+            incorrect: |
+              export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
+                const { slug } = params;
+                return <div>{slug}</div>;
+              }
+
+        async_search_params:
+          enforce_async_search_params: true
+          usage_note: |
+            Similarly, `searchParams` is also a Promise and must be awaited
+            before accessing any query parameters.
+            Forgetting to await causes similar runtime errors.
+
+          examples:
+            correct: |
+              const { q } = await searchParams;
+            incorrect: |
+              const { q } = searchParams;
+
+      # Disallowed code patterns specific to async param misuse in Next.js 15+
+      disallowed_patterns:
+        - pattern: 'params.slug'
+          reason: 'Direct property access on `params` without awaiting leads to runtime errors.'
+        - pattern: 'const { slug } = params'
+          reason: 'Do not destructure `params` unless it’s awaited.'
+        - pattern: 'searchParams.get('
+          reason: '`searchParams` is a Promise; you must `await` before calling `.get()`'
+
+      # Suggestions to fix common mistakes
+      suggestions:
+        - condition: 'page.tsx uses params but not await'
+          recommendation: 'Update the file to await `params` first before destructuring.'
 
 # Backend specifics (e.g., Express, Supabase)
 backend_framework:
@@ -43,7 +154,7 @@ backend_framework:
   supabase:
     always_use_env_vars: true
     mask_sensitive_env_vars: true
-  env_validation: true  # All required env vars must be validated at startup (fail-fast, e.g. with envalid)
+  env_validation: true # All required env vars must be validated at startup (fail-fast, e.g. with envalid)
 
 # Testing
 # Colocate all test files with the nearest service, component, or feature folder.
@@ -51,7 +162,7 @@ backend_framework:
 # Example: use services/youtube/__tests__/, not services/__tests__/
 testing:
   use_jest: true
-  test_file_suffix: ".test.ts"
+  test_file_suffix: '.test.ts'
   coverage_required: true
   # Suggest coverage improvements or updates to test coverage thresholds when coverage is low or new code is added.
   mock_external_calls: true
@@ -70,8 +181,8 @@ testing:
     - '.test.ts'
     - '.test.tsx'
     - '.test.jsx'
-  require_js_for_jest_setup: true  # All Jest setup files must be .js for ESM compatibility
-  no_dom_polyfills_in_server_setup: true  # DOM/browser polyfills only in client setup
+  require_js_for_jest_setup: true # All Jest setup files must be .js for ESM compatibility
+  no_dom_polyfills_in_server_setup: true # DOM/browser polyfills only in client setup
 
   clientTests:
     match: ['client/**/*.test.tsx', 'client/**/*.test.jsx']
@@ -108,9 +219,9 @@ docs:
 # Project management references
 project_management:
   reference_files:
-    - "project_milestones.md"
-    - "documentation.md"
-    - "api_spec.md"
+    - 'project_milestones.md'
+    - 'documentation.md'
+    - 'api_spec.md'
   follow_milestones_order: true
   pr_checklist:
     - 'All new and existing tests pass'
@@ -125,25 +236,25 @@ ai_assistant:
   summarize_changes_in_commit: true
   avoid_suggestions_outside_scope: true
   commit_message_max_length: 100
-  commit_message_style: "conventional, concise, and descriptive (no full diffs or file lists)"
-  # Enforced by commitlint + Husky commit-msg hook if enabled
+  commit_message_style: 'conventional, concise, and descriptive (no full diffs or file lists)'
 
 # Aliases (optional, if you want to add for your imports)
 aliases:
-  "@/": "src/"
-  
+  '@/': 'src/'
+
 # Aliasing & Internal Imports
 aliasing:
   enforce_alias_imports: true
   allowed_aliases:
     - '@/'
   disallow_relative_parent_imports: true
-  allow_relative_in_shared_tests: true  # For Jest compatibility in shared/__tests__
+  allow_relative_in_shared_tests: true # For Jest compatibility in shared/__tests__
   # Enforced by eslint-plugin-import/no-relative-parent-imports
-  
+  # For shared types, use the @scorelytic/shared or @scorelytic/shared/types alias for imports, as all types are re-exported via a barrel file. Example: import { DemoReview } from '@scorelytic/shared';
+
 # Enforce unused variable and parameter conventions
 unused_vars:
-  - "Prefix intentionally unused function parameters with _ (underscore)"
-  - "Never remove variables used in JSX or logic, even if flagged by linter"
-  - "Only remove variables that are truly unused everywhere in the file (interface, function, JSX, logic)"
-  - "Always review auto-fixes before applying; do not trust --fix blindly"
+  - 'Prefix intentionally unused function parameters with _ (underscore)'
+  - 'Never remove variables used in JSX or logic, even if flagged by linter'
+  - 'Only remove variables that are truly unused everywhere in the file (interface, function, JSX, logic)'
+  - 'Always review auto-fixes before applying; do not trust --fix blindly'
