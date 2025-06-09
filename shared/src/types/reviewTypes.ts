@@ -32,7 +32,7 @@ export interface DemoReview {
       alsoRecommends?: string[];
       biasDetection?: {
         biasesDetected?: Array<{
-          biasName: string;
+          name: string;
           severity: string;
           impactOnExperience: string;
           scoreInfluence: string;

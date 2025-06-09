@@ -597,7 +597,7 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
               originalScore: 3,
               biasesDetected: [
                 {
-                  biasName: 'technical criticism',
+                  name: 'technical criticism',
                   severity: 'low',
                   impactOnExperience: 'Focus on technical flaws may overshadow other aspects.',
                   scoreInfluence: -0.2,
@@ -992,9 +992,9 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
                           </div>
                           <ul className="space-y-1">
                             {detectedBiases.map((b: any, i: number) => (
-                              <li key={b.biasName + i} className="border rounded p-2 bg-yellow-50">
+                              <li key={b.name + i} className="border rounded p-2 bg-yellow-50">
                                 <div className="font-semibold text-yellow-900 text-sm">
-                                  {b.biasName}
+                                  {b.name}
                                 </div>
                                 <div className="text-xs text-gray-700">
                                   Severity: <span className="font-semibold">{b.severity}</span>

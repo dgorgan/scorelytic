@@ -2,7 +2,7 @@ const biasLabels = [
   'nostalgia bias',
   'influencer bias',
   'sponsored bias',
-  'contrarian',
+  'contrarian bias',
   'genre aversion',
   'reviewer fatigue',
   'technical criticism',
