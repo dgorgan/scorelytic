@@ -137,7 +137,7 @@ frontend_framework:
         - pattern: 'params.slug'
           reason: 'Direct property access on `params` without awaiting leads to runtime errors.'
         - pattern: 'const { slug } = params'
-          reason: 'Do not destructure `params` unless it’s awaited.'
+          reason: 'Do not destructure `params` unless it's awaited.'
         - pattern: 'searchParams.get('
           reason: '`searchParams` is a Promise; you must `await` before calling `.get()`'
 
@@ -247,7 +247,12 @@ aliasing:
   enforce_alias_imports: true
   allowed_aliases:
     - '@/'
+    - '@scorelytic/shared'
   disallow_relative_parent_imports: true
+  disallow_relative_sibling_imports: true
+  exceptions:
+    - local file imports (e.g. './localUtil', './Button')
+    - shared package (must use @scorelytic/shared alias)
   allow_relative_in_shared_tests: true # For Jest compatibility in shared/__tests__
   # Enforced by eslint-plugin-import/no-relative-parent-imports
   # For shared types, use the @scorelytic/shared or @scorelytic/shared/types alias for imports, as all types are re-exported via a barrel file. Example: import { DemoReview } from '@scorelytic/shared';

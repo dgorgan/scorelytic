@@ -30,14 +30,14 @@
       "originalScore": 7.5,
       "biasesDetected": [
         {
-          "biasName": "nostalgia bias",
+          "name": "nostalgia bias",
           "severity": "moderate",
           "impactOnExperience": "Nostalgia may cause the reviewer to overlook flaws or overrate positive aspects.",
           "scoreInfluence": 0.4,
           "explanation": "Nostalgia bias detected; reviewer may rate higher due to fondness for the franchise."
         },
         {
-          "biasName": "franchise bias",
+          "name": "franchise bias",
           "severity": "moderate",
           "impactOnExperience": "Franchise loyalty may lead to higher scores.",
           "scoreInfluence": 0.4,

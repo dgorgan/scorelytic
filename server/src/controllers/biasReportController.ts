@@ -1,16 +1,12 @@
 import { Request, Response } from 'express';
-import {
-  generateBiasReport,
-  BiasReportRequest,
-  BiasReportResponse,
-  ApiResponse,
-} from '@scorelytic/shared';
 import { validateInput } from '@/utils/validateInput';
+import { generateBiasReport } from '@/services/sentiment/biasAdjustment';
+import type { BiasReportRequest, ApiResponse } from '@scorelytic/shared';
 
 export const biasReportController = {
   generateReport: async (
     req: Request<{}, {}, BiasReportRequest>,
-    res: Response<ApiResponse<BiasReportResponse>>,
+    res: Response<ApiResponse<any>>,
   ) => {
     try {
       const { sentimentScore, biasIndicators } = req.body;

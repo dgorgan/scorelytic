@@ -2,6 +2,8 @@ import OpenAI from 'openai';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import logger from '@/logger';
 import { env } from '@/config/env';
+import { mapBiasLabelsToObjects, evaluateBiasImpact } from '@/services/sentiment/biasAdjustment';
+import type { BiasImpact } from '@scorelytic/shared';
 
 export type SentimentResult = {
   summary: string | null;
@@ -53,24 +55,10 @@ const SENTIMENT_LABELS = [
   'Positive with platform bias',
 ];
 
-const BIAS_LABELS = [
-  'nostalgia bias',
-  'influencer bias',
-  'sponsored bias',
-  'contrarian',
-  'genre aversion',
-  'reviewer fatigue',
-  'technical criticism',
-  'platform bias',
-  'accessibility bias',
-  'story-driven bias',
-  'franchise bias',
-];
-
 // --- New types for tiered bias/sentiment reporting ---
 export type BiasDetectionPhaseOutput = {
   originalScore: number;
-  biasesDetected: BiasObject[];
+  biasesDetected: BiasImpact[];
   reviewSummary: string;
 };
 
@@ -367,7 +355,7 @@ export const analyzeText = async (
 };
 
 export type BiasObject = {
-  biasName: string;
+  name: string;
   severity: 'low' | 'moderate' | 'high';
   impactOnExperience: string;
   scoreInfluence: number; // positive or negative
@@ -381,229 +369,6 @@ export type BiasAdjustmentResult = {
   biasAnalysis: BiasObject[];
   audienceFit: string;
   adjustmentRationale: string;
-};
-
-// --- Bias adjustment metrics ---
-let biasAdjustmentCallCount = 0;
-let biasAdjustmentFallbackCount = 0;
-let biasAdjustmentApiErrorCount = 0;
-
-export const getBiasAdjustmentMetrics = () => ({
-  biasAdjustmentCallCount,
-  biasAdjustmentFallbackCount,
-  biasAdjustmentApiErrorCount,
-});
-
-// Utility: Map bias label strings to richer objects (can be extended with heuristics or rules)
-/**
- * Maps bias label strings to richer bias objects with severity, impact, score influence, and explanation.
- * Heuristics are based on common patterns in game review bias:
- * - Nostalgia bias: moderate positive influence, as fondness for a franchise often inflates scores.
- * - Influencer/sponsored bias: high positive influence, as external incentives can skew reviews.
- * - Contrarian: moderate negative, as going against consensus can deflate scores.
- * - Genre aversion: low negative, as personal taste may unfairly lower scores.
- * - Reviewer fatigue: moderate negative, as burnout can lead to harsher criticism.
- * - Technical criticism: low negative, as focus on flaws may overshadow positives.
- * - Platform bias: moderate positive, as platform loyalty can inflate scores.
- * - Accessibility/story-driven/franchise: low to moderate, as these reflect reviewer preferences.
- *
- * These are simple heuristics and can be tuned based on real-world data.
- */
-export const mapBiasLabelsToObjects = (
-  biasLabels: string[],
-  reviewSummary: string = '',
-  pros: string[] = [],
-  cons: string[] = [],
-): BiasObject[] => {
-  return biasLabels.map((label) => {
-    let severity: 'low' | 'moderate' | 'high' = 'moderate';
-    let impactOnExperience = 'May influence perception of the game in subtle ways.';
-    let scoreInfluence = 0;
-    let explanation = `Detected ${label}.`;
-    // Simple heuristics (customize as needed)
-    if (label === 'nostalgia bias') {
-      severity = 'moderate';
-      impactOnExperience =
-        'Nostalgia may cause the reviewer to overlook flaws or overrate positive aspects.';
-      scoreInfluence = 0.4;
-      explanation =
-        'Nostalgia bias detected; reviewer may rate higher due to fondness for the franchise.';
-    } else if (label === 'influencer bias' || label === 'sponsored bias') {
-      severity = 'high';
-      impactOnExperience =
-        'Potential for inflated praise or downplaying negatives due to external incentives.';
-      scoreInfluence = 1.0;
-      explanation = 'Influencer/sponsored bias detected; possible positive skew.';
-    } else if (label === 'contrarian') {
-      severity = 'moderate';
-      impactOnExperience = 'Reviewer may intentionally go against popular opinion.';
-      scoreInfluence = -0.5;
-      explanation = 'Contrarian bias detected; possible negative skew.';
-    } else if (label === 'genre aversion') {
-      severity = 'low';
-      impactOnExperience = 'Reviewer may underrate due to personal genre preferences.';
-      scoreInfluence = -0.3;
-      explanation = 'Genre aversion detected; possible negative skew.';
-    } else if (label === 'reviewer fatigue') {
-      severity = 'moderate';
-      impactOnExperience = 'Fatigue may lead to harsher criticism or lack of enthusiasm.';
-      scoreInfluence = -0.4;
-      explanation = 'Reviewer fatigue detected; possible negative skew.';
-    } else if (label === 'technical criticism') {
-      severity = 'low';
-      impactOnExperience = 'Focus on technical flaws may overshadow other aspects.';
-      scoreInfluence = -0.2;
-      explanation = 'Technical criticism bias detected.';
-    } else if (label === 'platform bias') {
-      severity = 'moderate';
-      impactOnExperience = 'Platform preference may affect objectivity.';
-      scoreInfluence = 0.2;
-      explanation = 'Platform bias detected.';
-    } else if (label === 'accessibility bias') {
-      severity = 'low';
-      impactOnExperience = 'Accessibility focus may affect overall impression.';
-      scoreInfluence = 0;
-      explanation = 'Accessibility bias detected.';
-    } else if (label === 'story-driven bias') {
-      severity = 'low';
-      impactOnExperience = 'Preference for story-driven games may affect evaluation.';
-      scoreInfluence = 0.1;
-      explanation = 'Story-driven bias detected.';
-    } else if (label === 'franchise bias') {
-      severity = 'moderate';
-      impactOnExperience = 'Franchise loyalty may lead to higher scores.';
-      scoreInfluence = 0.4;
-      explanation = 'Franchise bias detected.';
-    } else if (label === 'identity signaling bias') {
-      severity = 'moderate';
-      impactOnExperience = 'Positive for identity-expressive players; less immersive for others.';
-      scoreInfluence = -0.4;
-      explanation = 'Identity signaling bias detected; may affect immersion for some audiences.';
-    } else if (label === 'narrative framing bias') {
-      severity = 'high';
-      impactOnExperience =
-        'Narrative framing may enhance resonance for aligned players, but compromise immersion for others.';
-      scoreInfluence = -0.3;
-      explanation = 'Narrative framing bias detected; strong ideological themes present.';
-    } else if (label === 'studio reputation bias') {
-      severity = 'moderate';
-      impactOnExperience = 'Studio reputation may inflate expectations and perceived quality.';
-      scoreInfluence = 0.4;
-      explanation = 'Studio reputation bias detected.';
-    } else if (label === 'representation bias') {
-      severity = 'moderate';
-      impactOnExperience =
-        'Emphasis on representation may be valued by some, but seen as forced by others.';
-      scoreInfluence = -0.2;
-      explanation = 'Representation bias detected; may affect perceived authenticity.';
-    }
-    return {
-      biasName: label,
-      severity,
-      impactOnExperience,
-      scoreInfluence,
-      explanation,
-    };
-  });
-};
-
-// Bias adjustment flag (can be toggled for testing)
-export let biasAdjustmentEnabled = true;
-export const setBiasAdjustmentEnabled = (enabled: boolean) => {
-  biasAdjustmentEnabled = enabled;
-};
-
-// Analyze bias impact using the LLM
-export const analyzeBiasImpact = async (
-  payload: {
-    originalScore: number;
-    biasIndicators: string[];
-    reviewSummary: string;
-    pros?: string[];
-    cons?: string[];
-    sentimentSummary?: string;
-    [key: string]: any;
-  },
-  preferredModel?: string,
-): Promise<BiasAdjustmentResult> => {
-  biasAdjustmentCallCount++;
-  const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
-  const prompt = UPDATED_LLM_PROMPT;
-  try {
-    const completion = await openai.chat.completions.create({
-      model: preferredModel || 'gpt-4o',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are an expert in bias analysis and score adjustment for game reviews.',
-        },
-        {
-          role: 'user',
-          content: prompt + '\n\nInput:' + JSON.stringify(payload, null, 2),
-        },
-      ],
-      response_format: { type: 'json_object' },
-      temperature: 0.5,
-    });
-    let content = completion.choices[0]?.message?.content?.trim() || '{}';
-    let result: BiasAdjustmentResult;
-    try {
-      result = JSON.parse(content);
-    } catch (err) {
-      biasAdjustmentFallbackCount++;
-      logger.warn('[LLM] Bias adjustment JSON parse error:', err);
-      // Fallback: do a simple adjustment based on mapped bias objects
-      const biasObjs = mapBiasLabelsToObjects(
-        payload.biasIndicators,
-        payload.reviewSummary,
-        payload.pros,
-        payload.cons,
-      );
-      const totalScoreAdjustment = biasObjs.reduce((sum, b) => sum + b.scoreInfluence, 0);
-      return {
-        originalScore: payload.originalScore,
-        biasAdjustedScore: Math.max(
-          0,
-          Math.min(10, Math.round((payload.originalScore + totalScoreAdjustment) * 10) / 10),
-        ),
-        totalScoreAdjustment,
-        biasAnalysis: biasObjs,
-        audienceFit: 'General gaming audience; see bias analysis for context.',
-        adjustmentRationale:
-          'Fallback: Score adjusted based on detected biases and simple heuristics.',
-      };
-    }
-    // Clamp score to [0, 10] and fallback if null
-    if (typeof result.biasAdjustedScore !== 'number' || isNaN(result.biasAdjustedScore)) {
-      result.biasAdjustedScore = result.originalScore;
-    } else {
-      result.biasAdjustedScore = Math.max(0, Math.min(10, result.biasAdjustedScore));
-    }
-    return result;
-  } catch (err) {
-    biasAdjustmentApiErrorCount++;
-    logger.error('[LLM] Bias adjustment error:', err);
-    // Fallback: do a simple adjustment based on mapped bias objects
-    const biasObjs = mapBiasLabelsToObjects(
-      payload.biasIndicators,
-      payload.reviewSummary,
-      payload.pros,
-      payload.cons,
-    );
-    const totalScoreAdjustment = biasObjs.reduce((sum, b) => sum + b.scoreInfluence, 0);
-    return {
-      originalScore: payload.originalScore,
-      biasAdjustedScore: Math.max(
-        0,
-        Math.min(10, Math.round((payload.originalScore + totalScoreAdjustment) * 10) / 10),
-      ),
-      totalScoreAdjustment,
-      biasAnalysis: biasObjs,
-      audienceFit: 'General gaming audience; see bias analysis for context.',
-      adjustmentRationale:
-        'Fallback: Score adjusted based on detected biases and simple heuristics.',
-    };
-  }
 };
 
 // --- Refactored analyzeTextWithBiasAdjustment ---
@@ -635,17 +400,7 @@ export const analyzeTextWithBiasAdjustmentFull = async (
     reviewSummary: sentiment.reviewSummary || '',
   };
   // Bias adjustment phase
-  let biasAdjustmentRaw = await analyzeBiasImpact(
-    {
-      originalScore: biasDetection.originalScore,
-      biasIndicators: sentiment.biasIndicators,
-      reviewSummary: sentiment.reviewSummary || '',
-      pros: sentiment.pros,
-      cons: sentiment.cons,
-      sentimentSummary: sentiment.sentimentSummary || '',
-    },
-    preferredModel,
-  );
+  let biasAdjustmentRaw = evaluateBiasImpact(biasDetection.originalScore, sentiment.biasIndicators);
   // Fallback: If LLM did not adjust score or rationale is missing, synthesize adjustment
   if (
     biasAdjustmentRaw.biasAdjustedScore === biasDetection.originalScore ||
@@ -659,21 +414,24 @@ export const analyzeTextWithBiasAdjustmentFull = async (
       sentiment.pros,
       sentiment.cons,
     );
-    const totalScoreAdjustment = biasObjs.reduce((sum, b) => sum + b.scoreInfluence, 0);
+    const totalScoreAdjustment = biasObjs.reduce(
+      (sum: number, b: BiasImpact) => sum + b.scoreInfluence,
+      0,
+    );
     const biasAdjustedScore = Math.max(
       0,
-      Math.min(10, Math.round((biasDetection.originalScore + totalScoreAdjustment) * 10) / 10),
+      Math.min(10, Math.round((biasDetection.originalScore - totalScoreAdjustment) * 10) / 10),
     );
     const rationale =
       totalScoreAdjustment === 0
         ? 'No bias adjustment was made because no significant biases were detected.'
-        : `Score adjusted by ${totalScoreAdjustment > 0 ? '+' : ''}${totalScoreAdjustment} based on detected biases: ${biasObjs
-            .map((b) => b.biasName)
+        : `Score adjusted by ${totalScoreAdjustment > 0 ? '-' : '+'}${Math.abs(totalScoreAdjustment)} based on detected biases: ${biasObjs
+            .map((b) => b.name)
             .join(', ')}.`;
     biasAdjustmentRaw = {
       ...biasAdjustmentRaw,
       biasAdjustedScore,
-      totalScoreAdjustment,
+      totalScoreAdjustment: -totalScoreAdjustment,
       adjustmentRationale: rationale,
     };
     logger.warn('[BiasAdjustment] Fallback adjustment/rationale used for review.');
@@ -762,7 +520,7 @@ export const MOCK_FULL_BIAS_SCORING_OUTPUT: FullBiasScoringOutput = {
     originalScore: 9.2,
     biasesDetected: [
       {
-        biasName: 'nostalgia bias',
+        name: 'nostalgia bias',
         severity: 'moderate',
         impactOnExperience:
           'Nostalgia may cause the reviewer to overlook flaws or overrate positive aspects.',
@@ -771,7 +529,7 @@ export const MOCK_FULL_BIAS_SCORING_OUTPUT: FullBiasScoringOutput = {
           'Nostalgia bias detected; reviewer may rate higher due to fondness for the franchise.',
       },
       {
-        biasName: 'studio reputation bias',
+        name: 'studio reputation bias',
         severity: 'moderate',
         impactOnExperience: 'Studio reputation may inflate expectations and perceived quality.',
         scoreInfluence: 0.4,

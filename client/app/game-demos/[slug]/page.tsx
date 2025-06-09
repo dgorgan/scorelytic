@@ -3,6 +3,7 @@ import { DemoReview } from '@scorelytic/shared/types';
 import Link from 'next/link';
 import SkeletonDetail from '@/components/SkeletonDetail';
 import GameDemoVideo from './GameDemoVideo';
+import GameDemoScores from './GameDemoScores';
 
 export const revalidate = 60;
 
@@ -21,7 +22,6 @@ type Props = {
 };
 
 export default async function GameDemoDetailPage({ params }: Props) {
-  console.log('Received params:', params);
   const { slug } = params;
   const data: DemoReview | null = await fetchDemoReviewBySlug(slug);
   if (!data) {
@@ -138,51 +138,7 @@ export default async function GameDemoDetailPage({ params }: Props) {
           This is an AI-generated summary and score based on the video review, not the original
           reviewer&apos;s verdict.
         </div>
-        <div className="flex flex-col sm:flex-row gap-4 sm:gap-12 justify-center mb-8">
-          <div className="flex flex-col items-center bg-gradient-to-br from-green-500/20 to-green-900/30 rounded-2xl px-4 sm:px-8 py-4 sm:py-6 shadow w-full max-w-xs mx-auto">
-            <div className="text-base sm:text-2xl font-bold text-green-400 mb-1 flex items-center gap-2 font-orbitron uppercase tracking-wide">
-              Verdict
-            </div>
-            <div className="text-xl sm:text-3xl font-extrabold text-green-300 capitalize font-orbitron tracking-wide drop-shadow">
-              {sentiment.verdict}
-            </div>
-          </div>
-          <div className="flex flex-col items-center bg-gradient-to-br from-blue-500/20 to-blue-900/30 rounded-2xl px-4 sm:px-8 py-4 sm:py-6 shadow w-full max-w-xs mx-auto">
-            <div className="text-base sm:text-2xl font-bold text-blue-400 mb-1 flex items-center gap-2 font-orbitron uppercase tracking-wide">
-              <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
-                <path
-                  d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
-                  fill="currentColor"
-                />
-              </svg>
-              Score
-            </div>
-            <div className="text-xl sm:text-3xl font-extrabold text-blue-200 font-orbitron tracking-wide drop-shadow">
-              {sentiment.sentimentScore ?? sentiment.score}
-            </div>
-          </div>
-          <div className="flex flex-col items-center bg-gradient-to-br from-violet-500/20 to-violet-900/30 rounded-2xl px-4 sm:px-8 py-4 sm:py-6 shadow w-full max-w-xs mx-auto">
-            <div className="text-base sm:text-2xl font-bold text-violet-300 mb-1 flex items-center gap-2 font-orbitron uppercase tracking-wide">
-              <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
-                <path
-                  d="M12 2v20m10-10H2"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-              Bias-Adjusted
-            </div>
-            <div className="text-xl sm:text-3xl font-extrabold text-violet-200 font-orbitron tracking-wide drop-shadow">
-              {sentiment.biasAdjustment?.biasAdjustedScore ?? '—'}
-            </div>
-          </div>
-        </div>
-        {sentiment.summary && (
-          <div className="text-base sm:text-xl text-white mb-4 text-center">
-            <span className="font-semibold text-violet-200">Summary:</span> {sentiment.summary}
-          </div>
-        )}
+        <GameDemoScores sentiment={sentiment} />
         {sentiment.pros && sentiment.pros.length > 0 && (
           <div className="mb-4">
             <div className="text-lg sm:text-xl font-bold text-green-400 mb-1 font-orbitron uppercase tracking-wide">
@@ -281,45 +237,6 @@ export default async function GameDemoDetailPage({ params }: Props) {
             Advanced Analysis
           </summary>
           <div className="mt-4 space-y-6">
-            {sentiment.biasDetection && sentiment.biasDetection.biasesDetected && (
-              <div>
-                <div className="text-base sm:text-lg font-bold text-yellow-400 mb-2 font-orbitron uppercase tracking-wide">
-                  Detected Biases
-                </div>
-                <ul className="flex flex-wrap gap-3 flex-start">
-                  {sentiment.biasDetection.biasesDetected.map((b: any, i: number) => (
-                    <li
-                      key={b.biasName + i}
-                      className="inline-flex flex-col items-start max-w-md border border-yellow-300 bg-yellow-50 px-4 py-3 rounded-lg shadow-sm mb-2"
-                    >
-                      <div className="font-bold text-yellow-900 text-base mb-1 flex items-center gap-2">
-                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-                          <circle cx="12" cy="12" r="10" fill="#FDE68A" />
-                          <path
-                            d="M12 8v4"
-                            stroke="#B45309"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                          />
-                          <circle cx="12" cy="16" r="1" fill="#B45309" />
-                        </svg>
-                        {b.biasName}
-                      </div>
-                      <div className="text-base text-yellow-800 mb-1">
-                        Severity: <span className="font-bold">{b.severity}</span>
-                      </div>
-                      <div className="text-base text-yellow-800 mb-1">
-                        Impact: {b.impactOnExperience}
-                      </div>
-                      <div className="text-base text-yellow-800 mb-1">
-                        Score Influence: <span className="font-bold">{b.scoreInfluence}</span>
-                      </div>
-                      <div className="text-sm text-yellow-900 italic">{b.explanation}</div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
             {sentiment.culturalContext && (
               <div>
                 <div className="text-base sm:text-lg font-bold text-purple-300 mb-2 font-orbitron uppercase tracking-wide">
