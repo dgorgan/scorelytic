@@ -2,7 +2,11 @@ import OpenAI from 'openai';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import logger from '@/logger';
 import { env } from '@/config/env';
-import { mapBiasLabelsToObjects, evaluateBiasImpact } from '@/services/sentiment/biasAdjustment';
+import {
+  mapBiasLabelsToObjects,
+  evaluateBiasImpact,
+  BIAS_KEYWORDS,
+} from '@/services/sentiment/biasAdjustment';
 import type { BiasImpact } from '@scorelytic/shared';
 
 export type SentimentResult = {
@@ -15,6 +19,7 @@ export type SentimentResult = {
   pros: string[];
   cons: string[];
   reviewSummary: string | null;
+  culturalContext: CulturalContextExplanation | null;
 };
 
 export const getEmbedding = async (
@@ -38,22 +43,6 @@ export const getEmbedding = async (
 const supportsJsonResponse = (model: string) => {
   return model.startsWith('gpt-3.5-turbo') || model.startsWith('gpt-4-turbo');
 };
-
-const SENTIMENT_LABELS = [
-  'Overwhelmingly positive',
-  'Very positive',
-  'Mostly positive',
-  'Mixed',
-  'Neutral',
-  'Negative',
-  'Contrarian',
-  'Positive (influencer bias)',
-  'Positive (sponsored)',
-  'Mixed to negative',
-  'Mixed (genre aversion)',
-  'Mixed (reviewer fatigue)',
-  'Positive with platform bias',
-];
 
 // --- New types for tiered bias/sentiment reporting ---
 export type BiasDetectionPhaseOutput = {
@@ -90,118 +79,202 @@ export type FullBiasScoringOutput = {
   biasDetection: BiasDetectionPhaseOutput;
   biasAdjustment: BiasAdjustmentPhaseOutput;
   sentimentSnapshot: SentimentSnapshot;
-  culturalContext?: CulturalContextExplanation;
 };
 
-// --- Updated LLM prompt for richer, tiered output ---
-export const UPDATED_LLM_PROMPT = `You are an expert data analyst specializing in reviewing and adjusting game review scores based on ideological and other biases detected in review transcripts. Your goal is to produce a multi-layered analysis, including bias detection, score adjustment, sentiment snapshot, and cultural context.
+// === Updated unified prompt with implied bias detection instructions and dynamic culturalContext ===
+export const UNIFIED_LLM_PROMPT = `
+You are an expert assistant analyzing video game review transcripts for sentiment, reviewer bias, and cultural context. Your goal is to extract structured insights that power a bias-aware recommendation engine. Be precise, infer only when justified, and cite textual evidence.
 
-Return a JSON object with these fields:
+You must identify **both explicit and implied biases**, including tonal, habitual, or emotional indicators. If the bias is not clearly stated, inference is allowed — but **only** when supported by specific phrases or patterns. Provide **explanations** and **direct evidence** for each detected bias.
 
-- biasDetection: { originalScore, biasesDetected (array of bias objects), reviewSummary }
-- biasAdjustment: { biasAdjustedScore, totalScoreAdjustment, rationale }
-- sentimentSnapshot: { inferredScore, verdict, confidenceLevel (low/moderate/high), recommendationStrength (low/moderate/strong) }
-- culturalContext: { justification, ideologicalThemes (array), audienceReactions: { aligned, neutral, opposed } }
+---
 
-Rules:
-- Each field must be present in the output.
-- To calculate biasAdjustedScore, sum the scoreInfluence values from biasesDetected and add the total to originalScore. Clamp the result to [0, 10].
-- If the sum is zero, set biasAdjustedScore equal to originalScore and explain in the rationale why no adjustment was made.
-- Always provide a rationale, even if no adjustment is made.
-- Use clean, modern language. Do not hallucinate facts.
-- Respond ONLY with JSON. No extra commentary.
+💡 COMMON BIAS CATEGORIES TO LOOK FOR:
 
-Transcript:
-{{REVIEW_TRANSCRIPT}}`;
+- **Nostalgia Bias**: Emotional callbacks to older titles or childhood memories.
+- **Franchise Bias / Studio Reputation Bias**: Inflated sentiment from brand loyalty or dev trust.
+- **Influencer/Sponsored Bias**: Over-the-top praise, defensiveness, or disclaimers (“not sponsored”).
+- **Reviewer Fatigue**: Signs of burnout or disengagement (“I’ve played too many lately”, “nothing feels fresh”).
+- **Genre Aversion**: Dislike rooted in genre, not quality (“not a fan of these types of games”).
+- **Technical Criticism Bias**: Overemphasis on performance, bugs, or mechanics.
+- **Contrarian Bias**: Strong rejection of broadly praised games.
+- **Difficulty Bias**: Frustration caused by challenge or accessibility.
+- **Comparative Bias**: Score deflation due to comparisons (“X did it better”).
 
-export const UPDATED_LLM_PROMPT_ALTERNATIVE = `You are an expert assistant analyzing long-form video game review transcripts. Your goal is to extract nuanced sentiment, tone, reviewer biases, and key pros/cons—based on both explicit statements and implied tone.
+You may add new bias types if you justify them clearly.
 
-Analyze the following review transcript and return a JSON object with these fields:
+---
 
-- summary (string): a high-level summary of the review content and key themes. MUST be present, even if brief.
-- sentimentScore (number, 0 to 10): inferred score based on the tone of the review
-- verdict (string): "positive", "negative", or "mixed" — overall qualitative verdict
-- sentimentSummary (string): one label from this list ONLY (MUST be present):
-  ["Overwhelmingly positive", "Very positive", "Mostly positive", "Mixed", "Neutral", "Negative", "Contrarian", "Positive (influencer bias)", "Positive (sponsored)", "Mixed to negative", "Mixed (genre aversion)", "Mixed (reviewer fatigue)", "Positive with platform bias"]
-- biasIndicators (array of strings): labels from this list ONLY:
-  ["nostalgia bias", "influencer bias", "sponsored bias", "contrarian", "genre aversion", "reviewer fatigue", "technical criticism", "platform bias", "accessibility bias", "story-driven bias", "franchise bias"]
-- alsoRecommends (array of strings): names of other games the reviewer explicitly mentions or implicitly compares
-- pros (array of strings): clear or implied strengths/praises of the game
-- cons (array of strings): clear or implied weaknesses/criticisms of the game
-- reviewSummary (string): A concise 1-2 sentence summary of the overall tone and takeaway, aimed at gamers deciding whether to play.
+🔍 FOR EACH DETECTED BIAS:
 
-Rules:
-- Inferred insights are allowed if they are strongly implied by wording or tone.
-- Do not hallucinate facts or features not supported by the transcript.
-- If a field is not mentioned or cannot be reasonably inferred, return null (for strings/numbers) or an empty array (for arrays).
-- Use clean, modern language that reflects how a skilled reviewer or aggregator might summarize a game.
+Include:
+- **name** (e.g. "nostalgia bias")
+- **severity** (low / moderate / high)
+- **explanation** (what pattern or phrasing triggered it)
+- **scoreInfluence** (number between -1 and +1)
+- **detectedIn** (e.g. "tone", "phrasing", "explicit statements", "examples")
+- **evidence** (direct phrases or short quotes)
+- **reviewerIntent** (explicit / implied / unclear)
 
-Return ONLY a JSON object matching the specified fields — no additional text, commentary, or explanation.
+---
 
-Transcript:
-{{REVIEW_TRANSCRIPT}}`;
+📦 OUTPUT STRUCTURE:
 
-const SYSTEM_PROMPT = `You are an expert sentiment analysis assistant specialized in video game reviews. Extract nuanced sentiment, tone, reviewer biases, and key pros/cons based on both explicit statements and implied tone. Inferred insights are allowed if strongly implied. Do not invent details not supported by the text.`;
+Return a single JSON object with the following:
 
-const FEW_SHOT = `Example transcript: "Dragon Age: The Veilguard surprised me. As someone who loved Origins, this felt like a return to meaningful party-based storytelling. Boss fights felt deliberate, though trash mobs wore thin. Visually, it's the best the series has ever looked. I missed more meaningful consequences from my Inquisition save, though."
-Expected JSON: {"sentimentScore": 8.5, "verdict": "positive", "sentimentSummary": "Very positive", "pros": ["strong party-based storytelling", "excellent visuals", "memorable boss fights"], "cons": ["repetitive enemy mobs", "limited story carryover from past games"], "biasIndicators": ["nostalgia bias", "franchise bias"], "alsoRecommends": ["Dragon Age: Origins", "Mass Effect 2"], "reviewSummary": "A rewarding RPG that revives the series' strengths, even if legacy choices take a backseat."}
+{
+  "sentimentScore": number (0–10),
+  "verdict": string,
+  "sentimentSummary": string,
+  "pros": string[],
+  "cons": string[],
+  "biasIndicators": string[],
+  "alsoRecommends": string[],
+  "reviewSummary": string,
+  "biasDetection": {
+    "originalScore": number,
+    "biasesDetected": BiasImpact[],
+    "reviewSummary": string
+  },
+  "biasAdjustment": {
+    "biasAdjustedScore": number,
+    "totalScoreAdjustment": number,
+    "rationale": string
+  },
+  "sentimentSnapshot": {
+    "inferredScore": number,
+    "verdict": string,
+    "confidenceLevel": "low" | "moderate" | "high",
+    "recommendationStrength": "low" | "moderate" | "strong"
+  },
+  "culturalContext": {
+    "justification": string,
+    "ideologicalThemes": string[],
+    "audienceReactions": {
+      "aligned": string,
+      "neutral": string,
+      "opposed": string
+    }
+  }
+}
+
+---
+
+📘 EXAMPLES:
+
+**Example 1 — Reviewer Fatigue**
+Transcript: “After playing so many open world games this year, I just didn’t feel like finishing this one.”
+Biases: [{
+  "name": "reviewer fatigue",
+  "severity": "moderate",
+  "scoreInfluence": -0.4,
+  "explanation": "Mentions burnout and lack of energy to continue.",
+  "detectedIn": ["phrasing"],
+  "evidence": ["didn’t feel like finishing"],
+  "reviewerIntent": "implied"
+}]
+
+**Example 2 — Nostalgia & Studio Reputation**
+Transcript: “This feels like classic BioWare. They’ve never let me down.”
+Biases: [{
+  "name": "nostalgia bias",
+  "severity": "moderate",
+  "scoreInfluence": 0.3,
+  "explanation": "References emotional legacy of previous titles.",
+  "detectedIn": ["tone", "phrasing"],
+  "evidence": ["feels like classic BioWare", "never let me down"],
+  "reviewerIntent": "implied"
+}]
+
+---
+
+Review Transcript:
+{{REVIEW_TRANSCRIPT}};
 `;
 
-export const FEW_SHOT_EXAMPLES = [
-  {
-    transcript:
-      "Dragon Age: The Veilguard surprised me. As someone who loved Origins, this felt like a return to meaningful party-based storytelling. Boss fights felt deliberate, though trash mobs wore thin. Visually, it's the best the series has ever looked. I missed more meaningful consequences from my Inquisition save, though.",
-    expected: {
-      sentimentScore: 8.5,
-      verdict: 'positive',
-      sentimentSummary: 'Very positive',
-      pros: ['strong party-based storytelling', 'excellent visuals', 'memorable boss fights'],
-      cons: ['repetitive enemy mobs', 'limited story carryover from past games'],
-      biasIndicators: ['nostalgia bias', 'franchise bias'],
-      alsoRecommends: ['Dragon Age: Origins', 'Mass Effect 2'],
-      reviewSummary:
-        "A rewarding RPG that revives the series' strengths, even if legacy choices take a backseat.",
-    },
-  },
-];
+const SYSTEM_PROMPT = `You are an expert sentiment analysis assistant specialized in video game reviews. Extract nuanced sentiment, tone, reviewer biases, and key pros/cons based on both explicit statements and implied tone. Inferred insights are allowed if strongly implied. Do not invent details not supported by the text.`;
 
 // --- Utility: dedupe helper ---
 const dedupe = (arr: string[]) => [...new Set(arr.map((s) => s.trim()))];
 
-// --- Utility: fuzzy/canonical bias label mapping ---
-const CANONICAL_BIAS_LABELS = [
-  'nostalgia bias',
-  'influencer bias',
-  'sponsored bias',
-  'contrarian',
-  'genre aversion',
-  'reviewer fatigue',
-  'technical criticism',
-  'platform bias',
-  'accessibility bias',
-  'story-driven bias',
-  'franchise bias',
-];
+// --- Canonical bias labels from BIAS_KEYWORDS ---
+const CANONICAL_BIAS_LABELS = Object.keys(BIAS_KEYWORDS);
+
+// --- Utility: robust canonical bias mapping ---
 const mapToCanonicalBias = (label: string): string => {
   const lower = label.toLowerCase();
+  // Direct match
+  if (CANONICAL_BIAS_LABELS.includes(lower)) return lower;
+  // Fuzzy match: check if label contains any canonical label as substring
   for (const canon of CANONICAL_BIAS_LABELS) {
-    if (lower.includes(canon.split(' ')[0])) return canon;
-    if (lower === canon) return canon;
+    if (lower.includes(canon.replace(/ bias$/, ''))) return canon;
+  }
+  // Fuzzy match: check if label matches any keyword
+  for (const canon of CANONICAL_BIAS_LABELS) {
+    const keywords = BIAS_KEYWORDS[canon] || [];
+    if (keywords.some((kw) => lower.includes(kw))) return canon;
   }
   return label; // fallback to original if not matched
 };
+
+// --- Optional: add canonical bias label list to the prompt for LLM transparency ---
+const CANONICAL_BIAS_LABELS_LINE = `\nRecognized bias labels: ${CANONICAL_BIAS_LABELS.join(', ')}`;
+
+// Patch UNIFIED_LLM_PROMPT to include canonical bias label list if not present
+export const UNIFIED_LLM_PROMPT_WITH_LABELS = UNIFIED_LLM_PROMPT.includes('Recognized bias labels:')
+  ? UNIFIED_LLM_PROMPT
+  : UNIFIED_LLM_PROMPT + CANONICAL_BIAS_LABELS_LINE;
+
+// --- Bias detection from text content using BIAS_KEYWORDS ---
+export const detectBiasesFromTextContent = (text: string): string[] => {
+  const detected: string[] = [];
+  const lcText = text.toLowerCase();
+  for (const bias in BIAS_KEYWORDS) {
+    if (BIAS_KEYWORDS[bias].some((kw) => lcText.includes(kw))) {
+      detected.push(bias);
+    }
+  }
+  return detected;
+};
+
+// --- Helper: Generate fallback cultural context ---
+export function generateCulturalContext(biasImpact: BiasImpact[]): CulturalContextExplanation {
+  if (!biasImpact.length) {
+    return {
+      justification: 'No significant ideological or cultural bias detected.',
+      ideologicalThemes: [],
+      audienceReactions: {
+        aligned: 'positive',
+        neutral: 'mixed',
+        opposed: 'negative',
+      },
+    };
+  }
+  return {
+    justification: `Score adjusted to reflect detected biases: ${biasImpact.map((b) => b.name).join(', ')}.`,
+    ideologicalThemes: biasImpact.map((b) => b.name),
+    audienceReactions: {
+      aligned: 'positive',
+      neutral: 'mixed',
+      opposed: 'negative',
+    },
+  };
+}
 
 export const analyzeText = async (
   text: string,
   preferredModel?: string, // optionally pass preferred model
   customPrompt?: string,
-  labels: string[] = SENTIMENT_LABELS,
   gameTitle?: string,
   creatorName?: string,
 ): Promise<SentimentResult> => {
   if (env.isTest || env.isProd) {
     logger.info('[TRANSCRIPT] First 500 chars:\n', text.slice(0, 500));
   }
+  // Log which model is being used for transcript analysis
+  let model = preferredModel || 'gpt-4o';
+  if (!['gpt-4o', 'gpt-4-turbo', 'gpt-3.5-turbo'].includes(model)) model = 'gpt-4o';
+  logger.info(`[TRANSCRIPT] Using OpenAI model: ${model}`);
   if (env.DISABLE_OPENAI) {
     logger.info('[LLM] OpenAI disabled via DISABLE_OPENAI env var');
     return {
@@ -214,19 +287,14 @@ export const analyzeText = async (
       pros: [],
       cons: [],
       reviewSummary: 'No review summary available.',
+      culturalContext: null,
     };
   }
 
   const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
-  let model = preferredModel || 'gpt-4o';
-  if (!['gpt-4o', 'gpt-4-turbo', 'gpt-3.5-turbo'].includes(model)) model = 'gpt-4o';
 
   // --- Prompt selection logic ---
-  const shouldUseAlternativePrompt =
-    model.includes('gpt-3.5') || env.LLM_PROMPT_STYLE === 'ALTERNATIVE';
-  const promptToUse =
-    customPrompt ||
-    (shouldUseAlternativePrompt ? UPDATED_LLM_PROMPT_ALTERNATIVE : UPDATED_LLM_PROMPT);
+  const promptToUse = customPrompt || UNIFIED_LLM_PROMPT;
 
   // --- Chunking logic ---
   const MAX_CHUNK_LENGTH = 6000;
@@ -278,16 +346,11 @@ export const analyzeText = async (
   const results: Partial<SentimentResult>[] = [];
   for (const chunk of transcriptChunks) {
     let result = await processChunk(chunk, promptToUse);
-    // If result is null or missing summary, and we didn't already use the alternative prompt, retry with it
-    if (
-      (!result || !result.summary) &&
-      !shouldUseAlternativePrompt &&
-      !customPrompt // only retry if not using a custom prompt
-    ) {
+    if (!result || !result.summary) {
       logger.warn(
         '[LLM] Primary prompt failed or missing summary — retrying with alternative prompt.',
       );
-      result = await processChunk(chunk, UPDATED_LLM_PROMPT_ALTERNATIVE);
+      result = await processChunk(chunk, customPrompt || UNIFIED_LLM_PROMPT);
     }
     if (result) results.push(result);
   }
@@ -296,7 +359,7 @@ export const analyzeText = async (
   const toStringOrNull = (v: any) => (typeof v === 'string' ? v : null);
   const toStringArray = (v: any) =>
     Array.isArray(v) ? v.filter((x) => typeof x === 'string') : [];
-  const toNumberOrNull = (v: any): number | null => (typeof v === 'number' ? v : null);
+  // const toNumberOrNull = (v: any): number | null => (typeof v === 'number' ? v : null);
 
   // --- Aggregate results (simple: take first non-empty, or merge arrays) ---
   const aggregate = (field: keyof SentimentResult, isArray = false): string[] | string | null => {
@@ -322,6 +385,15 @@ export const analyzeText = async (
   const cons = dedupe((aggregate('cons', true) as string[]) || []);
   const summary = aggregate('summary') as string | null;
   const reviewSummary = aggregate('reviewSummary') as string | null;
+  // --- Type guard for culturalContext ---
+  const culturalContext =
+    results.find(
+      (r): r is { culturalContext: CulturalContextExplanation } =>
+        typeof r === 'object' &&
+        r !== null &&
+        'culturalContext' in r &&
+        r.culturalContext !== undefined,
+    )?.culturalContext || null;
 
   // Always provide safe defaults if LLM output is empty/null
   const result: SentimentResult = {
@@ -338,6 +410,7 @@ export const analyzeText = async (
     pros,
     cons,
     reviewSummary: toStringOrNull(reviewSummary) || 'No review summary available.',
+    culturalContext,
   };
   if (!result.summary || result.summary === 'No clear summary detected.') {
     logger.warn('[LLM] Warning: summary is missing, using fallback (sentimentSummary or default).');
@@ -376,18 +449,10 @@ export const analyzeTextWithBiasAdjustmentFull = async (
   text: string,
   preferredModel?: string,
   customPrompt?: string,
-  labels: string[] = SENTIMENT_LABELS,
   gameTitle?: string,
   creatorName?: string,
 ): Promise<FullBiasScoringOutput> => {
-  const sentiment = await analyzeText(
-    text,
-    preferredModel,
-    customPrompt,
-    labels,
-    gameTitle,
-    creatorName,
-  );
+  const sentiment = await analyzeText(text, preferredModel, customPrompt, gameTitle, creatorName);
   // Bias detection phase
   const biasDetection: BiasDetectionPhaseOutput = {
     originalScore: sentiment.sentimentScore ?? 5,
@@ -456,24 +521,17 @@ export const analyzeTextWithBiasAdjustmentFull = async (
     confidenceLevel,
     recommendationStrength,
   };
-  // Cultural context (mock/fallback for now)
-  const culturalContext: CulturalContextExplanation = {
-    justification:
-      'Based on the review transcript, certain ideological themes and narrative framings may influence audience perception.',
-    ideologicalThemes: ['representation', 'studio reputation'],
-    audienceReactions: {
-      aligned:
-        'Likely to resonate strongly with fans of inclusive narratives and franchise loyalists.',
-      neutral: 'May appreciate the technical and narrative strengths, but not be deeply moved.',
-      opposed: 'Could be critical of perceived ideological or franchise-driven elements.',
-    },
-  };
+  // If LLM did not provide culturalContext, synthesize and set it inside sentiment
+  if (!sentiment.culturalContext) {
+    sentiment.culturalContext = generateCulturalContext(
+      biasAdjustment.biasAdjustedScore !== undefined ? biasDetection.biasesDetected : [],
+    );
+  }
   return {
     sentiment,
     biasDetection,
     biasAdjustment,
     sentimentSnapshot,
-    culturalContext,
   };
 };
 
@@ -515,6 +573,17 @@ export const MOCK_FULL_BIAS_SCORING_OUTPUT: FullBiasScoringOutput = {
     ],
     reviewSummary:
       "Dragon Age: The Veilguard revitalizes BioWare's RPG legacy with its stunning visuals, engaging storytelling, and rich character development, though some combat aspects may disappoint tactical purists.",
+    culturalContext: {
+      justification:
+        'Based on the review transcript, certain ideological themes and narrative framings may influence audience perception.',
+      ideologicalThemes: ['representation', 'studio reputation'],
+      audienceReactions: {
+        aligned:
+          'Likely to resonate strongly with fans of inclusive narratives and franchise loyalists.',
+        neutral: 'May appreciate the technical and narrative strengths, but not be deeply moved.',
+        opposed: 'Could be critical of perceived ideological or franchise-driven elements.',
+      },
+    },
   },
   biasDetection: {
     originalScore: 9.2,
@@ -549,17 +618,6 @@ export const MOCK_FULL_BIAS_SCORING_OUTPUT: FullBiasScoringOutput = {
     verdict: 'positive',
     confidenceLevel: 'high',
     recommendationStrength: 'strong',
-  },
-  culturalContext: {
-    justification:
-      'Based on the review transcript, certain ideological themes and narrative framings may influence audience perception.',
-    ideologicalThemes: ['representation', 'studio reputation'],
-    audienceReactions: {
-      aligned:
-        'Likely to resonate strongly with fans of inclusive narratives and franchise loyalists.',
-      neutral: 'May appreciate the technical and narrative strengths, but not be deeply moved.',
-      opposed: 'Could be critical of perceived ideological or franchise-driven elements.',
-    },
   },
 };
 
