@@ -26,15 +26,22 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
   const [showScoreInfo, setShowScoreInfo] = useState(false);
   const [showBiasInfo, setShowBiasInfo] = useState(false);
 
-  const biasAdjusted =
-    sentiment.biasAdjustment?.biasAdjustedScore ?? sentiment.sentimentScore ?? sentiment.score ?? 0;
   const rawScore = sentiment.sentimentScore ?? sentiment.score ?? 0;
+  const biasesDetected = sentiment.biasDetection?.biasesDetected || [];
+  // Subtract adjustedInfluence for each bias (removes inflation, restores deflation)
+  const totalScoreAdjustment = biasesDetected.reduce(
+    (sum: number, b: any) =>
+      sum - (typeof b.adjustedInfluence === 'number' ? b.adjustedInfluence : 0),
+    0,
+  );
+  const originalScore = sentiment.biasDetection?.originalScore ?? rawScore;
+  // const biasAdjusted =
+  //   typeof sentiment.biasAdjustment?.biasAdjustedScore === 'number'
+  //     ? sentiment.biasAdjustment.biasAdjustedScore
+  //     : +(originalScore + totalScoreAdjustment);
+  // TODO: temporary fix till we update the server to return the biasAdjustedScore
+  const biasAdjusted = +(originalScore + totalScoreAdjustment);
   const adjustment = biasAdjusted - rawScore;
-  const totalScoreAdjustment =
-    sentiment.biasAdjustment &&
-    typeof (sentiment.biasAdjustment as any).totalScoreAdjustment === 'number'
-      ? ((sentiment.biasAdjustment as any).totalScoreAdjustment as number)
-      : 0;
 
   const verdict = sentiment.verdict || sentiment.sentimentSnapshot?.verdict || '';
   let verdictColor = 'text-green-300 bg-gradient-to-br from-green-900/40 to-green-700/30';
@@ -49,11 +56,8 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
 
   return (
     <>
-      <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 justify-center mb-6">
-        <div
-          className={`flex flex-col items-center justify-center rounded-xl px-4 py-5 shadow w-44 sm:w-56 min-h-[120px] mx-auto font-orbitron bg-gradient-to-br from-green-900/40 to-green-700/30`}
-          style={{ flex: 1, minWidth: '10rem', maxWidth: '14rem' }}
-        >
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8 justify-center mb-6 w-full">
+        <div className="flex flex-col items-center justify-center rounded-xl px-4 py-5 shadow w-full min-h-[120px] font-orbitron bg-gradient-to-br from-green-900/40 to-green-700/30">
           <span className="flex items-center gap-2 text-green-300 text-xl sm:text-2xl font-extrabold font-orbitron uppercase tracking-widest mb-2">
             VERDICT
           </span>
@@ -61,7 +65,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
             {verdictLabel}
           </span>
         </div>
-        <div className="flex flex-col items-center justify-center bg-gradient-to-br from-blue-900/40 to-blue-700/30 rounded-xl px-4 py-5 shadow w-44 sm:w-56 min-h-[120px] mx-auto">
+        <div className="flex flex-col items-center justify-center bg-gradient-to-br from-blue-900/40 to-blue-700/30 rounded-xl px-4 py-5 shadow w-full min-h-[120px]">
           <span className="flex items-center gap-2 text-blue-300 text-xl sm:text-2xl font-extrabold font-orbitron uppercase tracking-widest mb-2">
             <svg
               width="28"
@@ -81,7 +85,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
             {rawScore}
           </span>
         </div>
-        <div className="flex flex-col items-center justify-center bg-gradient-to-br from-violet-900/40 to-violet-700/30 rounded-xl px-4 py-5 shadow w-44 sm:w-56 min-h-[120px] mx-auto">
+        <div className="flex flex-col items-center justify-center bg-gradient-to-br from-violet-900/40 to-violet-700/30 rounded-xl px-4 py-5 shadow w-full min-h-[120px]">
           <span className="flex items-center gap-2 text-violet-300 text-xl sm:text-2xl font-extrabold font-orbitron uppercase tracking-widest mb-2">
             <svg
               width="28"
@@ -107,7 +111,9 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
       <div className="text-center text-sm text-violet-200 mb-6">
         {biasAdjusted === rawScore
           ? 'No significant emotional biases detected.'
-          : `Adjusted by ${(adjustment > 0 ? '+' : '') + adjustment.toFixed(1)} to remove emotional or habitual bias.`}
+          : adjustment < 0
+            ? `Score reduced by ${Math.abs(adjustment).toFixed(2)} after removing bias.`
+            : `Score increased by ${Math.abs(adjustment).toFixed(2)} after removing bias.`}
         <span className="ml-2 cursor-pointer underline" onClick={() => setShowScoreInfo(true)}>
           What do these scores mean?
         </span>
@@ -159,7 +165,10 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                 {sentiment.biasDetection.biasesDetected.length} bias
                 {sentiment.biasDetection.biasesDetected.length > 1 ? 'es' : ''} detected, total
                 adjustment:{' '}
-                {(totalScoreAdjustment > 0 ? '+' : '') + totalScoreAdjustment.toFixed(1)}
+                {totalScoreAdjustment < 0
+                  ? `score reduced by ${Math.abs(totalScoreAdjustment).toFixed(2)}`
+                  : `score increased by ${Math.abs(totalScoreAdjustment).toFixed(2)}`}{' '}
+                due to bias
               </div>
             )}
           {showBiasInfo && (
@@ -180,102 +189,100 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
               </div>
             </div>
           )}
-          {Array.isArray(sentiment.biasDetection?.biasesDetected) &&
-          sentiment.biasDetection.biasesDetected.length > 0 ? (
-            <ul className="flex flex-wrap gap-3 flex-start mb-4">
-              {sentiment.biasDetection.biasesDetected.map((b: any, i: number) => (
-                <li
-                  key={`${b.name || 'bias'}-${b.severity || 'unknown'}-${b.scoreInfluence ?? '0'}-${i}`}
-                  className="rounded-lg border border-yellow-300 bg-yellow-50 p-4 shadow flex flex-col gap-1 w-full flex-1 mb-4"
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-bold text-yellow-900 text-base uppercase font-orbitron">
-                      {b.name}
-                    </span>
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded-full font-semibold ${b.severity === 'high' ? 'bg-red-200 text-red-800' : b.severity === 'moderate' ? 'bg-yellow-200 text-yellow-800' : 'bg-green-200 text-green-800'}`}
+          {/* Bias cards grid */}
+          {sentiment.biasDetection.biasesDetected.length > 0 && (
+            <div className="w-full ">
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-8">
+                {sentiment.biasDetection.biasesDetected.map((b: any, i: number) => {
+                  // Combine clues into a single readable string
+                  let clues = '';
+                  if (
+                    (b.evidence?.length && b.evidence[0]) ||
+                    (b.detectedIn?.length && b.detectedIn[0])
+                  ) {
+                    if (b.evidence?.length && b.detectedIn?.length) {
+                      clues = `The reviewer used phrases like "${b.evidence.join(', ')}" and the AI noticed a ${b.detectedIn.join(', ')}.`;
+                    } else if (b.evidence?.length) {
+                      clues = `The reviewer used phrases like "${b.evidence.join(', ')}".`;
+                    } else if (b.detectedIn?.length) {
+                      clues = `The AI noticed a ${b.detectedIn.join(', ')} in the review.`;
+                    }
+                  } else {
+                    clues =
+                      'No specific phrases or clues found, but the AI detected this bias based on the overall review.';
+                  }
+                  return (
+                    <li
+                      key={`${b.name || 'bias'}-${b.severity || 'unknown'}-${b.scoreInfluence ?? '0'}-${i}`}
+                      className="relative border border-yellow-200 bg-yellow-50 p-5 sm:p-8 shadow-lg flex flex-col gap-4 w-full flex-1 mb-4 rounded-2xl min-w-[280px] max-w-[480px] mx-auto"
+                      style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.08)' }}
                     >
-                      {b.severity}
-                    </span>
-                    {typeof b.adjustedInfluence === 'number' && (
-                      <span
-                        className={`ml-2 text-xs px-2 py-0.5 rounded-full font-bold ${b.adjustedInfluence > 0 ? 'bg-green-100 text-green-700' : b.adjustedInfluence < 0 ? 'bg-red-100 text-red-700' : 'bg-gray-200 text-gray-700'}`}
-                      >
-                        {b.adjustedInfluence > 0 ? '+' : ''}
-                        {b.adjustedInfluence?.toFixed(2)}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-700">Confidence:</span>
-                    <div className="w-20 h-2 bg-gray-200 rounded">
-                      <div
-                        className="h-2 rounded bg-yellow-400"
-                        style={{ width: `${Math.round((b.confidenceScore || 0) * 100)}%` }}
-                      />
-                    </div>
-                    <span className="text-xs text-gray-700 ml-1">
-                      {Math.round((b.confidenceScore || 0) * 100)}%
-                    </span>
-                  </div>
-                  {/* Why this matters */}
-                  <div className="mt-2 mb-1">
-                    <span className="block text-sm font-bold text-yellow-900">
-                      Why this matters:
-                    </span>
-                    <span className="block text-sm text-yellow-900">
-                      {b.impactOnExperience ||
-                        b.explanation ||
-                        'This bias may affect how the review is scored.'}
-                    </span>
-                  </div>
-                  {/* Detected in review language */}
-                  {(b.evidence && b.evidence.length > 0) ||
-                  (b.detectedIn && b.detectedIn.length > 0) ? (
-                    <details className="mt-1">
-                      <summary className="text-xs text-yellow-800 underline cursor-pointer select-none">
-                        Show details
-                      </summary>
-                      {b.evidence && b.evidence.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          <span className="text-xs text-gray-700 mr-1">
-                            Detected in review language:
-                          </span>
-                          {b.evidence.map((e: string, j: number) => (
-                            <span
-                              key={j}
-                              className="bg-yellow-200 text-yellow-900 text-xs px-2 py-0.5 rounded-full"
-                            >
-                              {e}
+                      {/* Bias effect box, top right, never overlaps header */}
+                      {typeof b.adjustedInfluence === 'number' && (
+                        <div className="absolute top-4 right-4 z-10 flex flex-col items-end">
+                          <div
+                            className="px-3 py-1 rounded-lg bg-gray-100 border border-gray-200 flex flex-col items-center shadow-sm"
+                            style={{ minWidth: 80 }}
+                          >
+                            <span className="text-[11px] text-gray-500 font-semibold tracking-wide uppercase">
+                              Bias effect
                             </span>
-                          ))}
+                            <span
+                              className={`text-xl font-mono font-extrabold ${b.adjustedInfluence > 0 ? 'text-green-700' : b.adjustedInfluence < 0 ? 'text-red-700' : 'text-gray-700'}`}
+                            >
+                              {b.adjustedInfluence > 0 ? '+' : ''}
+                              {b.adjustedInfluence?.toFixed(2)}
+                            </span>
+                          </div>
                         </div>
                       )}
-                      {b.detectedIn && b.detectedIn.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          <span className="text-xs text-gray-700 mr-1">Detected in:</span>
-                          {b.detectedIn.map((d: string, j: number) => (
+                      <div className="flex items-center justify-between mb-2 pr-0 sm:pr-0">
+                        <div>
+                          <div className="font-orbitron text-lg sm:text-xl font-extrabold uppercase tracking-widest text-yellow-900 mb-1">
+                            {b.name}
+                          </div>
+                          <div className="flex items-center gap-3 mb-1">
                             <span
-                              key={j}
-                              className="bg-gray-200 text-gray-700 text-xs px-2 py-0.5 rounded-full"
+                              className={`text-xs font-semibold ${b.severity === 'high' ? 'text-red-700' : b.severity === 'moderate' ? 'text-yellow-700' : 'text-green-700'}`}
                             >
-                              {d}
+                              {b.severity}
                             </span>
-                          ))}
+                            {/* Confidence meter */}
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-gray-500">Confidence:</span>
+                              <div className="w-20 h-2 bg-gray-200 rounded">
+                                <div
+                                  className={`h-2 rounded ${b.severity === 'high' ? 'bg-red-400' : b.severity === 'moderate' ? 'bg-yellow-400' : 'bg-green-400'}`}
+                                  style={{
+                                    width: `${Math.round((b.confidenceScore || 0) * 100)}%`,
+                                  }}
+                                />
+                              </div>
+                              <span className="text-xs text-gray-700 ml-1">
+                                {Math.round((b.confidenceScore || 0) * 100)}%
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                      )}
-                    </details>
-                  ) : null}
-                  <div className="text-xs text-gray-700 mt-1">
-                    Reviewer Intent: <span className="font-semibold">{b.reviewerIntent}</span>
-                  </div>
-                  <div className="text-xs text-yellow-900 italic mt-1">{b.explanation}</div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="text-base text-yellow-200 italic py-2 px-3 rounded bg-yellow-900/20 border border-yellow-700 mb-6">
-              No bias adjustment was made because no significant biases were detected.
+                      </div>
+                      {/* Why this matters - highlight box, violet for contrast */}
+                      <div className="mb-2 p-3 rounded bg-violet-100 text-violet-900 font-semibold text-base">
+                        {b.impactOnExperience ||
+                          b.explanation ||
+                          'This bias may affect how the review is scored.'}
+                      </div>
+                      {/* What tipped us off - single line, only if evidence or detectedIn or always if no evidence */}
+                      <div className="italic text-sm text-gray-700 mb-2">
+                        What tipped us off: {clues}
+                      </div>
+                      {/* Summary at the bottom */}
+                      <div className="text-base text-yellow-900 italic mt-4">
+                        {b.explanation || b.impactOnExperience}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
           )}
         </div>
