@@ -16,7 +16,7 @@ const BiasMeter = ({
   biases,
   netAdjustment,
   biasLean,
-  biasLeanColor,
+  // biasLeanColor,
   netBiasAdjustment,
 }: {
   biases: any[];
@@ -235,7 +235,12 @@ const BiasMeter = ({
         />
         {/* 0 label overlayed in the center, on top of the center bar, with pop */}
         <div
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-xs sm:text-base font-extrabold text-violet-50 font-mono drop-shadow-lg pointer-events-none select-none z-30 px-1.5 sm:px-2 py-0.5 bg-black/60 border border-violet-400/60 shadow-md"
+          className={
+            'absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-xs sm:text-base font-extrabold text-violet-50 font-mono drop-shadow-lg pointer-events-none select-none z-30 px-1.5 sm:px-2 py-0.5 border border-violet-400/60 shadow-md ' +
+            (Math.abs(netBiasAdjustment ?? 0) < 0.01
+              ? 'ring-2 ring-violet-300 ring-offset-2 z-40 bg-violet-900/90 text-white border-violet-300'
+              : 'bg-black/60')
+          }
           style={{ letterSpacing: '0.02em' }}
         >
           0
@@ -644,20 +649,75 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
         </div>
       </div>
 
-      {/* Bias Meter summary - now directly below scores */}
-      <div className="flex flex-col items-center relative">
-        <div className="font-orbitron text-lg sm:text-2xl font-extrabold uppercase tracking-widest text-violet-300 mb-1 drop-shadow">
-          BIAS METER
+      {/* --- NEW SUMMARY SECTION --- */}
+      {/* Verdict Callout */}
+      <div className="flex flex-col items-center my-4">
+        <span className="text-xs font-orbitron uppercase tracking-widest text-violet-300 mb-1">
+          Should You Play This?
+        </span>
+        {sentiment.sentimentSnapshot?.verdict && (
+          <div className="text-lg sm:text-xl font-orbitron font-bold italic text-violet-100 bg-gradient-to-r from-violet-800/80 to-violet-700/80 rounded-full px-6 py-3 shadow border border-violet-600 text-center">
+            {sentiment.sentimentSnapshot.verdict}
+          </div>
+        )}
+      </div>
+
+      {/* Game Summary */}
+      {sentiment.reviewSummary && (
+        <div className="my-3 mb-6">
+          <span className="block text-xs font-orbitron uppercase tracking-widest text-violet-300 mb-1">
+            Game Summary
+          </span>
+          <div className="text-base sm:text-lg font-orbitron font-semibold text-violet-100 bg-violet-900/60 rounded-lg px-4 py-3 shadow border border-violet-700 text-center">
+            {sentiment.reviewSummary}
+          </div>
         </div>
-        <Tooltip.Provider>
-          <BiasMeter
-            biases={biasSegments}
-            netAdjustment={netBiasAdjustment}
-            biasLean={biasLean}
-            biasLeanColor={biasLeanColor}
-            netBiasAdjustment={netBiasAdjustment}
-          />
-        </Tooltip.Provider>
+      )}
+
+      {/* Reviewer Take */}
+      {sentiment.sentimentSummary && sentiment.sentimentSummary !== sentiment.reviewSummary && (
+        <div className="mb-3">
+          <span className="block text-xs font-orbitron uppercase tracking-widest text-violet-300 mb-1">
+            Reviewer Take (AI Generated)
+          </span>
+          <div className="text-sm sm:text-base font-orbitron text-violet-200 bg-violet-900/40 rounded-lg px-4 py-2 shadow border border-violet-700 text-center">
+            {sentiment.sentimentSummary}
+          </div>
+        </div>
+      )}
+
+      {/* Badges */}
+      <div className="flex flex-wrap gap-2 justify-center mt-2 mb-6">
+        {sentiment.sentimentSnapshot?.confidenceLevel && (
+          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-violet-700 to-violet-500 text-violet-100 text-xs font-orbitron font-bold border border-violet-400 uppercase tracking-wide shadow">
+            {/* Shield icon for confidence */}
+            <svg className="w-4 h-4 text-violet-200 mr-1" fill="none" viewBox="0 0 20 20">
+              <path
+                d="M10 2l7 3v5c0 5.25-3.5 9.25-7 10-3.5-.75-7-4.75-7-10V5l7-3z"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                fill="currentColor"
+                fillOpacity="0.2"
+              />
+            </svg>
+            {sentiment.sentimentSnapshot.confidenceLevel} Confidence
+          </span>
+        )}
+        {sentiment.sentimentSnapshot?.recommendationStrength && (
+          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-green-700 to-green-500 text-green-100 text-xs font-orbitron font-bold border border-green-400 uppercase tracking-wide shadow">
+            {/* Check icon for recommendation */}
+            <svg className="w-4 h-4 text-green-200 mr-1" fill="none" viewBox="0 0 20 20">
+              <path
+                d="M5 10l4 4 6-8"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            {sentiment.sentimentSnapshot.recommendationStrength} Recommendation
+          </span>
+        )}
       </div>
 
       <div className="text-center text-sm text-violet-200 mb-6">
@@ -670,33 +730,87 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
           What do these scores mean?
         </span>
       </div>
-      {showScoreInfo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-          <div className="bg-gray-900 rounded-lg p-6 max-w-md w-full text-white shadow-xl relative">
-            <button
-              className="absolute top-2 right-3 text-xl"
-              onClick={() => setShowScoreInfo(false)}
-            >
-              &times;
-            </button>
-            <div className="text-lg font-bold mb-2">What do these scores mean?</div>
-            <div className="mb-2">
-              <b>Raw Score:</b> The AI&apos;s best estimate of the reviewer&apos;s score, based only
-              on the review transcript.
+
+      {/* Pros / Cons Section */}
+      {(sentiment.pros?.length > 0 || sentiment.cons?.length > 0) && (
+        <div className="flex flex-col sm:flex-row gap-6 justify-center items-stretch w-full mx-auto mb-6">
+          {sentiment.pros?.length > 0 && (
+            <div className="flex-1 bg-green-950/60 rounded-xl p-4 shadow flex flex-col h-full">
+              <div className="text-green-300 font-orbitron font-bold uppercase text-s mb-2 tracking-widest flex items-center gap-1">
+                <svg className="w-4 h-4 text-green-400" fill="none" viewBox="0 0 20 20">
+                  <path
+                    d="M5 10l4 4 6-8"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                Pros
+              </div>
+              <ul className="space-y-2">
+                {sentiment.pros.map((pro: string) => (
+                  <li
+                    key={pro}
+                    className="flex items-start gap-2 bg-green-900/10 border-l-4 border-green-400 rounded px-3 py-2 shadow-sm"
+                  >
+                    <span className="mt-0.5 text-green-400">
+                      <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+                        <path
+                          d="M5 13l4 4L19 7"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                    </span>
+                    <span className="text-green-100">{pro}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <div className="mb-2">
-              <b>True Score:</b> We adjusted this score to remove emotional influences like
-              nostalgia, hype, or nitpicking. It&apos;s our best estimate of what the review would
-              look like with a more balanced perspective.
+          )}
+          {sentiment.cons?.length > 0 && (
+            <div className="flex-1 bg-red-950/60 rounded-xl p-4 shadow flex flex-col h-full">
+              <div className="text-red-300 font-orbitron font-bold uppercase text-s mb-2 tracking-widest flex items-center gap-1">
+                <svg className="w-4 h-4 text-red-400" fill="none" viewBox="0 0 20 20">
+                  <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="2" fill="none" />
+                  <path
+                    d="M7 7l6 6m0-6l-6 6"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                Cons
+              </div>
+              <ul className="space-y-2">
+                {sentiment.cons.map((con: string) => (
+                  <li
+                    key={con}
+                    className="flex items-start gap-2 bg-red-900/10 border-l-4 border-red-400 rounded px-3 py-2 shadow-sm"
+                  >
+                    <span className="mt-0.5 text-red-400">
+                      <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
+                        <path
+                          d="M12 8v4"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                        />
+                        <circle cx="12" cy="16" r="1" fill="currentColor" />
+                      </svg>
+                    </span>
+                    <span className="text-red-100">{con}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <div>
-              If the True Score is lower, the reviewer was likely too generous (e.g. nostalgia). If
-              it&apos;s higher, they were likely too harsh (e.g. nitpicking). If it&apos;s the same,
-              no strong biases were detected.
-            </div>
-          </div>
+          )}
         </div>
       )}
+
       {/* Detected Biases Section */}
       {sentiment.biasDetection && (
         <div>
@@ -741,6 +855,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
               </div>
             </div>
           )}
+
           {/* Bias cards grid */}
           {sentiment.biasDetection.biasesDetected.length > 0 && (
             <div className="w-full ">
@@ -845,6 +960,50 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
               </ul>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Bias Meter summary - now below Detected Biases */}
+      <div className="flex flex-col items-center relative mt-8">
+        <div className="font-orbitron text-lg sm:text-2xl font-extrabold uppercase tracking-widest text-violet-300 mb-1 drop-shadow">
+          BIAS METER
+        </div>
+        <Tooltip.Provider>
+          <BiasMeter
+            biases={biasSegments}
+            netAdjustment={netBiasAdjustment}
+            biasLean={biasLean}
+            biasLeanColor={biasLeanColor}
+            netBiasAdjustment={netBiasAdjustment}
+          />
+        </Tooltip.Provider>
+      </div>
+
+      {showScoreInfo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+          <div className="bg-gray-900 rounded-lg p-6 max-w-md w-full text-white shadow-xl relative">
+            <button
+              className="absolute top-2 right-3 text-xl"
+              onClick={() => setShowScoreInfo(false)}
+            >
+              &times;
+            </button>
+            <div className="text-lg font-bold mb-2">What do these scores mean?</div>
+            <div className="mb-2">
+              <b>Raw Score:</b> The AI&apos;s best estimate of the reviewer&apos;s score, based only
+              on the review transcript.
+            </div>
+            <div className="mb-2">
+              <b>True Score:</b> We adjusted this score to remove emotional influences like
+              nostalgia, hype, or nitpicking. It&apos;s our best estimate of what the review would
+              look like with a more balanced perspective.
+            </div>
+            <div>
+              If the True Score is lower, the reviewer was likely too generous (e.g. nostalgia). If
+              it&apos;s higher, they were likely too harsh (e.g. nitpicking). If it&apos;s the same,
+              no strong biases were detected.
+            </div>
+          </div>
         </div>
       )}
     </>

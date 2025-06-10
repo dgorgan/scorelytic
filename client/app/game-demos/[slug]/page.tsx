@@ -153,7 +153,7 @@ export default async function GameDemoDetailPage({ params }: Props) {
           reviewer&apos;s verdict.
         </div>
         <GameDemoScores sentiment={sentiment} />
-        {sentiment.pros && sentiment.pros.length > 0 && (
+        {/* {sentiment.pros && sentiment.pros.length > 0 && (
           <div className="mb-5">
             <div className="text-lg sm:text-xl font-bold text-green-400 mb-1 font-orbitron uppercase tracking-wide">
               Pros
@@ -208,7 +208,7 @@ export default async function GameDemoDetailPage({ params }: Props) {
               ))}
             </ul>
           </div>
-        )}
+        )} */}
         {sentiment.biasDetection?.biasesDetected &&
           (sentiment.biasDetection?.biasesDetected ?? []).length > 0 &&
           false && (
