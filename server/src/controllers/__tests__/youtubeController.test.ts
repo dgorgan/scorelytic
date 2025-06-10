@@ -14,6 +14,7 @@ jest.mock('../../services/youtube/captionIngestService', () => ({
     _youtubeMeta: { channelTitle: 'Mock Channel', channelId: 'mockid' },
   })),
   upsertReviewToSupabase: jest.fn(),
+  upsertDemoReview: jest.fn(async () => {}),
 }));
 jest.mock('../../services/youtube/youtubeApiService', () => ({
   fetchYouTubeVideoMetadata: jest.fn(async () => ({
