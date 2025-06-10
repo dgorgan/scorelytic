@@ -990,23 +990,78 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
                           <div className="text-xs text-gray-500 font-semibold mb-1">
                             Detected Biases
                           </div>
-                          <ul className="space-y-1">
+                          <ul className="space-y-2">
                             {detectedBiases.map((b: any, i: number) => (
-                              <li key={b.name + i} className="border rounded p-2 bg-yellow-50">
-                                <div className="font-semibold text-yellow-900 text-sm">
-                                  {b.name}
+                              <li
+                                key={b.name + i}
+                                className="rounded-lg border border-yellow-300 bg-yellow-50 p-4 shadow flex flex-col gap-1 max-w-md"
+                              >
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="font-bold text-yellow-900 text-base">
+                                    {b.name}
+                                  </span>
+                                  <span
+                                    className={`text-xs px-2 py-0.5 rounded-full font-semibold ${b.severity === 'high' ? 'bg-red-200 text-red-800' : b.severity === 'moderate' ? 'bg-yellow-200 text-yellow-800' : 'bg-green-200 text-green-800'}`}
+                                  >
+                                    {b.severity}
+                                  </span>
+                                  {typeof b.adjustedInfluence === 'number' && (
+                                    <span
+                                      className={`ml-2 text-xs px-2 py-0.5 rounded-full font-bold ${b.adjustedInfluence > 0 ? 'bg-green-100 text-green-700' : b.adjustedInfluence < 0 ? 'bg-red-100 text-red-700' : 'bg-gray-200 text-gray-700'}`}
+                                    >
+                                      {b.adjustedInfluence > 0 ? '+' : ''}
+                                      {b.adjustedInfluence?.toFixed(2)}
+                                    </span>
+                                  )}
                                 </div>
-                                <div className="text-xs text-gray-700">
-                                  Severity: <span className="font-semibold">{b.severity}</span>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-gray-700">Confidence:</span>
+                                  <div className="w-20 h-2 bg-gray-200 rounded">
+                                    <div
+                                      className="h-2 rounded bg-yellow-400"
+                                      style={{
+                                        width: `${Math.round((b.confidenceScore || 0) * 100)}%`,
+                                      }}
+                                    />
+                                  </div>
+                                  <span className="text-xs text-gray-700 ml-1">
+                                    {Math.round((b.confidenceScore || 0) * 100)}%
+                                  </span>
                                 </div>
-                                <div className="text-xs text-gray-700">
+                                {b.evidence && b.evidence.length > 0 && (
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {b.evidence.map((e: string, j: number) => (
+                                      <span
+                                        key={j}
+                                        className="bg-yellow-200 text-yellow-900 text-xs px-2 py-0.5 rounded-full"
+                                      >
+                                        {e}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                                {b.detectedIn && b.detectedIn.length > 0 && (
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {b.detectedIn.map((d: string, j: number) => (
+                                      <span
+                                        key={j}
+                                        className="bg-gray-200 text-gray-700 text-xs px-2 py-0.5 rounded-full"
+                                      >
+                                        {d}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                                <div className="text-xs text-gray-700 mt-1">
+                                  Reviewer Intent:{' '}
+                                  <span className="font-semibold">{b.reviewerIntent}</span>
+                                </div>
+                                <div className="text-xs text-gray-700 mt-1">
                                   Impact: {b.impactOnExperience}
                                 </div>
-                                <div className="text-xs text-gray-700">
-                                  Score Influence:{' '}
-                                  <span className="font-semibold">{b.scoreInfluence}</span>
+                                <div className="text-xs text-yellow-900 italic mt-1">
+                                  {b.explanation}
                                 </div>
-                                <div className="text-xs text-gray-700">{b.explanation}</div>
                               </li>
                             ))}
                           </ul>

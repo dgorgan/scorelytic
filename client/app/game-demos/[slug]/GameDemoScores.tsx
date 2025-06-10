@@ -123,18 +123,18 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
             </button>
             <div className="text-lg font-bold mb-2">What do these scores mean?</div>
             <div className="mb-2">
-              <b>Raw Score:</b> The AI's best estimate of the reviewer's score, based only on the
-              review transcript.
+              <b>Raw Score:</b> The AI&apos;s best estimate of the reviewer&apos;s score, based only
+              on the review transcript.
             </div>
             <div className="mb-2">
               <b>True Score:</b> We adjusted this score to remove emotional influences like
-              nostalgia, hype, or nitpicking. It's our best estimate of what the review would look
-              like with a more balanced perspective.
+              nostalgia, hype, or nitpicking. It&apos;s our best estimate of what the review would
+              look like with a more balanced perspective.
             </div>
             <div>
               If the True Score is lower, the reviewer was likely too generous (e.g. nostalgia). If
-              it's higher, they were likely too harsh (e.g. nitpicking). If it's the same, no strong
-              biases were detected.
+              it&apos;s higher, they were likely too harsh (e.g. nitpicking). If it&apos;s the same,
+              no strong biases were detected.
             </div>
           </div>
         </div>
@@ -183,87 +183,70 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
           {Array.isArray(sentiment.biasDetection?.biasesDetected) &&
           sentiment.biasDetection.biasesDetected.length > 0 ? (
             <ul className="flex flex-wrap gap-3 flex-start">
-              {sentiment.biasDetection.biasesDetected.map((b: any, i: number) => {
-                const influence = Number(b.scoreInfluence);
-                const direction = influence > 0 ? '⬆️' : influence < 0 ? '⬇️' : '';
-                const color =
-                  influence > 0
-                    ? 'text-green-400'
-                    : influence < 0
-                      ? 'text-red-400'
-                      : 'text-yellow-400';
-                return (
-                  <li
-                    key={b.name + i}
-                    className={`inline-flex flex-col items-start max-w-md border border-yellow-300 bg-yellow-50 px-4 py-3 rounded-lg shadow-sm mb-8`}
-                  >
-                    <div
-                      className={`font-bold text-base mb-1 flex items-center gap-2 ${influence > 0 ? 'text-green-600' : influence < 0 ? 'text-red-600' : 'text-yellow-700'}`}
+              {sentiment.biasDetection.biasesDetected.map((b: any, i: number) => (
+                <li
+                  key={`${b.name || 'bias'}-${b.severity || 'unknown'}-${b.scoreInfluence ?? '0'}-${i}`}
+                  className="rounded-lg border border-yellow-300 bg-yellow-50 p-4 shadow flex flex-col gap-1 max-w-md"
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-bold text-yellow-900 text-base">{b.name}</span>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full font-semibold ${b.severity === 'high' ? 'bg-red-200 text-red-800' : b.severity === 'moderate' ? 'bg-yellow-200 text-yellow-800' : 'bg-green-200 text-green-800'}`}
                     >
-                      {influence > 0 ? (
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                          <path
-                            d="M10 15V5M10 5l-5 5M10 5l5 5"
-                            stroke="#22c55e"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      ) : influence < 0 ? (
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                          <path
-                            d="M10 5v10M10 15l-5-5M10 15l5-5"
-                            stroke="#ef4444"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      ) : (
-                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-                          <circle cx="12" cy="12" r="10" fill="#FDE68A" />
-                          <path
-                            d="M12 8v4"
-                            stroke="#B45309"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                          />
-                          <circle cx="12" cy="16" r="1" fill="#B45309" />
-                        </svg>
-                      )}
+                      {b.severity}
+                    </span>
+                    {typeof b.adjustedInfluence === 'number' && (
                       <span
-                        className={
-                          influence > 0
-                            ? 'text-green-600 font-bold'
-                            : influence < 0
-                              ? 'text-red-600 font-bold'
-                              : 'text-yellow-700 font-bold'
-                        }
+                        className={`ml-2 text-xs px-2 py-0.5 rounded-full font-bold ${b.adjustedInfluence > 0 ? 'bg-green-100 text-green-700' : b.adjustedInfluence < 0 ? 'bg-red-100 text-red-700' : 'bg-gray-200 text-gray-700'}`}
                       >
-                        {b.name} ({influence > 0 ? '+' : ''}
-                        {influence})
+                        {b.adjustedInfluence > 0 ? '+' : ''}
+                        {b.adjustedInfluence?.toFixed(2)}
                       </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-700">Confidence:</span>
+                    <div className="w-20 h-2 bg-gray-200 rounded">
+                      <div
+                        className="h-2 rounded bg-yellow-400"
+                        style={{ width: `${Math.round((b.confidenceScore || 0) * 100)}%` }}
+                      />
                     </div>
-                    <div className="text-base text-yellow-800 mb-1">
-                      Severity: <span className="font-bold">{b.severity}</span>
+                    <span className="text-xs text-gray-700 ml-1">
+                      {Math.round((b.confidenceScore || 0) * 100)}%
+                    </span>
+                  </div>
+                  {b.evidence && b.evidence.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {b.evidence.map((e: string, j: number) => (
+                        <span
+                          key={j}
+                          className="bg-yellow-200 text-yellow-900 text-xs px-2 py-0.5 rounded-full"
+                        >
+                          {e}
+                        </span>
+                      ))}
                     </div>
-                    <div className="text-base text-yellow-800 mb-1">
-                      Impact: {b.impactOnExperience}
+                  )}
+                  {b.detectedIn && b.detectedIn.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {b.detectedIn.map((d: string, j: number) => (
+                        <span
+                          key={j}
+                          className="bg-gray-200 text-gray-700 text-xs px-2 py-0.5 rounded-full"
+                        >
+                          {d}
+                        </span>
+                      ))}
                     </div>
-                    <div className="text-base text-yellow-800 mb-1">
-                      Score Influence: {b.scoreInfluence > 0 ? '+' : ''}
-                      {b.scoreInfluence}
-                      {b.scoreInfluence > 0
-                        ? ' (score adjusted up to remove positive bias)'
-                        : b.scoreInfluence < 0
-                          ? ' (score adjusted down to remove negative bias)'
-                          : ''}
-                    </div>
-                    <div className="text-sm text-yellow-900 italic">{b.explanation}</div>
-                  </li>
-                );
-              })}
+                  )}
+                  <div className="text-xs text-gray-700 mt-1">
+                    Reviewer Intent: <span className="font-semibold">{b.reviewerIntent}</span>
+                  </div>
+                  <div className="text-xs text-gray-700 mt-1">Impact: {b.impactOnExperience}</div>
+                  <div className="text-xs text-yellow-900 italic mt-1">{b.explanation}</div>
+                </li>
+              ))}
             </ul>
           ) : (
             <div className="text-base text-yellow-200 italic py-2 px-3 rounded bg-yellow-900/20 border border-yellow-700 mb-6">

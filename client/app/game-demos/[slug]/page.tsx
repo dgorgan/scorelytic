@@ -195,23 +195,63 @@ export default async function GameDemoDetailPage({ params }: Props) {
             </ul>
           </div>
         )}
-        {sentiment.biasIndicators && sentiment.biasIndicators.length > 0 && (
-          <div className="mb-4">
-            <div className="text-lg sm:text-xl font-bold text-yellow-400 mb-1 font-orbitron uppercase tracking-wide">
-              Bias Indicators
+        {sentiment.biasDetection?.biasesDetected &&
+          (sentiment.biasDetection?.biasesDetected ?? []).length > 0 && (
+            <div className="mb-4">
+              <div className="text-lg sm:text-xl font-bold text-yellow-400 mb-1 font-orbitron uppercase tracking-wide">
+                Detected Biases
+              </div>
+              <ul className="flex flex-wrap gap-2 sm:gap-3">
+                {(sentiment.biasDetection?.biasesDetected ?? []).map((b: any, i: number) => (
+                  <li
+                    key={b.name + i}
+                    className="bg-gradient-to-br from-yellow-100 to-yellow-300 px-4 sm:px-5 py-2 rounded-xl text-base sm:text-lg text-yellow-900 font-bold shadow border border-yellow-300 flex flex-col items-start min-w-[220px]"
+                  >
+                    <span className="font-bold text-yellow-900 text-lg">{b.name}</span>
+                    <span className="text-xs text-gray-700">Severity: {b.severity}</span>
+                    <span className="text-xs text-gray-700">Impact: {b.impactOnExperience}</span>
+                    <span className="text-xs text-gray-700">
+                      Score Influence: {b.scoreInfluence}{' '}
+                      <span className="ml-2 text-blue-700">(adj: {b.adjustedInfluence})</span>
+                    </span>
+                    <span className="text-xs text-gray-700">
+                      Confidence: {Math.round((b.confidenceScore || 0) * 100)}%
+                    </span>
+                    {b.detectedIn && b.detectedIn.length > 0 && (
+                      <span className="text-xs text-gray-500 mt-1">
+                        Detected in:{' '}
+                        {b.detectedIn.map((d: string) => (
+                          <span
+                            key={d}
+                            className="inline-block bg-gray-200 rounded px-2 py-0.5 mr-1"
+                          >
+                            {d}
+                          </span>
+                        ))}
+                      </span>
+                    )}
+                    <span className="text-xs text-gray-500 mt-1">
+                      Reviewer Intent: <span className="font-semibold">{b.reviewerIntent}</span>
+                    </span>
+                    {b.evidence && b.evidence.length > 0 && (
+                      <span className="text-xs text-gray-500 mt-1">
+                        Evidence:{' '}
+                        {b.evidence.map((e: string, j: number) => (
+                          <span
+                            key={j}
+                            className="inline-block bg-yellow-200 rounded px-2 py-0.5 mr-1"
+                          >
+                            {e}
+                          </span>
+                        ))}
+                      </span>
+                    )}
+                    <span className="text-xs text-yellow-900 italic mt-1">{b.explanation}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <ul className="flex flex-wrap gap-2 sm:gap-3">
-              {sentiment.biasIndicators.map((b: string) => (
-                <li
-                  key={b}
-                  className="bg-gradient-to-br from-yellow-200 to-yellow-400 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full text-base sm:text-lg text-yellow-900 font-bold shadow border border-yellow-300"
-                >
-                  {b}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+          )}
         {sentiment.alsoRecommends && sentiment.alsoRecommends.length > 0 && (
           <div className="mb-4">
             <div className="text-lg sm:text-xl font-bold text-blue-400 mb-1 font-orbitron uppercase tracking-wide">

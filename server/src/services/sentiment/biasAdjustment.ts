@@ -547,7 +547,7 @@ export const mapBiasLabelsToObjects = (
     const allText = [reviewSummary, ...pros, ...cons].join(' ').toLowerCase();
     const keywords = (BIAS_KEYWORDS[label] || []).map((k) => k.toLowerCase());
     // Evidence: collect all matching phrases
-    const evidence: string[] = [];
+    let evidence: string[] = [];
     keywords.forEach((kw) => {
       if (reviewSummary.toLowerCase().includes(kw)) evidence.push(kw);
       pros.forEach((p) => {
@@ -558,9 +558,25 @@ export const mapBiasLabelsToObjects = (
       });
     });
     // Unique evidence
-    const uniqueEvidence = Array.from(new Set(evidence));
+    let uniqueEvidence = Array.from(new Set(evidence));
+    // If no evidence, try to find any bias keyword in the text as fallback
+    if (uniqueEvidence.length === 0) {
+      for (const kw of keywords) {
+        if (allText.includes(kw)) {
+          uniqueEvidence = [kw];
+          break;
+        }
+      }
+    }
+    // If still no evidence, set a default
+    if (uniqueEvidence.length === 0) {
+      uniqueEvidence = ['(no explicit evidence found)'];
+    }
     // Keyword hits
-    const keywordHits = uniqueEvidence.length;
+    const keywordHits =
+      uniqueEvidence.length && uniqueEvidence[0] !== '(no explicit evidence found)'
+        ? uniqueEvidence.length
+        : 0;
     // DetectedIn logic
     const detectedIn: string[] = [];
     if (pros.some((p) => keywords.some((kw) => p.toLowerCase().includes(kw))))
@@ -577,11 +593,12 @@ export const mapBiasLabelsToObjects = (
       )
     ) {
       reviewerIntent = 'explicit';
-    } else if (uniqueEvidence.length > 0) {
+    } else if (uniqueEvidence.length > 0 && uniqueEvidence[0] !== '(no explicit evidence found)') {
       reviewerIntent = 'implied';
     }
     // Confidence
-    const confidenceScore = calculateBiasConfidenceScore(keywordHits, detectedIn, reviewerIntent);
+    let confidenceScore = calculateBiasConfidenceScore(keywordHits, detectedIn, reviewerIntent);
+    if (confidenceScore === 0) confidenceScore = 0.5;
     // Adjusted influence
     const adjustedInfluence = heur.scoreInfluence * confidenceScore;
     return {
