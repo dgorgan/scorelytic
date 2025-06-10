@@ -2,11 +2,7 @@ import OpenAI from 'openai';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import logger from '@/logger';
 import { env } from '@/config/env';
-import {
-  mapBiasLabelsToObjects,
-  evaluateBiasImpact,
-  BIAS_KEYWORDS,
-} from '@/services/sentiment/biasAdjustment';
+import { mapBiasLabelsToObjects, BIAS_KEYWORDS } from '@/services/sentiment/biasAdjustment';
 import type { BiasImpact } from '@scorelytic/shared';
 
 export type SentimentResult = {
@@ -93,13 +89,13 @@ You must identify **both explicit and implied biases**, including tonal, habitua
 
 - **Nostalgia Bias**: Emotional callbacks to older titles or childhood memories.
 - **Franchise Bias / Studio Reputation Bias**: Inflated sentiment from brand loyalty or dev trust.
-- **Influencer/Sponsored Bias**: Overemphasis on praise, defensiveness, or disclaimers (“not sponsored”).
-- **Reviewer Fatigue**: Signs of burnout or disengagement (“I've played too many lately”, “nothing feels fresh”).
-- **Genre Aversion**: Dislike rooted in genre, not quality (“not a fan of these types of games”).
+- **Influencer/Sponsored Bias**: Overemphasis on praise, defensiveness, or disclaimers ("not sponsored").
+- **Reviewer Fatigue**: Signs of burnout or disengagement ("I've played too many lately", "nothing feels fresh").
+- **Genre Aversion**: Dislike rooted in genre, not quality ("not a fan of these types of games").
 - **Technical Criticism Bias**: Overemphasis on performance, bugs, or mechanics.
 - **Contrarian Bias**: Strong rejection of broadly praised games.
 - **Difficulty Bias**: Frustration caused by challenge or accessibility.
-- **Comparative Bias**: Score deflation due to comparisons (“X did it better”).
+- **Comparative Bias**: Score deflation due to comparisons ("X did it better").
 - **Cultural Bias**: Bias rooted in cultural preferences or values (e.g., certain cultural expectations around difficulty or gameplay pacing).
 
 You may add new bias types if you justify them clearly.
@@ -164,7 +160,7 @@ Return a single JSON object with the following:
 📘 EXAMPLES:
 
 **Example 1 — Reviewer Fatigue**
-Transcript: “After playing so many open world games this year, I just didn't feel like finishing this one.”
+Transcript: "After playing so many open world games this year, I just didn't feel like finishing this one."
 Biases: [{
   "name": "reviewer fatigue",
   "severity": "moderate",
@@ -176,7 +172,7 @@ Biases: [{
 }]
 
 **Example 2 — Nostalgia & Studio Reputation**
-Transcript: “This feels like classic BioWare. They've never let me down.”
+Transcript: "This feels like classic BioWare. They've never let me down."
 Biases: [{
   "name": "nostalgia bias",
   "severity": "moderate",
@@ -188,7 +184,7 @@ Biases: [{
 }]
 
 **Example 3 — Cultural Context**
-Transcript: “The game’s difficulty is punishing, which is just how I like my platformers.”
+Transcript: "The game's difficulty is punishing, which is just how I like my platformers."
 Biases: [{
   "name": "difficulty bias",
   "severity": "moderate",
@@ -456,6 +452,16 @@ export type BiasAdjustmentResult = {
   adjustmentRationale: string;
 };
 
+// Helper: round to nearest tenth, round up if hundredths digit is 5 or greater
+const roundScoreForDisplay = (score: number): number => {
+  const hundredths = Math.round((score * 100) % 10);
+  if (hundredths >= 5) {
+    return +(Math.ceil(score * 10) / 10).toFixed(1);
+  } else {
+    return +(Math.floor(score * 10) / 10).toFixed(1);
+  }
+};
+
 // --- Refactored analyzeTextWithBiasAdjustment ---
 export const analyzeTextWithBiasAdjustmentFull = async (
   text: string,
@@ -465,65 +471,42 @@ export const analyzeTextWithBiasAdjustmentFull = async (
   creatorName?: string,
 ): Promise<FullBiasScoringOutput> => {
   const sentiment = await analyzeText(text, preferredModel, customPrompt, gameTitle, creatorName);
-  // Bias detection phase
+  let biasesDetected: BiasImpact[] = [];
+  if (sentiment.biasIndicators && sentiment.biasIndicators.length > 0) {
+    biasesDetected = mapBiasLabelsToObjects(
+      sentiment.biasIndicators,
+      sentiment.reviewSummary || '',
+      sentiment.pros,
+      sentiment.cons,
+    );
+  }
   const biasDetection: BiasDetectionPhaseOutput = {
     originalScore: sentiment.sentimentScore ?? 5,
-    biasesDetected: mapBiasLabelsToObjects(
-      sentiment.biasIndicators,
-      sentiment.reviewSummary || '',
-      sentiment.pros,
-      sentiment.cons,
-    ),
+    biasesDetected,
     reviewSummary: sentiment.reviewSummary || '',
   };
-  // Bias adjustment phase
-  let biasAdjustmentRaw = evaluateBiasImpact(
-    biasDetection.originalScore,
-    sentiment.biasIndicators,
-    sentiment.reviewSummary || '',
-    sentiment.pros,
-    sentiment.cons,
-  );
-  // Fallback: If LLM did not adjust score or rationale is missing, synthesize adjustment
-  if (
-    biasAdjustmentRaw.biasAdjustedScore === biasDetection.originalScore ||
-    !biasAdjustmentRaw.adjustmentRationale ||
-    biasAdjustmentRaw.adjustmentRationale.trim() === ''
-  ) {
-    // Synthesize rationale and adjustment
-    const biasObjs = mapBiasLabelsToObjects(
-      sentiment.biasIndicators,
-      sentiment.reviewSummary || '',
-      sentiment.pros,
-      sentiment.cons,
-    );
-    const totalScoreAdjustment = biasObjs.reduce(
-      (sum: number, b: BiasImpact) => sum + b.adjustedInfluence,
-      0,
-    );
-    const biasAdjustedScore = Math.max(
-      0,
-      Math.min(10, Math.round((biasDetection.originalScore - totalScoreAdjustment) * 10) / 10),
-    );
-    const rationale =
-      totalScoreAdjustment === 0
-        ? 'No bias adjustment was made because no significant biases were detected.'
-        : `Score adjusted by ${totalScoreAdjustment > 0 ? '-' : '+'}${Math.abs(totalScoreAdjustment)} based on detected biases: ${biasObjs
-            .map((b) => b.name)
-            .join(', ')}.`;
-    biasAdjustmentRaw = {
-      ...biasAdjustmentRaw,
-      biasAdjustedScore,
-      totalScoreAdjustment: -totalScoreAdjustment,
-      adjustmentRationale: rationale,
-    };
-    logger.warn('[BiasAdjustment] Fallback adjustment/rationale used for review.');
-  }
+  const totalScoreAdjustmentRaw = biasesDetected.reduce((sum, b) => sum + b.adjustedInfluence, 0);
+  const biasAdjustedScoreRaw = +(biasDetection.originalScore + totalScoreAdjustmentRaw);
+  const biasAdjustedScore = roundScoreForDisplay(biasAdjustedScoreRaw);
+  const totalScoreAdjustment = roundScoreForDisplay(totalScoreAdjustmentRaw);
   const biasAdjustment: BiasAdjustmentPhaseOutput = {
-    biasAdjustedScore: biasAdjustmentRaw.biasAdjustedScore,
-    totalScoreAdjustment: biasAdjustmentRaw.totalScoreAdjustment,
-    rationale: biasAdjustmentRaw.adjustmentRationale,
+    biasAdjustedScore, // for display
+    totalScoreAdjustment,
+    rationale: biasesDetected.length
+      ? biasesDetected
+          .map((b) => {
+            const influence =
+              b.adjustedInfluence > 0
+                ? `${b.name} inflated by ${b.adjustedInfluence.toFixed(2)}`
+                : `${b.name} deflated by ${Math.abs(b.adjustedInfluence).toFixed(2)}`;
+            return influence;
+          })
+          .join(', ')
+      : 'No significant bias detected.',
   };
+  // Attach raw values for backend/debugging
+  (biasAdjustment as any).biasAdjustedScoreRaw = +biasAdjustedScoreRaw.toFixed(4);
+  (biasAdjustment as any).totalScoreAdjustmentRaw = +totalScoreAdjustmentRaw.toFixed(4);
   // Sentiment snapshot (simple heuristics for now)
   const confidenceLevel: 'low' | 'moderate' | 'high' =
     Math.abs((sentiment.sentimentScore ?? 5) - 5) > 2 ? 'high' : 'moderate';
@@ -541,9 +524,7 @@ export const analyzeTextWithBiasAdjustmentFull = async (
   };
   // If LLM did not provide culturalContext, synthesize and set it inside sentiment
   if (!sentiment.culturalContext) {
-    sentiment.culturalContext = generateCulturalContext(
-      biasAdjustment.biasAdjustedScore !== undefined ? biasDetection.biasesDetected : [],
-    );
+    sentiment.culturalContext = generateCulturalContext(biasesDetected);
   }
   return {
     sentiment,
