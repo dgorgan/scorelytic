@@ -143,8 +143,38 @@ export const normalizeYoutubeToReview = async (params: {
  * TODO: Implement actual Supabase insert/upsert logic
  */
 export const upsertReviewToSupabase = async (review: Partial<Review>): Promise<void> => {
+  // Remove any fields not in the DB schema
+  const {
+    _youtubeMeta, // strip this
+    transcriptDebug, // strip if not in schema
+    transcriptError, // strip if not in schema
+    ...reviewForDb
+  } = review as any;
   const { error } = await supabase
     .from('reviews')
-    .upsert([toSnake(review)], { onConflict: 'video_url' });
+    .upsert([toSnake(reviewForDb)], { onConflict: 'video_url' });
   if (error) throw new Error(`Supabase upsert failed: ${error.message}`);
+};
+
+/**
+ * Bulletproof upsert for demo_reviews. Never throws, only logs errors.
+ */
+export const upsertDemoReview = async (
+  videoUrl: string,
+  data: any,
+  slug: string,
+): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('demo_reviews')
+      .upsert([{ video_url: videoUrl, data, slug }], { onConflict: 'video_url' });
+    if (error) {
+      // Log but never throw
+      // eslint-disable-next-line no-console
+      console.error('Demo review upsert failed:', error.message);
+    }
+  } catch (err: any) {
+    // eslint-disable-next-line no-console
+    console.error('Demo review upsert crashed:', err.message);
+  }
 };

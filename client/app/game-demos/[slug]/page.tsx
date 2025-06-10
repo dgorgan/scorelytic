@@ -140,7 +140,7 @@ export default async function GameDemoDetailPage({ params }: Props) {
         </div>
         <GameDemoScores sentiment={sentiment} />
         {sentiment.pros && sentiment.pros.length > 0 && (
-          <div className="mb-4">
+          <div className="mb-5">
             <div className="text-lg sm:text-xl font-bold text-green-400 mb-1 font-orbitron uppercase tracking-wide">
               Pros
             </div>
@@ -167,7 +167,7 @@ export default async function GameDemoDetailPage({ params }: Props) {
           </div>
         )}
         {sentiment.cons && sentiment.cons.length > 0 && (
-          <div className="mb-4">
+          <div className="mb-5">
             <div className="text-lg sm:text-xl font-bold text-red-400 mb-1 font-orbitron uppercase tracking-wide">
               Cons
             </div>
@@ -196,25 +196,28 @@ export default async function GameDemoDetailPage({ params }: Props) {
           </div>
         )}
         {sentiment.biasDetection?.biasesDetected &&
-          (sentiment.biasDetection?.biasesDetected ?? []).length > 0 && (
+          (sentiment.biasDetection?.biasesDetected ?? []).length > 0 &&
+          false && (
             <div className="mb-4">
               <div className="text-lg sm:text-xl font-bold text-yellow-400 mb-1 font-orbitron uppercase tracking-wide">
                 Detected Biases
               </div>
-              <ul className="flex flex-wrap gap-2 sm:gap-3">
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {(sentiment.biasDetection?.biasesDetected ?? []).map((b: any, i: number) => (
                   <li
                     key={b.name + i}
-                    className="bg-gradient-to-br from-yellow-100 to-yellow-300 px-4 sm:px-5 py-2 rounded-xl text-base sm:text-lg text-yellow-900 font-bold shadow border border-yellow-300 flex flex-col items-start min-w-[220px]"
+                    className="bg-gradient-to-br from-yellow-100 to-yellow-300 px-6 py-4 rounded-xl text-base sm:text-lg text-yellow-900 font-bold shadow border border-yellow-300 flex flex-col items-start w-full"
                   >
-                    <span className="font-bold text-yellow-900 text-lg">{b.name}</span>
-                    <span className="text-xs text-gray-700">Severity: {b.severity}</span>
-                    <span className="text-xs text-gray-700">Impact: {b.impactOnExperience}</span>
-                    <span className="text-xs text-gray-700">
+                    <span className="font-bold text-yellow-900 text-lg mb-1">{b.name}</span>
+                    <span className="text-xs text-gray-700 mb-0.5">Severity: {b.severity}</span>
+                    <span className="text-xs text-gray-700 mb-0.5">
+                      Impact: {b.impactOnExperience}
+                    </span>
+                    <span className="text-xs text-gray-700 mb-0.5">
                       Score Influence: {b.scoreInfluence}{' '}
                       <span className="ml-2 text-blue-700">(adj: {b.adjustedInfluence})</span>
                     </span>
-                    <span className="text-xs text-gray-700">
+                    <span className="text-xs text-gray-700 mb-0.5">
                       Confidence: {Math.round((b.confidenceScore || 0) * 100)}%
                     </span>
                     {b.detectedIn && b.detectedIn.length > 0 && (
@@ -282,10 +285,10 @@ export default async function GameDemoDetailPage({ params }: Props) {
                 <div className="text-base sm:text-lg font-bold text-purple-300 mb-2 font-orbitron uppercase tracking-wide">
                   Cultural Context
                 </div>
-                <div className="text-base text-purple-100 mb-1 italic">
+                <div className="text-base text-purple-100 mb-4 italic">
                   {sentiment.culturalContext.justification}
                 </div>
-                <div className="flex flex-wrap gap-2 mb-1">
+                <div className="flex flex-wrap gap-2 mb-4">
                   {sentiment.culturalContext.ideologicalThemes?.map((theme: string) => (
                     <span
                       key={theme}
@@ -295,21 +298,36 @@ export default async function GameDemoDetailPage({ params }: Props) {
                     </span>
                   ))}
                 </div>
-                <div className="text-base text-purple-200 font-semibold mb-1">
+                <div className="text-base text-purple-200 font-semibold mb-1 mt-4">
                   Audience Reactions:
                 </div>
-                <ul className="ml-4 text-base text-purple-100">
-                  <li>
-                    <span className="font-bold">Aligned:</span>{' '}
-                    {sentiment.culturalContext.audienceReactions?.aligned}
+                <ul className="space-y-2">
+                  <li className="flex items-start gap-2 bg-green-900/20 rounded px-3 py-1">
+                    <span className="text-green-400 text-lg mt-0.5">✅</span>
+                    <span>
+                      <span className="font-bold text-green-200">Aligned:</span>{' '}
+                      <span className="text-green-100">
+                        {sentiment.culturalContext.audienceReactions?.aligned}
+                      </span>
+                    </span>
                   </li>
-                  <li>
-                    <span className="font-bold">Neutral:</span>{' '}
-                    {sentiment.culturalContext.audienceReactions?.neutral}
+                  <li className="flex items-start gap-2 bg-yellow-900/20 rounded px-3 py-1">
+                    <span className="text-yellow-300 text-lg mt-0.5">⚖️</span>
+                    <span>
+                      <span className="font-bold text-yellow-200">Neutral:</span>{' '}
+                      <span className="text-yellow-100">
+                        {sentiment.culturalContext.audienceReactions?.neutral}
+                      </span>
+                    </span>
                   </li>
-                  <li>
-                    <span className="font-bold">Opposed:</span>{' '}
-                    {sentiment.culturalContext.audienceReactions?.opposed}
+                  <li className="flex items-start gap-2 bg-red-900/20 rounded px-3 py-1">
+                    <span className="text-red-400 text-lg mt-0.5">❌</span>
+                    <span>
+                      <span className="font-bold text-red-200">Opposed:</span>{' '}
+                      <span className="text-red-100">
+                        {sentiment.culturalContext.audienceReactions?.opposed}
+                      </span>
+                    </span>
                   </li>
                 </ul>
               </div>
