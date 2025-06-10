@@ -1,26 +1,479 @@
 'use client';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import * as Tooltip from '@radix-ui/react-tooltip';
 
-function Tooltip({ children, text }: { children: React.ReactNode; text: string }) {
-  const [open, setOpen] = useState(false);
+// --- BiasMeter component ---
+const clamp = (val: number, min: number, max: number) => Math.max(min, Math.min(max, val));
+
+const biasColors = {
+  POSITIVE: 'bg-green-400',
+  NEG: 'bg-red-400',
+  NEUTRAL: 'bg-yellow-400',
+  OTHER: 'bg-blue-400',
+};
+
+const BiasMeter = ({
+  biases,
+  netAdjustment,
+  biasLean,
+  biasLeanColor,
+  netBiasAdjustment,
+}: {
+  biases: any[];
+  netAdjustment: number;
+  biasLean?: string;
+  biasLeanColor?: string;
+  netBiasAdjustment?: number;
+}) => {
+  // Clamp net adjustment to [-2, 2] for the bar
+  const clamped = clamp(netAdjustment, -2, 2);
+  // Build stacked segments for each bias (color-coded)
+  const segments = useMemo(() => {
+    if (!biases?.length) return [];
+    // Sort by influence descending for visual clarity
+    return biases
+      .filter(
+        (b) => typeof b.adjustedInfluence === 'number' && Math.abs(b.adjustedInfluence) > 0.01,
+      )
+      .map((b, i) => ({
+        value: b.adjustedInfluence,
+        color:
+          b.adjustedInfluence > 0
+            ? biasColors.POSITIVE
+            : b.adjustedInfluence < 0
+              ? biasColors.NEG
+              : biasColors.NEUTRAL,
+        label: b.name,
+      }));
+  }, [biases]);
+
+  // Delta summary string TODO: might implement this somewhere
+  // const deltaSummary = segments.length
+  //   ? segments.map((s) => `${s.value > 0 ? '+' : ''}${s.value.toFixed(2)}`).join(', ') +
+  //     ` — Total Adjusted: ${netAdjustment > 0 ? '+' : ''}${netAdjustment.toFixed(2)}`
+  //   : `Total Adjusted: ${netAdjustment > 0 ? '+' : ''}${netAdjustment.toFixed(2)}`;
+
+  // Tooltip/modal state
+  const [showGlossary, setShowGlossary] = useState(false);
+
+  const minW = segments.length <= 5 ? 'min-w-6' : 'min-w-4';
+
+  // For the trail: calculate left offset and width from center to marker
+  const markerPercent = 50 + clamp(netAdjustment, -2, 2) * 25; // 0 = 50%, -2 = 0%, +2 = 100%
+  const trailLeft = markerPercent < 50 ? markerPercent : 50;
+  const trailWidth = Math.abs(markerPercent - 50);
+
   return (
-    <span
-      className="relative inline-block focus:outline-none"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
-      onFocus={() => setOpen(true)}
-      onBlur={() => setOpen(false)}
-      tabIndex={0}
-    >
-      {children}
-      {open && (
-        <span className="absolute z-50 left-1/2 -translate-x-1/2 mt-2 px-3 py-1 rounded bg-gray-900 text-xs text-white shadow-lg whitespace-nowrap">
-          {text}
-        </span>
+    <div className="w-full max-w-2xl mx-auto mb-6 sm:mb-6 mb-3">
+      {/* Top row: Bias Lean centered above meter, What's this? right-aligned */}
+      <div
+        className="relative w-full max-w-2xl mx-auto sm:mb-1 mb-0"
+        style={{ minHeight: '1.4rem' }}
+      >
+        {/* Bias Lean badge centered absolutely (desktop), stacked (mobile) */}
+        {biasLean && (
+          <div
+            className="flex justify-center mb-1 sm:absolute sm:left-1/2 sm:top-0 sm:-translate-x-1/2 sm:z-20"
+            style={{ lineHeight: 1 }}
+          >
+            <Tooltip.Provider>
+              <Tooltip.Root delayDuration={100}>
+                <Tooltip.Trigger asChild>
+                  <div
+                    className="flex items-center font-orbitron font-extrabold italic tracking-wide text-xs sm:text-sm px-1.5 sm:px-2 py-0.5 select-none transition-all duration-200 hover:scale-105"
+                    style={{
+                      fontStyle: 'italic',
+                      fontSize: '0.95rem',
+                      fontWeight: 700,
+                      transform: 'skew(-12deg)',
+                      background:
+                        (netBiasAdjustment ?? 0) > 0.1
+                          ? 'linear-gradient(90deg, #4ade80 0%, #22d3ee 100%)'
+                          : (netBiasAdjustment ?? 0) < -0.1
+                            ? 'linear-gradient(90deg, #f87171 0%, #fbbf24 100%)'
+                            : 'linear-gradient(90deg, #a78bfa 0%, #818cf8 100%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                    }}
+                  >
+                    {biasLean}
+                    <span className="ml-1 transition-transform duration-200 group-hover:translate-x-1 group-hover:scale-125">
+                      {(netBiasAdjustment ?? 0) > 0.1 ? (
+                        <svg
+                          className="inline-block w-4 h-4 text-green-400 font-bold"
+                          fill="none"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            d="M4 10h12m0 0l-4-4m4 4l-4 4"
+                            stroke="currentColor"
+                            strokeWidth="3"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      ) : (netBiasAdjustment ?? 0) < -0.1 ? (
+                        <svg
+                          className="inline-block w-4 h-4 text-red-400 font-bold"
+                          fill="none"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            d="M16 10H4m0 0l4-4m-4 4l4 4"
+                            stroke="currentColor"
+                            strokeWidth="3"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      ) : (
+                        <svg
+                          className="inline-block w-4 h-4 text-violet-300 font-bold"
+                          fill="none"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            d="M6 10h8"
+                            stroke="currentColor"
+                            strokeWidth="3"
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                      )}
+                    </span>
+                  </div>
+                </Tooltip.Trigger>
+                <Tooltip.Portal>
+                  <Tooltip.Content
+                    className="z-50 px-3 py-2 rounded bg-gray-900 text-xs text-white shadow-lg whitespace-pre-line font-semibold border border-violet-500 animate-fade-in max-w-xs"
+                    side="top"
+                    align="center"
+                  >
+                    This indicates the overall bias direction affecting the review's sentiment score
+                    — whether it tends to inflate (boost) or deflate (lower) the score compared to
+                    an objective baseline.
+                    <Tooltip.Arrow className="fill-gray-900" />
+                  </Tooltip.Content>
+                </Tooltip.Portal>
+              </Tooltip.Root>
+            </Tooltip.Provider>
+          </div>
+        )}
+        {/* What's this? right-aligned on desktop, centered below badge on mobile */}
+        <button
+          className="sm:absolute sm:right-0 sm:top-0 text-violet-300 hover:text-violet-100 text-xs sm:text-sm font-bold underline px-1 sm:px-2 mt-1 sm:mt-0 block mx-auto sm:mx-0 mb-2 sm:mb-0"
+          style={{ display: 'block' }}
+          onClick={() => setShowGlossary(true)}
+          aria-label="What is the bias meter?"
+        >
+          What is this?
+        </button>
+      </div>
+      {/* Bar container */}
+      <div className="relative h-5 sm:h-6 bg-violet-950/80 rounded-full border border-violet-700 flex items-center shadow-inner overflow-visible mt-0">
+        {/* Visual trail from center to marker with gradient */}
+        {trailWidth > 0 && (
+          <div
+            className="absolute z-10 h-full pointer-events-none shadow-[0_0_12px_2px_rgba(139,92,246,0.5)]"
+            style={{
+              top: '50%',
+              transform: 'translateY(-50%)',
+              left: `${trailLeft}%`,
+              width: `${trailWidth}%`,
+              transition: 'left 0.4s, width 0.4s',
+              boxShadow: '0 0 16px 4px rgba(139,92,246,0.45)',
+              background:
+                (netBiasAdjustment ?? 0) > 0.1
+                  ? 'linear-gradient(90deg, #4ade80 0%, #22d3ee 100%)'
+                  : (netBiasAdjustment ?? 0) < -0.1
+                    ? 'linear-gradient(90deg, #f87171 0%, #fbbf24 100%)'
+                    : 'linear-gradient(90deg, #a78bfa 0%, #818cf8 100%)',
+            }}
+          />
+        )}
+        {/* Segments */}
+        {segments.length > 0 ? (
+          <div className="absolute left-0 top-0 h-full w-full flex overflow-visible">
+            {segments.map((seg, i) => {
+              const width = `${Math.abs(seg.value / 4) * 100}%`;
+              const isFirst = i === 0;
+              const isLast = i === segments.length - 1;
+              return (
+                <Tooltip.Root key={seg.label + i} delayDuration={100}>
+                  <Tooltip.Trigger asChild>
+                    <div
+                      className={[
+                        seg.color,
+                        'h-full relative cursor-pointer transition-opacity duration-150 z-10',
+                        minW,
+                        isFirst ? 'rounded-l-full' : '',
+                        isLast ? 'rounded-r-full' : '',
+                      ].join(' ')}
+                      style={{ width }}
+                    />
+                  </Tooltip.Trigger>
+                  <Tooltip.Portal>
+                    <Tooltip.Content
+                      className="z-50 px-3 py-1 rounded bg-gray-900 text-xs text-white shadow-lg whitespace-nowrap font-bold border border-violet-500 animate-fade-in"
+                      side="top"
+                      align="center"
+                    >
+                      {seg.label}: {seg.value > 0 ? '+' : ''}
+                      {seg.value.toFixed(2)}
+                      <Tooltip.Arrow className="fill-gray-900" />
+                    </Tooltip.Content>
+                  </Tooltip.Portal>
+                </Tooltip.Root>
+              );
+            })}
+          </div>
+        ) : null}
+        {/* Center line (0) */}
+        <div
+          className="absolute left-1/2 top-0 h-full w-0.5 bg-violet-400/60 z-10"
+          style={{ transform: 'translateX(-50%)' }}
+        />
+        {/* 0 label overlayed in the center, on top of the center bar, with pop */}
+        <div
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-xs sm:text-base font-extrabold text-violet-50 font-mono drop-shadow-lg pointer-events-none select-none z-30 px-1.5 sm:px-2 py-0.5 bg-black/60 border border-violet-400/60 shadow-md"
+          style={{ letterSpacing: '0.02em' }}
+        >
+          0
+        </div>
+        {/* Net adjustment marker + label */}
+        <Tooltip.Root delayDuration={100}>
+          <Tooltip.Trigger asChild>
+            <div
+              className="absolute top-0 h-full flex z-30 transition-all duration-500"
+              style={{ left: `calc(50% + ${clamped * 25}%)` }}
+            >
+              <div
+                className="w-2 h-full shadow-xl border-2 border-violet-500 cursor-pointer"
+                style={{
+                  background:
+                    (netBiasAdjustment ?? 0) > 0.1
+                      ? 'linear-gradient(180deg, #4ade80 0%, #22d3ee 100%)'
+                      : (netBiasAdjustment ?? 0) < -0.1
+                        ? 'linear-gradient(180deg, #f87171 0%, #fbbf24 100%)'
+                        : 'linear-gradient(180deg, #a78bfa 0%, #818cf8 100%)',
+                }}
+              />
+            </div>
+          </Tooltip.Trigger>
+          <Tooltip.Portal>
+            <Tooltip.Content
+              className="z-50 px-3 py-2 rounded bg-gray-900 text-xs text-white shadow-lg whitespace-pre-line font-semibold border border-violet-500 animate-fade-in max-w-xs"
+              side="top"
+              align="center"
+            >
+              {`Net Adjustment: ${(netBiasAdjustment ?? 0) > 0 ? '+' : ''}${(netBiasAdjustment ?? 0).toFixed(2)}\n`}
+              {((netBiasAdjustment ?? 0) > 0.1 && 'Score Inflated') ||
+                ((netBiasAdjustment ?? 0) < -0.1 && 'Score Deflated') ||
+                'No significant bias'}
+              <Tooltip.Arrow className="fill-gray-900" />
+            </Tooltip.Content>
+          </Tooltip.Portal>
+        </Tooltip.Root>
+        {/* Range labels */}
+        <div className="absolute left-2 top-1/2 -translate-y-1/2 text-xs sm:text-base font-extrabold text-violet-300 font-mono drop-shadow-sm">
+          -2
+        </div>
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 text-xs sm:text-base font-extrabold text-violet-300 font-mono drop-shadow-sm">
+          +2
+        </div>
+      </div>
+      {/* Legend below the bar */}
+      <div className="flex gap-2 sm:gap-4 mt-2 sm:mt-4 mb-2 sm:mb-4 justify-center items-center text-xs font-bold text-violet-200 select-none">
+        <div className="flex items-center gap-1">
+          <span className="inline-block w-3 sm:w-4 h-2.5 sm:h-3 rounded-full bg-green-400 border border-green-600" />
+          Score inflated by bias
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="inline-block w-3 sm:w-4 h-2.5 sm:h-3 rounded-full bg-red-400 border border-red-600" />
+          Score deflated by bias
+        </div>
+      </div>
+      <div className="text-xs sm:text-xs text-violet-300 mb-2">
+        <b>How to read this:</b> Each colored segment shows how much a specific bias inflated
+        (green) or deflated (red) the score. The thick marker shows the total effect of all biases
+        combined. If the marker is left of 0, the review was more negative after removing bias; if
+        right, more positive.
+      </div>
+      {/* Glossary modal */}
+      {showGlossary && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+          <div className="bg-gray-900 rounded-lg p-6 max-w-[90vw] sm:max-w-md w-full text-white shadow-xl relative">
+            <button
+              className="absolute top-2 right-3 text-xl"
+              onClick={() => setShowGlossary(false)}
+            >
+              &times;
+            </button>
+            <div className="text-lg font-bold mb-2">What is the Bias Meter?</div>
+            <div className="mb-2">
+              The bias meter shows how much emotional or contextual bias changed the reviewer's
+              original sentiment. A value near 0 means the review was mostly objective. Large
+              positive or negative values mean the review was strongly influenced by bias.
+            </div>
+            <div className="text-sm text-violet-200 mb-3">
+              Each colored segment represents a detected bias type. Hover for details.
+            </div>
+            {/* Bias Impact Summary - styled and at the top */}
+            <div className="mb-4">
+              <div className="font-orbitron text-base sm:text-lg font-extrabold uppercase tracking-widest text-violet-200 mt-2 mb-1 drop-shadow">
+                Bias Impact Summary
+              </div>
+              <div className="text-lg font-orbitron font-extrabold mb-2">
+                Net Adjustment:{' '}
+                <span
+                  className={
+                    (netBiasAdjustment ?? 0) > 0
+                      ? 'text-green-400'
+                      : (netBiasAdjustment ?? 0) < 0
+                        ? 'text-red-400'
+                        : 'text-violet-100'
+                  }
+                >
+                  {(netBiasAdjustment ?? 0) > 0 ? '+' : ''}
+                  {(netBiasAdjustment ?? 0).toFixed(2)}
+                </span>
+              </div>
+              <ul className="mb-2 ml-2">
+                {segments.length > 0 ? (
+                  segments.map((s, i) => (
+                    <li key={s.label + i} className="flex items-center gap-2 mb-1">
+                      <span
+                        className={[
+                          s.value > 0
+                            ? 'text-green-400'
+                            : s.value < 0
+                              ? 'text-red-400'
+                              : 'text-violet-100',
+                          'font-bold font-mono text-base',
+                        ].join(' ')}
+                      >
+                        {s.value > 0 ? '+' : ''}
+                        {s.value.toFixed(2)}
+                      </span>
+                      <span className="capitalize text-violet-100 text-sm font-semibold">
+                        {s.label}
+                      </span>
+                    </li>
+                  ))
+                ) : (
+                  <li className="text-violet-100">No significant biases detected.</li>
+                )}
+              </ul>
+            </div>
+            <div className="font-orbitron text-base sm:text-lg font-extrabold uppercase tracking-widest text-violet-200 mt-2 mb-2 drop-shadow">
+              Reading The Bias Meter
+            </div>
+            <MiniBiasMeter />
+            {/* Legend */}
+            <div className="flex gap-4 mt-4 mb-3 justify-center items-center text-xs font-bold text-violet-200 select-none">
+              <div className="flex items-center gap-1">
+                <span className="inline-block w-4 h-3 rounded-full bg-green-400 border border-green-600" />
+                Score inflated by bias
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="inline-block w-4 h-3 rounded-full bg-red-400 border border-red-600" />
+                Score deflated by bias
+              </div>
+            </div>
+            {/* How to read */}
+            <div className="text-xs text-violet-300 mb-2">
+              <b>How to read this:</b> In this example, the green segment shows a +0.3 bias (score
+              inflated), the red segment shows a -0.1 bias (score deflated), and the thick marker
+              shows the net adjustment (+0.2). The closer the marker is to 0, the more objective the
+              review.
+            </div>
+            {/* Range explanation */}
+            <div className="text-xs text-violet-300 mt-2">
+              <b>Range explanation:</b> The bar ranges from –2 (strong negative bias) to +2 (strong
+              positive bias). Most reviews fall between –0.5 and +0.5.
+            </div>
+          </div>
+        </div>
       )}
-    </span>
+    </div>
   );
-}
+};
+
+// MiniBiasMeter for modal example
+const MiniBiasMeter = () => {
+  const segments = [
+    { value: 0.3, color: 'bg-green-400', label: 'Nostalgia' },
+    { value: -0.1, color: 'bg-red-400', label: 'Cynicism' },
+  ];
+  const netAdjustment = 0.2;
+  const clamp = (val: number, min: number, max: number) => Math.max(min, Math.min(max, val));
+  const clamped = clamp(netAdjustment, -2, 2);
+  const markerPercent = 50 + clamped * 25;
+  const trailLeft = markerPercent < 50 ? markerPercent : 50;
+  const trailWidth = Math.abs(markerPercent - 50);
+  const minW = 'min-w-4';
+  return (
+    <div className="w-full max-w-xs mx-auto mb-6 mt-2">
+      <div className="relative h-4 bg-violet-950/80 rounded-full border border-violet-700 flex items-center shadow-inner overflow-visible">
+        {/* Visual trail */}
+        {trailWidth > 0 && (
+          <div
+            className="absolute z-10 h-full bg-violet-400/30 pointer-events-none"
+            style={{
+              left: `${trailLeft}%`,
+              width: `${trailWidth}%`,
+              transition: 'left 0.4s, width 0.4s',
+            }}
+          />
+        )}
+        {/* Segments */}
+        <div className="absolute left-0 top-0 h-full w-full flex overflow-visible">
+          {segments.map((seg, i) => {
+            const width = `${Math.abs(seg.value / 4) * 100}%`;
+            const isFirst = i === 0;
+            const isLast = i === segments.length - 1;
+            return (
+              <div
+                key={seg.label + i}
+                className={[
+                  seg.color,
+                  'h-full relative',
+                  minW,
+                  isFirst ? 'rounded-l-full' : '',
+                  isLast ? 'rounded-r-full' : '',
+                ].join(' ')}
+                style={{ width }}
+              />
+            );
+          })}
+        </div>
+        {/* Center line (0) */}
+        <div
+          className="absolute left-1/2 top-0 h-full w-0.5 bg-violet-400/60 z-10"
+          style={{ transform: 'translateX(-50%)' }}
+        />
+        {/* Net adjustment marker */}
+        <div
+          className="absolute top-0 h-full flex z-30 transition-all duration-500"
+          style={{ left: `calc(50% + ${clamped * 25}%)` }}
+        >
+          <div className="w-2 h-full bg-violet-300 shadow-xl border-2 border-violet-500" />
+        </div>
+        {/* Range labels */}
+        <div className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-violet-400 font-mono">
+          -2
+        </div>
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-violet-400 font-mono">
+          +2
+        </div>
+        <div className="absolute left-1/2 top-full mt-0.5 -translate-x-1/2 text-[10px] text-violet-400 font-mono">
+          0
+        </div>
+      </div>
+    </div>
+  );
+};
+// --- End BiasMeter ---
 
 export default function GameDemoScores({ sentiment }: { sentiment: any }) {
   const [showScoreInfo, setShowScoreInfo] = useState(false);
@@ -44,25 +497,71 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
   const adjustment = biasAdjusted - rawScore;
 
   const verdict = sentiment.verdict || sentiment.sentimentSnapshot?.verdict || '';
-  let verdictColor = 'text-green-300 bg-gradient-to-br from-green-900/40 to-green-700/30';
+  // let verdictColor = 'text-green-300 bg-gradient-to-br from-green-900/40 to-green-700/30';
   let verdictLabel = 'Positive';
   let verdictBg = 'bg-gradient-to-br from-green-900/40 to-green-700/30';
   let verdictText = 'text-green-300';
   if (verdict.toLowerCase().includes('neg')) {
-    verdictColor = 'text-red-300 bg-gradient-to-br from-red-900/40 to-red-700/30';
+    // verdictColor = 'text-red-300 bg-gradient-to-br from-red-900/40 to-red-700/30';
     verdictLabel = 'Negative';
     verdictBg = 'bg-gradient-to-br from-red-900/40 to-red-700/30';
     verdictText = 'text-red-300';
   } else if (verdict.toLowerCase().includes('mix')) {
-    verdictColor = 'text-yellow-300 bg-gradient-to-br from-yellow-900/40 to-yellow-700/30';
+    // verdictColor = 'text-yellow-300 bg-gradient-to-br from-yellow-900/40 to-yellow-700/30';
     verdictLabel = 'Mixed';
     verdictBg = 'bg-gradient-to-br from-yellow-900/40 to-yellow-700/30';
     verdictText = 'text-yellow-300';
   } else if (verdict.toLowerCase().includes('neut')) {
-    verdictColor = 'text-blue-300 bg-gradient-to-br from-blue-900/40 to-blue-700/30';
+    // verdictColor = 'text-blue-300 bg-gradient-to-br from-blue-900/40 to-blue-700/30';
     verdictLabel = 'Neutral';
     verdictBg = 'bg-gradient-to-br from-blue-900/40 to-blue-700/30';
     verdictText = 'text-blue-300';
+  }
+
+  // Bias meter logic
+  const netBiasAdjustment = biasAdjusted - rawScore;
+  const biasSegments = Array.isArray(biasesDetected) ? biasesDetected : [];
+
+  // Bias Lean logic
+  let biasLean = null;
+  let biasLeanColor = '';
+  // let biasLeanIcon = null;
+  if (netBiasAdjustment > 0.1) {
+    biasLean = 'Bias Lean: Inflates Score';
+    biasLeanColor = 'text-green-400';
+    // biasLeanIcon = (
+    //   <svg className="inline-block w-4 h-4 ml-1 text-green-400" fill="none" viewBox="0 0 20 20">
+    //     <path
+    //       d="M4 10h12m0 0l-4-4m4 4l-4 4"
+    //       stroke="currentColor"
+    //       strokeWidth="2"
+    //       strokeLinecap="round"
+    //       strokeLinejoin="round"
+    //     />
+    //   </svg>
+    // );
+  } else if (netBiasAdjustment < -0.1) {
+    biasLean = 'Bias Lean: Deflates Score';
+    biasLeanColor = 'text-red-400';
+    // biasLeanIcon = (
+    //   <svg className="inline-block w-4 h-4 ml-1 text-red-400" fill="none" viewBox="0 0 20 20">
+    //     <path
+    //       d="M16 10H4m0 0l4-4m-4 4l4 4"
+    //       stroke="currentColor"
+    //       strokeWidth="2"
+    //       strokeLinecap="round"
+    //       strokeLinejoin="round"
+    //     />
+    //   </svg>
+    // );
+  } else {
+    biasLean = 'Bias Lean: Neutral';
+    biasLeanColor = 'text-violet-300';
+    // biasLeanIcon = (
+    //   <svg className="inline-block w-4 h-4 ml-1 text-violet-300" fill="none" viewBox="0 0 20 20">
+    //     <path d="M6 10h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    //   </svg>
+    // );
   }
 
   return (
@@ -74,6 +573,23 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
           <span
             className={`flex items-center gap-2 ${verdictText} text-xl sm:text-2xl font-extrabold font-orbitron uppercase tracking-widest mb-2`}
           >
+            <svg
+              width="28"
+              height="28"
+              fill="none"
+              viewBox="0 0 24 24"
+              className={`inline-block align-middle ${verdictText} text-2xl sm:text-3xl`}
+              style={{ marginTop: '2px' }}
+            >
+              <path
+                d="M5 3v18M5 3h12l-2 5 2 5H5"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+              />
+            </svg>
             VERDICT
           </span>
           <span
@@ -89,7 +605,8 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
               height="28"
               fill="none"
               viewBox="0 0 24 24"
-              className="inline-block text-blue-400 text-2xl sm:text-3xl -mt-1"
+              className="inline-block align-middle text-blue-400 text-2xl sm:text-3xl -mt-1"
+              style={{ marginTop: '1px' }}
             >
               <path
                 d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
@@ -109,7 +626,8 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
               height="28"
               fill="none"
               viewBox="0 0 24 24"
-              className="inline-block text-violet-400 text-2xl sm:text-3xl -mt-1"
+              className="inline-block align-middle text-violet-400 text-2xl sm:text-3xl -mt-1"
+              style={{ marginTop: '1px' }}
             >
               <path
                 d="M12 2v20m10-10H2"
@@ -125,6 +643,23 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
           </span>
         </div>
       </div>
+
+      {/* Bias Meter summary - now directly below scores */}
+      <div className="flex flex-col items-center relative">
+        <div className="font-orbitron text-lg sm:text-2xl font-extrabold uppercase tracking-widest text-violet-300 mb-1 drop-shadow">
+          BIAS METER
+        </div>
+        <Tooltip.Provider>
+          <BiasMeter
+            biases={biasSegments}
+            netAdjustment={netBiasAdjustment}
+            biasLean={biasLean}
+            biasLeanColor={biasLeanColor}
+            netBiasAdjustment={netBiasAdjustment}
+          />
+        </Tooltip.Provider>
+      </div>
+
       <div className="text-center text-sm text-violet-200 mb-6">
         {biasAdjusted === rawScore
           ? 'No significant emotional biases detected.'
