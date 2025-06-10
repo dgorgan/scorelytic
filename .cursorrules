@@ -17,6 +17,11 @@ style_guidelines:
     quotes: single
     semicolons: true
     trailing_commas: none
+    # Add the smart quotes rule here
+    smart_quotes:
+      prevent_conversion: true # Prevent automatic conversion of smart quotes to straight quotes in string literals
+      action: ignore # Do not auto-fix or change smart quotes
+      message: 'Smart quotes in string literals should not be converted to straight quotes.'
   code_patterns:
     prefer_arrow_functions: true
     prefer_const: true

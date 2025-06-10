@@ -257,7 +257,7 @@ export default async function GameDemoDetailPage({ params }: Props) {
           )}
         {sentiment.alsoRecommends && sentiment.alsoRecommends.length > 0 && (
           <div className="mb-4">
-            <div className="text-lg sm:text-xl font-bold text-blue-400 mb-1 font-orbitron uppercase tracking-wide">
+            <div className="text-lg sm:text-xl font-bold text-blue-400 mb-4 font-orbitron uppercase tracking-wide">
               Also Recommends
             </div>
             <ul className="flex flex-wrap gap-2 sm:gap-3">
@@ -332,7 +332,8 @@ export default async function GameDemoDetailPage({ params }: Props) {
                 </ul>
               </div>
             )}
-            {data.data?.debug && data.data?.debug.length > 0 && (
+            {/*TODO: determine if this is useful client side at all or not */}
+            {/* {data.data?.debug && data.data?.debug.length > 0 && (
               <div>
                 <div className="text-base sm:text-lg font-bold text-gray-300 mb-2 font-orbitron uppercase tracking-wide">
                   Debug Log
@@ -341,7 +342,7 @@ export default async function GameDemoDetailPage({ params }: Props) {
                   {data.data.debug.join('\n')}
                 </pre>
               </div>
-            )}
+            )} */}
           </div>
         </details>
       </div>
