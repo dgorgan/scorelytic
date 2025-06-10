@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import {
   normalizeYoutubeToReview,
   upsertReviewToSupabase,
+  upsertDemoReview,
 } from '@/services/youtube/captionIngestService';
 import {
   fetchYouTubeVideoMetadata,
@@ -10,7 +11,6 @@ import {
 } from '@/services/youtube/youtubeApiService';
 import { getHybridTranscript } from '@/services/youtube/hybridTranscriptService';
 import { analyzeTextWithBiasAdjustmentFull, analyzeGeneralSummary } from '@/services/sentiment';
-import { supabase } from '@/config/database';
 import type {
   Review,
   SentimentAnalysisResponse,
@@ -159,8 +159,9 @@ export const youtubeController = {
             const llmDebug =
               'LLM generalAnalysis result (raw): ' + JSON.stringify(generalResult, null, 2);
             debugLog.push(llmDebug);
+            const slug = createSlug(review.title || review.videoUrl || videoId);
             const minimal = {
-              reviewId: videoUrl,
+              reviewId: review.videoUrl,
               sentiment: undefined,
               metadata: {
                 title: review.title,
@@ -180,16 +181,9 @@ export const youtubeController = {
               transcriptMethod: review.transcriptMethod,
               transcriptDebug: review.transcriptDebug,
               debug: debugLog,
+              slug,
             };
-            await supabase.from('demo_reviews').upsert(
-              [
-                {
-                  video_url: videoUrl,
-                  data: minimal,
-                },
-              ],
-              { onConflict: 'video_url' },
-            );
+            await upsertDemoReview(videoUrl, minimal, slug);
             return res.json({
               success: true,
               data: {
@@ -229,9 +223,12 @@ export const youtubeController = {
           emit('No transcript found.');
           sentiment = normalizeSentiment(flattenSentiment({}));
         }
+        const slug = createSlug(review.title || review.videoUrl || videoId);
         const minimal = {
-          reviewId: videoUrl,
+          reviewId: review.videoUrl,
           sentiment,
+          transcript: review.transcript,
+          debug: debugLog,
           metadata: {
             title: review.title,
             channelTitle: review._youtubeMeta?.channelTitle || '',
@@ -240,20 +237,13 @@ export const youtubeController = {
             description: review.description,
             thumbnails: review.thumbnails,
             tags: review.tags,
+            transcript: review.transcript,
           },
           transcriptMethod: review.transcriptMethod,
           transcriptDebug: review.transcriptDebug,
-          debug: debugLog,
+          transcriptError: review.transcriptError,
         };
-        await supabase.from('demo_reviews').upsert(
-          [
-            {
-              video_url: videoUrl,
-              data: minimal,
-            },
-          ],
-          { onConflict: 'video_url' },
-        );
+        await upsertDemoReview(videoUrl, minimal, slug);
         return res.json({
           success: true,
           data: {

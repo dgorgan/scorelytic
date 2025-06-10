@@ -75,7 +75,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                 fill="currentColor"
               />
             </svg>
-            CREATOR SCORE
+            RAW SCORE
           </span>
           <span className="text-2xl sm:text-3xl font-extrabold font-orbitron tracking-wide drop-shadow mt-1 text-blue-100">
             {rawScore}
@@ -143,7 +143,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
       {sentiment.biasDetection && (
         <div>
           <div className="flex items-center gap-2">
-            <div className="text-base sm:text-lg font-bold text-yellow-400 mb-2 font-orbitron uppercase tracking-wide">
+            <div className="text-base sm:text-lg font-bold text-yellow-400 font-orbitron uppercase tracking-wide">
               Detected Biases
             </div>
             <span
@@ -182,14 +182,16 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
           )}
           {Array.isArray(sentiment.biasDetection?.biasesDetected) &&
           sentiment.biasDetection.biasesDetected.length > 0 ? (
-            <ul className="flex flex-wrap gap-3 flex-start">
+            <ul className="flex flex-wrap gap-3 flex-start mb-4">
               {sentiment.biasDetection.biasesDetected.map((b: any, i: number) => (
                 <li
                   key={`${b.name || 'bias'}-${b.severity || 'unknown'}-${b.scoreInfluence ?? '0'}-${i}`}
-                  className="rounded-lg border border-yellow-300 bg-yellow-50 p-4 shadow flex flex-col gap-1 max-w-md"
+                  className="rounded-lg border border-yellow-300 bg-yellow-50 p-4 shadow flex flex-col gap-1 w-full flex-1 mb-4"
                 >
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-bold text-yellow-900 text-base">{b.name}</span>
+                    <span className="font-bold text-yellow-900 text-base uppercase font-orbitron">
+                      {b.name}
+                    </span>
                     <span
                       className={`text-xs px-2 py-0.5 rounded-full font-semibold ${b.severity === 'high' ? 'bg-red-200 text-red-800' : b.severity === 'moderate' ? 'bg-yellow-200 text-yellow-800' : 'bg-green-200 text-green-800'}`}
                     >
@@ -216,34 +218,57 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                       {Math.round((b.confidenceScore || 0) * 100)}%
                     </span>
                   </div>
-                  {b.evidence && b.evidence.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {b.evidence.map((e: string, j: number) => (
-                        <span
-                          key={j}
-                          className="bg-yellow-200 text-yellow-900 text-xs px-2 py-0.5 rounded-full"
-                        >
-                          {e}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  {b.detectedIn && b.detectedIn.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {b.detectedIn.map((d: string, j: number) => (
-                        <span
-                          key={j}
-                          className="bg-gray-200 text-gray-700 text-xs px-2 py-0.5 rounded-full"
-                        >
-                          {d}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                  {/* Why this matters */}
+                  <div className="mt-2 mb-1">
+                    <span className="block text-sm font-bold text-yellow-900">
+                      Why this matters:
+                    </span>
+                    <span className="block text-sm text-yellow-900">
+                      {b.impactOnExperience ||
+                        b.explanation ||
+                        'This bias may affect how the review is scored.'}
+                    </span>
+                  </div>
+                  {/* Detected in review language */}
+                  {(b.evidence && b.evidence.length > 0) ||
+                  (b.detectedIn && b.detectedIn.length > 0) ? (
+                    <details className="mt-1">
+                      <summary className="text-xs text-yellow-800 underline cursor-pointer select-none">
+                        Show details
+                      </summary>
+                      {b.evidence && b.evidence.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          <span className="text-xs text-gray-700 mr-1">
+                            Detected in review language:
+                          </span>
+                          {b.evidence.map((e: string, j: number) => (
+                            <span
+                              key={j}
+                              className="bg-yellow-200 text-yellow-900 text-xs px-2 py-0.5 rounded-full"
+                            >
+                              {e}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {b.detectedIn && b.detectedIn.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          <span className="text-xs text-gray-700 mr-1">Detected in:</span>
+                          {b.detectedIn.map((d: string, j: number) => (
+                            <span
+                              key={j}
+                              className="bg-gray-200 text-gray-700 text-xs px-2 py-0.5 rounded-full"
+                            >
+                              {d}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </details>
+                  ) : null}
                   <div className="text-xs text-gray-700 mt-1">
                     Reviewer Intent: <span className="font-semibold">{b.reviewerIntent}</span>
                   </div>
-                  <div className="text-xs text-gray-700 mt-1">Impact: {b.impactOnExperience}</div>
                   <div className="text-xs text-yellow-900 italic mt-1">{b.explanation}</div>
                 </li>
               ))}
