@@ -51,8 +51,8 @@ export default async function GameDemoDetailPage({ params }: Props) {
       <GameDemoVideo thumb={thumb} videoId={videoId} title={meta.title} />
       {/* Channel credit and subscribe */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-3 mb-6 px-2 sm:px-4 py-2 bg-violet-900/70 rounded-lg border border-violet-700 shadow-sm">
-        {/* Left: YouTube icon + channel name + subscribe */}
-        <div className="flex flex-col xs:flex-row items-center gap-2 sm:gap-3 w-full sm:w-auto">
+        {/* Left: YouTube icon + channel name + subscribe (side-by-side on desktop) */}
+        <div className="flex flex-col xs:flex-row items-center gap-2 sm:gap-3 w-full sm:w-auto sm:flex-row sm:items-center">
           <div className="flex items-center gap-2">
             <svg
               width="24"
@@ -70,15 +70,29 @@ export default async function GameDemoDetailPage({ params }: Props) {
                 {meta.channelTitle}
               </span>
             )}
+            {/* Subscribe button next to channel name on desktop */}
+            {meta.channelId && (
+              <a
+                href={`https://www.youtube.com/channel/${meta.channelId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden sm:inline-block ml-3"
+              >
+                <button className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow hover:bg-red-700 transition">
+                  Subscribe
+                </button>
+              </a>
+            )}
           </div>
+          {/* Subscribe button below on mobile only */}
           {meta.channelId && (
             <a
               href={`https://www.youtube.com/channel/${meta.channelId}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full sm:w-auto"
+              className="w-full sm:hidden"
             >
-              <button className="w-full sm:w-auto bg-red-600 text-white text-xs sm:text-xs font-bold px-3 sm:px-4 py-1 rounded-full shadow hover:bg-red-700 transition mt-1 sm:mt-0">
+              <button className="w-full bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow hover:bg-red-700 transition mt-1">
                 Subscribe
               </button>
             </a>
@@ -298,32 +312,83 @@ export default async function GameDemoDetailPage({ params }: Props) {
                     </span>
                   ))}
                 </div>
-                <div className="text-base text-purple-200 font-semibold mb-1 mt-4">
+                <div className="text-base text-purple-200 font-semibold mb-1 mt-4 font-orbitron">
                   Audience Reactions:
                 </div>
                 <ul className="space-y-2">
-                  <li className="flex items-start gap-2 bg-green-900/20 rounded px-3 py-1">
-                    <span className="text-green-400 text-lg mt-0.5">✅</span>
+                  <li className="flex items-center gap-2 bg-green-900/20 rounded px-3 py-1">
+                    <span className="text-green-400 text-lg align-middle">
+                      {/* Star SVG for Aligned */}
+                      <svg
+                        width="20"
+                        height="20"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        className="inline-block align-middle"
+                        style={{ marginTop: '1px' }}
+                      >
+                        <path
+                          d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
+                          fill="currentColor"
+                        />
+                      </svg>
+                    </span>
                     <span>
-                      <span className="font-bold text-green-200">Aligned:</span>{' '}
+                      <span className="font-bold text-green-200 font-orbitron">Aligned:</span>{' '}
                       <span className="text-green-100">
                         {sentiment.culturalContext.audienceReactions?.aligned}
                       </span>
                     </span>
                   </li>
-                  <li className="flex items-start gap-2 bg-yellow-900/20 rounded px-3 py-1">
-                    <span className="text-yellow-300 text-lg mt-0.5">⚖️</span>
+                  <li className="flex items-center gap-2 bg-yellow-900/20 rounded px-3 py-1">
+                    <span className="text-yellow-300 text-lg align-middle">
+                      {/* Circle SVG for Neutral */}
+                      <svg
+                        width="18"
+                        height="18"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        className="inline-block align-middle"
+                        style={{ marginTop: '1px' }}
+                      >
+                        <circle
+                          cx="12"
+                          cy="12"
+                          r="9"
+                          stroke="currentColor"
+                          strokeWidth="2.2"
+                          fill="none"
+                        />
+                      </svg>
+                    </span>
                     <span>
-                      <span className="font-bold text-yellow-200">Neutral:</span>{' '}
+                      <span className="font-bold text-yellow-200 font-orbitron">Neutral:</span>{' '}
                       <span className="text-yellow-100">
                         {sentiment.culturalContext.audienceReactions?.neutral}
                       </span>
                     </span>
                   </li>
-                  <li className="flex items-start gap-2 bg-red-900/20 rounded px-3 py-1">
-                    <span className="text-red-400 text-lg mt-0.5">❌</span>
+                  <li className="flex items-center gap-2 bg-red-900/20 rounded px-3 py-1">
+                    <span className="text-red-400 text-lg align-middle">
+                      {/* X SVG for Opposed */}
+                      <svg
+                        width="18"
+                        height="18"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        className="inline-block align-middle"
+                        style={{ marginTop: '1px' }}
+                      >
+                        <path
+                          d="M6 6l12 12M6 18L18 6"
+                          stroke="currentColor"
+                          strokeWidth="2.2"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                    </span>
                     <span>
-                      <span className="font-bold text-red-200">Opposed:</span>{' '}
+                      <span className="font-bold text-red-200 font-orbitron">Opposed:</span>{' '}
                       <span className="text-red-100">
                         {sentiment.culturalContext.audienceReactions?.opposed}
                       </span>
