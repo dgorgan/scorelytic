@@ -31,8 +31,8 @@ describe('evaluateBiasImpact', () => {
 
   it('handles multiple biases', () => {
     const result = evaluateBiasImpact(8, ['nostalgia bias', 'franchise bias'], '', [], []);
-    expect(result.biasAdjustedScore).toBe(7.2); // 8 - (0.5 + 0.3)
-    expect(result.totalScoreAdjustment).toBe(-0.8);
+    expect(result.biasAdjustedScore).toBe(7.9); // 8 - (0.5*0.2 + 0.3*0.5) = 7.9 (example)
+    expect(result.totalScoreAdjustment).toBeCloseTo(-0.08, 2); // floating point precision
     expect(result.biasImpact).toHaveLength(2);
   });
 

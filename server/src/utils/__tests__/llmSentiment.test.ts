@@ -3,15 +3,16 @@ const updateMock = jest.fn(() => ({ eq: eqMock }));
 const fromMock = jest.fn(() => ({ update: updateMock }));
 
 const fullMockResult = {
-  summary: 'Mock summary',
-  sentimentScore: 7,
-  verdict: 'positive',
-  sentimentSummary: 'Very positive',
+  alsoRecommends: [],
   biasIndicators: ['story-driven bias'],
-  alsoRecommends: ['Game X'],
-  pros: ['Great story'],
   cons: ['Too short'],
+  culturalContext: null,
+  pros: ['Great story'],
   reviewSummary: 'A solid review.',
+  sentimentScore: 7,
+  sentimentSummary: 'Mixed',
+  summary: 'Mixed',
+  verdict: 'mixed',
 };
 const mockCreate = jest.fn().mockResolvedValue({
   choices: [{ message: { content: JSON.stringify(fullMockResult) } }],
@@ -68,6 +69,7 @@ describe('analyzeReviewText', () => {
       sentimentSummary: 'Mixed',
       summary: 'No clear summary detected.',
       verdict: 'mixed',
+      culturalContext: null,
     });
   });
 
@@ -83,6 +85,7 @@ describe('analyzeReviewText', () => {
       sentimentSummary: 'Mixed',
       summary: 'No clear summary detected.',
       verdict: 'mixed',
+      culturalContext: null,
     });
   });
 });

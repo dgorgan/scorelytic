@@ -14,18 +14,6 @@
   },
   "overrides": [
     {
-      "files": [
-        "**/__tests__/**/*.{ts,tsx}",
-        "**/*.test.{ts,tsx}",
-        "**/*.spec.{ts,tsx}",
-        "scripts/**/*.{ts,js}"
-      ],
-      "rules": {
-        "no-unused-vars": "off",
-        "import/no-relative-parent-imports": "off"
-      }
-    },
-    {
       "files": ["client/app/**/*.{ts,tsx}"],
       "parserOptions": {
         "project": ["client/tsconfig.json"]
@@ -60,6 +48,18 @@
       },
       "rules": {
         "import/no-relative-parent-imports": "error"
+      }
+    },
+    {
+      "files": [
+        "**/__tests__/**/*.{ts,tsx}",
+        "**/*.test.{ts,tsx}",
+        "**/*.spec.{ts,tsx}",
+        "scripts/**/*.{ts,js}"
+      ],
+      "rules": {
+        "no-unused-vars": "off",
+        "import/no-relative-parent-imports": "off"
       }
     }
   ],

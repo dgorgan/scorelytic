@@ -20,6 +20,14 @@ const BIAS_HEURISTICS: Record<
     explanation: string;
   }
 > = {
+  'cultural bias': {
+    severity: 'moderate',
+    scoreInfluence: -0.2,
+    impactOnExperience:
+      'Cultural preferences or misunderstandings may skew the review’s objectivity.',
+    explanation:
+      'Cultural bias detected; reviewer’s background or values may affect their perception of the game.',
+  },
   'comparative bias': {
     severity: 'moderate',
     scoreInfluence: -0.3,
@@ -176,6 +184,37 @@ const BIAS_HEURISTICS: Record<
 };
 
 export const BIAS_KEYWORDS: Record<string, string[]> = {
+  'cultural bias': [
+    'too japanese',
+    'too western',
+    'cultural references',
+    'lost in translation',
+    'doesn’t resonate with me',
+    'not my culture',
+    'foreign',
+    'localization',
+    'cultural differences',
+    'western audience',
+    'japanese audience',
+    'cultural expectations',
+    'culture clash',
+    'religious themes',
+    'national identity',
+    'regional humor',
+    'cultural nuance',
+    'cultural context',
+    'not relatable',
+    'alienating',
+    'culturally specific',
+    'culture shock',
+    'unfamiliar customs',
+    'traditional values',
+    'modern values',
+    'cultural appropriation',
+    'stereotypes',
+    'cultural insensitivity',
+    'cultural authenticity',
+  ],
   'comparative bias': [
     'compared to',
     'not as good as',
