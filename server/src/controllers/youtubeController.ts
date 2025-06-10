@@ -17,7 +17,6 @@ import type {
   ApiResponse,
   ReviewAnalysisResponse,
 } from '@scorelytic/shared';
-import { Router } from 'express';
 
 const flattenSentiment = (
   obj: Record<string, unknown> | null | undefined,
@@ -223,7 +222,6 @@ export const youtubeController = {
               undefined,
               undefined,
               review.title,
-              review.title,
             );
             sentiment = normalizeSentiment(flattenSentiment(llmResult));
           }
@@ -319,7 +317,6 @@ export const youtubeController = {
               undefined,
               undefined,
               review.title,
-              review.title,
             );
             sentiment = normalizeSentiment(flattenSentiment(llmResult));
           }
@@ -336,17 +333,7 @@ export const youtubeController = {
             (sentiment.pros && sentiment.pros.length > 0) ||
             (sentiment.cons && sentiment.cons.length > 0));
         if (review.transcript && review.transcript.trim().length > 0 && isValidSentiment) {
-          const {
-            title,
-            description,
-            thumbnails,
-            tags,
-            publishedAt,
-            transcriptDebug,
-            transcriptError,
-            transcriptMethod,
-            ...reviewForDatabase
-          } = review;
+          const { ...reviewForDatabase } = review;
           const reviewToUpsert = { ...reviewForDatabase, sentiment } as Review;
           await upsertReviewToSupabase(reviewToUpsert);
         }
@@ -446,7 +433,6 @@ export const youtubeController = {
             'gpt-4o',
             undefined,
             undefined,
-            review.title,
             review.title,
           );
           sentiment = normalizeSentiment(flattenSentiment(llmResult));
