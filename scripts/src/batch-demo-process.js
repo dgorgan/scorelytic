@@ -1,4 +1,7 @@
+import pLimit from 'p-limit';
 import fetch from 'node-fetch';
+
+const API_URL = 'http://localhost:5000/api/youtube/process';
 
 //YouTube video IDs to process
 const videoIds = [
@@ -16,27 +19,26 @@ const videoIds = [
   'Vf3Kpi_OZqE',
 ];
 
-const API_URL = 'http://localhost:5000/api/youtube/process';
-const DELAY_MS = 15000;
+const limit = pLimit(5); // Only 5 concurrent requests
 
 async function runBatch() {
-  for (const videoId of videoIds) {
-    console.log('Processing', videoId);
-    try {
-      const res = await fetch(API_URL, {
+  const promises = videoIds.map((videoId) =>
+    limit(() =>
+      fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ videoId, demoMode: true }),
-      });
-      const data = await res.json();
-      console.log('Result:', data.success ? 'OK' : data.error || data);
-    } catch (err) {
-      console.error('Error processing', videoId, err);
-    }
-    if (videoId !== videoIds[videoIds.length - 1]) {
-      await new Promise((r) => setTimeout(r, DELAY_MS));
-    }
-  }
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          console.log('Result for videoId', videoId, data.success ? 'OK' : data.error || data);
+        })
+        .catch((err) => {
+          console.error('Error processing', videoId, err);
+        }),
+    ),
+  );
+  await Promise.all(promises);
   console.log('Batch complete.');
 }
 
