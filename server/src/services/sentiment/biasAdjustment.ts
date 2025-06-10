@@ -2,10 +2,12 @@ import type {
   BiasImpact,
   BiasAdjustmentOutput,
   BiasSummary,
+} from '@scorelytic/shared/utils/biasAdjustment';
+import type {
   BiasDetail,
   CulturalContext,
   FullBiasReport,
-} from '@scorelytic/shared';
+} from '@scorelytic/shared/types/biasReport';
 
 // === BIAS_HEURISTICS sign convention ===
 // Positive scoreInfluence: bias inflated the score (e.g. nostalgia, franchise, hype, platform)
@@ -24,9 +26,9 @@ const BIAS_HEURISTICS: Record<
     severity: 'moderate',
     scoreInfluence: -0.2,
     impactOnExperience:
-      'Cultural preferences or misunderstandings may skew the review’s objectivity.',
+      "Cultural preferences or misunderstandings may skew the review's objectivity.",
     explanation:
-      'Cultural bias detected; reviewer’s background or values may affect their perception of the game.',
+      "Cultural bias detected; reviewer's background or values may affect their perception of the game.",
   },
   'comparative bias': {
     severity: 'moderate',
