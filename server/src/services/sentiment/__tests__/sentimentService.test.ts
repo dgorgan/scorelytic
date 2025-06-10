@@ -90,7 +90,7 @@ describe('Bias Adjustment', () => {
     mockCreate.mockResolvedValue({
       choices: [{ message: { content: 'not json' } }],
     });
-    const result = await evaluateBiasImpact(7, ['nostalgia bias', 'contrarian']);
+    const result = await evaluateBiasImpact(7, ['nostalgia bias', 'contrarian'], '', [], []);
     expect(result.biasAdjustedScore).toBeLessThanOrEqual(10);
     expect(result.biasImpact.length).toBe(2);
     expect(result.adjustmentRationale).toMatch(/remove emotional or habitual bias/);
@@ -98,7 +98,7 @@ describe('Bias Adjustment', () => {
 
   it('returns fallback on API error', async () => {
     mockCreate.mockRejectedValue(new Error('API fail'));
-    const result = await evaluateBiasImpact(8, ['franchise bias']);
+    const result = await evaluateBiasImpact(8, ['franchise bias'], '', [], []);
     expect(result.biasAdjustedScore).toBeLessThanOrEqual(10);
     expect(result.biasImpact[0].name).toBe('franchise bias');
     expect(result.adjustmentRationale).toMatch(/remove emotional or habitual bias/);
@@ -115,12 +115,12 @@ describe('Bias Adjustment', () => {
         },
       ],
     });
-    await evaluateBiasImpact(8, []);
+    await evaluateBiasImpact(8, [], '', [], []);
     mockCreate.mockResolvedValue({
       choices: [{ message: { content: 'not json' } }],
     });
-    await evaluateBiasImpact(7, ['contrarian']);
+    await evaluateBiasImpact(7, ['contrarian'], '', [], []);
     mockCreate.mockRejectedValue(new Error('API fail'));
-    await evaluateBiasImpact(6, ['contrarian']);
+    await evaluateBiasImpact(6, ['contrarian'], '', [], []);
   });
 });

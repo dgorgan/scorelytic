@@ -93,13 +93,14 @@ You must identify **both explicit and implied biases**, including tonal, habitua
 
 - **Nostalgia Bias**: Emotional callbacks to older titles or childhood memories.
 - **Franchise Bias / Studio Reputation Bias**: Inflated sentiment from brand loyalty or dev trust.
-- **Influencer/Sponsored Bias**: Over-the-top praise, defensiveness, or disclaimers (“not sponsored”).
-- **Reviewer Fatigue**: Signs of burnout or disengagement (“I’ve played too many lately”, “nothing feels fresh”).
+- **Influencer/Sponsored Bias**: Overemphasis on praise, defensiveness, or disclaimers (“not sponsored”).
+- **Reviewer Fatigue**: Signs of burnout or disengagement (“I've played too many lately”, “nothing feels fresh”).
 - **Genre Aversion**: Dislike rooted in genre, not quality (“not a fan of these types of games”).
 - **Technical Criticism Bias**: Overemphasis on performance, bugs, or mechanics.
 - **Contrarian Bias**: Strong rejection of broadly praised games.
 - **Difficulty Bias**: Frustration caused by challenge or accessibility.
 - **Comparative Bias**: Score deflation due to comparisons (“X did it better”).
+- **Cultural Bias**: Bias rooted in cultural preferences or values (e.g., certain cultural expectations around difficulty or gameplay pacing).
 
 You may add new bias types if you justify them clearly.
 
@@ -148,12 +149,12 @@ Return a single JSON object with the following:
     "recommendationStrength": "low" | "moderate" | "strong"
   },
   "culturalContext": {
-    "justification": string,
-    "ideologicalThemes": string[],
+    "justification": string,  // Justification for cultural context, why it's relevant
+    "ideologicalThemes": string[],  // What cultural/ideological themes are highlighted
     "audienceReactions": {
-      "aligned": string,
-      "neutral": string,
-      "opposed": string
+      "aligned": string,  // Which audience aligns with this context (e.g., fans of gothic horror, etc.)
+      "neutral": string,  // Audience that is indifferent to cultural specifics
+      "opposed": string   // Audience that might reject this cultural context (e.g., players from different cultural backgrounds)
     }
   }
 }
@@ -163,19 +164,19 @@ Return a single JSON object with the following:
 📘 EXAMPLES:
 
 **Example 1 — Reviewer Fatigue**
-Transcript: “After playing so many open world games this year, I just didn’t feel like finishing this one.”
+Transcript: “After playing so many open world games this year, I just didn't feel like finishing this one.”
 Biases: [{
   "name": "reviewer fatigue",
   "severity": "moderate",
   "scoreInfluence": -0.4,
   "explanation": "Mentions burnout and lack of energy to continue.",
   "detectedIn": ["phrasing"],
-  "evidence": ["didn’t feel like finishing"],
+  "evidence": ["didn't feel like finishing"],
   "reviewerIntent": "implied"
 }]
 
 **Example 2 — Nostalgia & Studio Reputation**
-Transcript: “This feels like classic BioWare. They’ve never let me down.”
+Transcript: “This feels like classic BioWare. They've never let me down.”
 Biases: [{
   "name": "nostalgia bias",
   "severity": "moderate",
@@ -186,6 +187,17 @@ Biases: [{
   "reviewerIntent": "implied"
 }]
 
+**Example 3 — Cultural Context**
+Transcript: “The game’s difficulty is punishing, which is just how I like my platformers.”
+Biases: [{
+  "name": "difficulty bias",
+  "severity": "moderate",
+  "scoreInfluence": 0.2,
+  "explanation": "Strong preference for difficult games, indicating cultural context for challenging gameplay.",
+  "detectedIn": ["tone"],
+  "evidence": ["punishing", "how I like my platformers"],
+  "reviewerIntent": "implied"
+}]
 ---
 
 Review Transcript:
@@ -465,7 +477,13 @@ export const analyzeTextWithBiasAdjustmentFull = async (
     reviewSummary: sentiment.reviewSummary || '',
   };
   // Bias adjustment phase
-  let biasAdjustmentRaw = evaluateBiasImpact(biasDetection.originalScore, sentiment.biasIndicators);
+  let biasAdjustmentRaw = evaluateBiasImpact(
+    biasDetection.originalScore,
+    sentiment.biasIndicators,
+    sentiment.reviewSummary || '',
+    sentiment.pros,
+    sentiment.cons,
+  );
   // Fallback: If LLM did not adjust score or rationale is missing, synthesize adjustment
   if (
     biasAdjustmentRaw.biasAdjustedScore === biasDetection.originalScore ||
@@ -480,7 +498,7 @@ export const analyzeTextWithBiasAdjustmentFull = async (
       sentiment.cons,
     );
     const totalScoreAdjustment = biasObjs.reduce(
-      (sum: number, b: BiasImpact) => sum + b.scoreInfluence,
+      (sum: number, b: BiasImpact) => sum + b.adjustedInfluence,
       0,
     );
     const biasAdjustedScore = Math.max(
@@ -596,6 +614,11 @@ export const MOCK_FULL_BIAS_SCORING_OUTPUT: FullBiasScoringOutput = {
         scoreInfluence: 0.4,
         explanation:
           'Nostalgia bias detected; reviewer may rate higher due to fondness for the franchise.',
+        confidenceScore: 0.8,
+        adjustedInfluence: 0.32,
+        detectedIn: ['tone', 'phrasing'],
+        reviewerIntent: 'implied',
+        evidence: ['feels like classic BioWare', 'never let me down'],
       },
       {
         name: 'studio reputation bias',
@@ -603,6 +626,11 @@ export const MOCK_FULL_BIAS_SCORING_OUTPUT: FullBiasScoringOutput = {
         impactOnExperience: 'Studio reputation may inflate expectations and perceived quality.',
         scoreInfluence: 0.4,
         explanation: 'Studio reputation bias detected.',
+        confidenceScore: 0.7,
+        adjustedInfluence: 0.28,
+        detectedIn: ['tone'],
+        reviewerIntent: 'implied',
+        evidence: ['never let me down'],
       },
     ],
     reviewSummary:

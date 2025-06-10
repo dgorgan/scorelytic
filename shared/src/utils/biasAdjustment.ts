@@ -4,6 +4,11 @@ export type BiasImpact = {
   scoreInfluence: number;
   impactOnExperience: string;
   explanation: string;
+  confidenceScore: number; // 0-1
+  adjustedInfluence: number; // scoreInfluence * confidenceScore
+  detectedIn: string[]; // e.g., ['tone', 'phrasing', 'keywords']
+  reviewerIntent: 'explicit' | 'implied' | 'unclear';
+  evidence: string[]; // phrases or quotes from the review
 };
 
 export type BiasAdjustmentOutput = {

@@ -11,7 +11,15 @@ import type {
 // Positive scoreInfluence: bias inflated the score (e.g. nostalgia, franchise, hype, platform)
 // Negative scoreInfluence: bias deflated the score (e.g. contrarian, fatigue, genre aversion)
 // Technical/identity/cultural biases: 0 (no adjustment)
-const BIAS_HEURISTICS: Record<string, Omit<BiasImpact, 'name'>> = {
+const BIAS_HEURISTICS: Record<
+  string,
+  {
+    severity: 'low' | 'moderate' | 'high';
+    scoreInfluence: number;
+    impactOnExperience: string;
+    explanation: string;
+  }
+> = {
   'comparative bias': {
     severity: 'moderate',
     scoreInfluence: -0.3,
@@ -489,9 +497,6 @@ export const mapBiasLabelsToObjects = (
   pros: string[] = [],
   cons: string[] = [],
 ): BiasImpact[] => {
-  // Helper to check if a bias is mentioned in pros/cons/summary
-  const findInText = (bias: string, arr: string[]) =>
-    arr.some((text) => text.toLowerCase().includes(bias.split(' ')[0]));
   return biasLabels.map((label) => {
     const heur = BIAS_HEURISTICS[label] || {
       severity: 'low',
@@ -499,25 +504,58 @@ export const mapBiasLabelsToObjects = (
       impactOnExperience: 'Unknown',
       explanation: 'No specific heuristic.',
     };
-    const detectedIn: string[] = ['labels'];
-    let severity = heur.severity;
-    let scoreInfluence = heur.scoreInfluence;
-    // Check for presence in pros/cons/summary
-    if (findInText(label, pros)) detectedIn.push('pros');
-    if (findInText(label, cons)) detectedIn.push('cons');
-    if (reviewSummary.toLowerCase().includes(label.split(' ')[0])) detectedIn.push('summary');
-    // If found in multiple places, increase severity/scoreInfluence
-    if (detectedIn.length > 1) {
-      severity = 'high';
-      scoreInfluence = Math.sign(scoreInfluence) * (Math.abs(scoreInfluence) + 0.2);
+    // Gather all text sources
+    const allText = [reviewSummary, ...pros, ...cons].join(' ').toLowerCase();
+    const keywords = (BIAS_KEYWORDS[label] || []).map((k) => k.toLowerCase());
+    // Evidence: collect all matching phrases
+    const evidence: string[] = [];
+    keywords.forEach((kw) => {
+      if (reviewSummary.toLowerCase().includes(kw)) evidence.push(kw);
+      pros.forEach((p) => {
+        if (p.toLowerCase().includes(kw)) evidence.push(kw);
+      });
+      cons.forEach((c) => {
+        if (c.toLowerCase().includes(kw)) evidence.push(kw);
+      });
+    });
+    // Unique evidence
+    const uniqueEvidence = Array.from(new Set(evidence));
+    // Keyword hits
+    const keywordHits = uniqueEvidence.length;
+    // DetectedIn logic
+    const detectedIn: string[] = [];
+    if (pros.some((p) => keywords.some((kw) => p.toLowerCase().includes(kw))))
+      detectedIn.push('phrasing');
+    if (cons.some((c) => keywords.some((kw) => c.toLowerCase().includes(kw))))
+      detectedIn.push('phrasing');
+    if (reviewSummary && keywords.some((kw) => reviewSummary.toLowerCase().includes(kw)))
+      detectedIn.push('tone');
+    // Reviewer intent
+    let reviewerIntent: 'explicit' | 'implied' | 'unclear' = 'unclear';
+    if (
+      uniqueEvidence.some((e) =>
+        ['explicitly', 'clearly', 'directly'].some((w) => allText.includes(w + ' ' + e)),
+      )
+    ) {
+      reviewerIntent = 'explicit';
+    } else if (uniqueEvidence.length > 0) {
+      reviewerIntent = 'implied';
     }
+    // Confidence
+    const confidenceScore = calculateBiasConfidenceScore(keywordHits, detectedIn, reviewerIntent);
+    // Adjusted influence
+    const adjustedInfluence = heur.scoreInfluence * confidenceScore;
     return {
       name: label,
-      severity,
-      scoreInfluence,
+      severity: heur.severity,
+      scoreInfluence: heur.scoreInfluence,
       impactOnExperience: heur.impactOnExperience,
       explanation: heur.explanation,
+      confidenceScore,
+      adjustedInfluence,
       detectedIn,
+      reviewerIntent,
+      evidence: uniqueEvidence,
     };
   });
 };
@@ -525,10 +563,18 @@ export const mapBiasLabelsToObjects = (
 export const evaluateBiasImpact = (
   sentimentScore: number,
   biasIndicators: string[],
+  reviewSummary: string = '',
+  pros: string[] = [],
+  cons: string[] = [],
 ): BiasAdjustmentOutput => {
-  const biasImpact: BiasImpact[] = mapBiasLabelsToObjects(biasIndicators);
+  const biasImpact: BiasImpact[] = mapBiasLabelsToObjects(
+    biasIndicators,
+    reviewSummary,
+    pros,
+    cons,
+  );
 
-  const totalBiasInfluence = biasImpact.reduce((sum, b) => sum + b.scoreInfluence, 0);
+  const totalBiasInfluence = biasImpact.reduce((sum, b) => sum + b.adjustedInfluence, 0);
   const biasAdjustedScore = Math.max(
     0,
     Math.min(10, Math.round((sentimentScore - totalBiasInfluence) * 10) / 10),
@@ -543,7 +589,7 @@ export const evaluateBiasImpact = (
       ? 'Best for audiences matching detected biases (e.g., franchise fans, genre enthusiasts).'
       : 'General gaming audience; no strong bias detected.',
     adjustmentRationale: biasImpact.length
-      ? `The score was adjusted by ${-totalBiasInfluence > 0 ? '+' : ''}${(-totalBiasInfluence).toFixed(1)} to remove emotional or habitual bias.`
+      ? `The score was adjusted by ${-totalBiasInfluence > 0 ? '+' : ''}${(-totalBiasInfluence).toFixed(2)} to remove emotional or habitual bias.`
       : 'No significant biases detected; score reflects general sentiment.',
   };
 };
@@ -620,3 +666,44 @@ export const generateBiasReport = (
     totalScoreAdjustment,
   };
 };
+
+/**
+ * Calculate a confidence score for a detected bias.
+ * @param keywordHits Number of keyword matches
+ * @param detectedIn Array of detection sources (e.g., ['tone', 'phrasing'])
+ * @param reviewerIntent 'explicit' | 'implied' | 'unclear'
+ * @returns Confidence score between 0 and 1
+ */
+export const calculateBiasConfidenceScore = (
+  keywordHits: number,
+  detectedIn: string[],
+  reviewerIntent: 'explicit' | 'implied' | 'unclear',
+): number => {
+  let score = 0;
+  if (keywordHits >= 3) score += 0.4;
+  else if (keywordHits === 2) score += 0.3;
+  else if (keywordHits === 1) score += 0.2;
+  if (detectedIn.includes('tone')) score += 0.1;
+  if (detectedIn.includes('phrasing')) score += 0.1;
+  if (reviewerIntent === 'explicit') score += 0.3;
+  else if (reviewerIntent === 'implied') score += 0.2;
+  else if (reviewerIntent === 'unclear') score += 0.1;
+  return Math.min(1, score);
+};
+
+// Example BiasImpact object for 'genre aversion':
+// {
+//   name: 'genre aversion',
+//   severity: 'moderate',
+//   scoreInfluence: -0.3,
+//   confidenceScore: 0.8,
+//   adjustedInfluence: -0.24,
+//   detectedIn: ['tone', 'phrasing'],
+//   reviewerIntent: 'implied',
+//   evidence: [
+//     'Favoring memorization over swift thinking...',
+//     'Combat starts to feel routine...'
+//   ],
+//   impactOnExperience: 'Personal genre preferences may deflate the score.',
+//   explanation: 'Genre aversion detected; personal dislike may skew perception.'
+// }
