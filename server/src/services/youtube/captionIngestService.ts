@@ -11,27 +11,61 @@ export const fetchYoutubeCaptions = async (
   videoId: string,
   language: string = 'en',
 ): Promise<string> => {
+  const fallbackLangs = ['es', 'fr', 'de', 'it', 'pt', 'ru', 'ja', 'ko'];
   try {
-    console.debug(`[YT] Fetching captions for videoId: ${videoId}`);
-    const captions = await getSubtitles({ videoID: videoId, lang: language });
-    console.debug(`[YT] Raw captions result:`, captions);
-
-    if (!captions || captions.length === 0) {
-      throw new Error(
-        'No English captions available. Video may not have captions or may be in a different language.',
-      );
+    console.debug(`[YT] Fetching captions for videoId: ${videoId}, lang: ${language}`);
+    // Try English first
+    let captions = await getSubtitles({ videoID: videoId, lang: language });
+    if (captions && captions.length > 0) {
+      const transcript = captions.map((c: { text: string }) => c.text).join(' ');
+      if (transcript.trim().length > 0) {
+        console.debug(`[YT] Captions found in ${language}`);
+        return transcript;
+      }
     }
-
-    const transcript = captions.map((c: { text: string }) => c.text).join(' ');
-
-    if (transcript.trim().length === 0) {
-      throw new Error('Captions found but transcript is empty.');
+    // Try first 4 fallback languages in parallel
+    const parallelLangs = fallbackLangs.slice(0, 4).filter((l) => l !== language);
+    const parallelPromises = parallelLangs.map((langCode) =>
+      getSubtitles({ videoID: videoId, lang: langCode })
+        .then((altCaptions) => {
+          if (altCaptions && altCaptions.length > 0) {
+            const altTranscript = altCaptions.map((c: { text: string }) => c.text).join(' ');
+            if (altTranscript.trim().length > 0) {
+              console.debug(`[YT] Captions found in ${langCode} (parallel batch)`);
+              return { transcript: altTranscript, lang: langCode };
+            }
+          }
+          throw new Error('No transcript');
+        })
+        .catch(() => null),
+    );
+    const parallelResults = await Promise.allSettled(parallelPromises);
+    const firstSuccess = parallelResults.find(
+      (r) => r.status === 'fulfilled' && r.value && r.value.transcript,
+    );
+    if (firstSuccess && firstSuccess.status === 'fulfilled' && firstSuccess.value) {
+      return firstSuccess.value.transcript;
     }
-
-    return transcript;
+    // Try the rest serially
+    for (const langCode of fallbackLangs.slice(4)) {
+      if (langCode === language) continue;
+      try {
+        console.debug(`[YT] Trying captions in language: ${langCode}`);
+        const altCaptions = await getSubtitles({ videoID: videoId, lang: langCode });
+        if (altCaptions && altCaptions.length > 0) {
+          const altTranscript = altCaptions.map((c: { text: string }) => c.text).join(' ');
+          if (altTranscript.trim().length > 0) {
+            console.debug(`[YT] Captions found in ${langCode} (serial)`);
+            return altTranscript;
+          }
+        }
+      } catch (err) {
+        console.debug(`[YT] Error fetching captions for lang ${langCode}:`, err);
+      }
+    }
+    throw new Error('No captions available in any language.');
   } catch (err: any) {
     console.debug(`[YT] Error fetching captions:`, err);
-
     // Handle specific error cases
     if (err.message?.includes('Video unavailable')) {
       throw new Error(
@@ -43,10 +77,6 @@ export const fetchYoutubeCaptions = async (
         `No captions available for video ${videoId}. Video may not have subtitles enabled.`,
       );
     }
-    if (err.message?.includes('No English captions')) {
-      throw err; // Re-throw our custom error
-    }
-
     throw new Error(`Failed to fetch captions for ${videoId}: ${err.message}`);
   }
 };
@@ -163,11 +193,12 @@ export const upsertDemoReview = async (
   videoUrl: string,
   data: any,
   slug: string,
+  transcript?: string,
 ): Promise<void> => {
   try {
     const { error } = await supabase
       .from('demo_reviews')
-      .upsert([{ video_url: videoUrl, data, slug }], { onConflict: 'video_url' });
+      .upsert([{ video_url: videoUrl, data, slug, transcript }], { onConflict: 'video_url' });
     if (error) {
       // Log but never throw
       // eslint-disable-next-line no-console

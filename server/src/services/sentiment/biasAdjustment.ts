@@ -8,6 +8,7 @@ import type {
   CulturalContext,
   FullBiasReport,
 } from '@scorelytic/shared/types/biasReport';
+import logger from '@/logger';
 
 // === BIAS_HEURISTICS sign convention ===
 // Positive scoreInfluence: bias inflated the score (e.g. nostalgia, franchise, hype, platform)
@@ -538,7 +539,8 @@ export const mapBiasLabelsToObjects = (
   pros: string[] = [],
   cons: string[] = [],
 ): BiasImpact[] => {
-  return biasLabels.map((label) => {
+  logger.info(`[BIAS] mapBiasLabelsToObjects called with labels: ${JSON.stringify(biasLabels)}`);
+  const result = biasLabels.map((label) => {
     const heur = BIAS_HEURISTICS[label] || {
       severity: 'low',
       scoreInfluence: 0,
@@ -616,6 +618,8 @@ export const mapBiasLabelsToObjects = (
       evidence: uniqueEvidence,
     };
   });
+  logger.info(`[BIAS] mapBiasLabelsToObjects result: ${JSON.stringify(result)}`);
+  return result;
 };
 
 export const evaluateBiasImpact = (
@@ -625,6 +629,9 @@ export const evaluateBiasImpact = (
   pros: string[] = [],
   cons: string[] = [],
 ): BiasAdjustmentOutput => {
+  logger.info(
+    `[BIAS] evaluateBiasImpact called with score: ${sentimentScore}, indicators: ${JSON.stringify(biasIndicators)}`,
+  );
   const biasImpact: BiasImpact[] = mapBiasLabelsToObjects(
     biasIndicators,
     reviewSummary,
@@ -638,16 +645,43 @@ export const evaluateBiasImpact = (
     Math.min(10, Math.round((sentimentScore - totalBiasInfluence) * 10) / 10),
   );
 
+  logger.info(`[BIAS] evaluateBiasImpact biasImpact: ${JSON.stringify(biasImpact)}`);
+  const totalScoreAdjustment = -totalBiasInfluence;
+
+  const verdict =
+    biasAdjustedScore >= 7.5
+      ? 'generally positive'
+      : biasAdjustedScore >= 5
+        ? 'mixed'
+        : 'generally negative';
+
+  const confidence =
+    biasIndicators.length >= 5 ? 'low' : biasIndicators.length >= 3 ? 'moderate' : 'high';
+  const recommendationStrength =
+    biasAdjustedScore >= 8 ? 'strong' : biasAdjustedScore >= 6 ? 'moderate' : 'weak';
+
+  const audienceReaction = {
+    aligned: 'positive',
+    neutral: 'mixed',
+    opposed: 'negative',
+  };
+  logger.info(
+    `[BIAS] verdict: ${verdict}, confidence: ${confidence}, recommendationStrength: ${recommendationStrength}, audienceReaction: ${JSON.stringify(audienceReaction)}`,
+  );
+
+  logger.info(
+    `[BIAS] evaluateBiasImpact output: ${JSON.stringify({ sentimentScore, biasAdjustedScore, totalScoreAdjustment, biasImpact })}`,
+  );
   return {
     sentimentScore,
     biasAdjustedScore,
-    totalScoreAdjustment: -totalBiasInfluence,
+    totalScoreAdjustment,
     biasImpact,
     audienceFit: biasImpact.length
       ? 'Best for audiences matching detected biases (e.g., franchise fans, genre enthusiasts).'
       : 'General gaming audience; no strong bias detected.',
     adjustmentRationale: biasImpact.length
-      ? `The score was adjusted by ${-totalBiasInfluence > 0 ? '+' : ''}${(-totalBiasInfluence).toFixed(2)} to remove emotional or habitual bias.`
+      ? `The score was adjusted by ${-totalScoreAdjustment > 0 ? '+' : ''}${(-totalScoreAdjustment).toFixed(2)} to remove emotional or habitual bias.`
       : 'No significant biases detected; score reflects general sentiment.',
   };
 };
@@ -662,6 +696,9 @@ export const generateBiasReport = (
   fullReport: FullBiasReport;
   totalScoreAdjustment: number;
 } => {
+  logger.info(
+    `[BIAS] generateBiasReport called with score: ${sentimentScore}, indicators: ${JSON.stringify(biasIndicators)}`,
+  );
   const biasDetails: BiasDetail[] = mapBiasLabelsToObjects(biasIndicators).map((b) => ({
     name: b.name,
     severity: b.severity,
@@ -694,33 +731,47 @@ export const generateBiasReport = (
     neutral: 'mixed',
     opposed: 'negative',
   };
+  logger.info(
+    `[BIAS] verdict: ${verdict}, confidence: ${confidence}, recommendationStrength: ${recommendationStrength}, audienceReaction: ${JSON.stringify(audienceReaction)}`,
+  );
 
+  const summary: BiasSummary = {
+    adjustedScore: biasAdjustedScore,
+    verdict,
+    confidence,
+    recommendationStrength,
+    biasSummary: biasIndicators.length ? `Includes ${biasIndicators.join(', ')}.` : undefined,
+  };
+
+  const details: BiasDetail[] = biasDetails;
+
+  const culturalContext: CulturalContext = {
+    originalScore: sentimentScore,
+    biasAdjustedScore,
+    justification: biasIndicators.length
+      ? 'Score adjusted to reflect detected ideological, narrative, or identity-related influences.'
+      : 'No significant ideological or cultural bias detected.',
+    audienceReaction,
+    biasDetails,
+  };
+
+  const fullReport: FullBiasReport = {
+    score_analysis_engine: {
+      input_review_score: sentimentScore,
+      ideological_biases_detected: biasDetails,
+      bias_adjusted_score: biasAdjustedScore,
+      score_context_note: 'This adjustment is a contextual calibration, not a value judgment.',
+    },
+  };
+
+  logger.info(
+    `[BIAS] generateBiasReport output: ${JSON.stringify({ summary, details, totalScoreAdjustment })}`,
+  );
   return {
-    summary: {
-      adjustedScore: biasAdjustedScore,
-      verdict,
-      confidence,
-      recommendationStrength,
-      biasSummary: biasIndicators.length ? `Includes ${biasIndicators.join(', ')}.` : undefined,
-    },
-    details: biasDetails,
-    culturalContext: {
-      originalScore: sentimentScore,
-      biasAdjustedScore,
-      justification: biasIndicators.length
-        ? 'Score adjusted to reflect detected ideological, narrative, or identity-related influences.'
-        : 'No significant ideological or cultural bias detected.',
-      audienceReaction,
-      biasDetails,
-    },
-    fullReport: {
-      score_analysis_engine: {
-        input_review_score: sentimentScore,
-        ideological_biases_detected: biasDetails,
-        bias_adjusted_score: biasAdjustedScore,
-        score_context_note: 'This adjustment is a contextual calibration, not a value judgment.',
-      },
-    },
+    summary,
+    details,
+    culturalContext,
+    fullReport,
     totalScoreAdjustment,
   };
 };
@@ -737,6 +788,9 @@ export const calculateBiasConfidenceScore = (
   detectedIn: string[],
   reviewerIntent: 'explicit' | 'implied' | 'unclear',
 ): number => {
+  logger.info(
+    `[BIAS] calculateBiasConfidenceScore called with keywordHits: ${keywordHits}, detectedIn: ${JSON.stringify(detectedIn)}, reviewerIntent: ${reviewerIntent}`,
+  );
   let score = 0;
   if (keywordHits >= 3) score += 0.4;
   else if (keywordHits === 2) score += 0.3;
@@ -746,6 +800,7 @@ export const calculateBiasConfidenceScore = (
   if (reviewerIntent === 'explicit') score += 0.3;
   else if (reviewerIntent === 'implied') score += 0.2;
   else if (reviewerIntent === 'unclear') score += 0.1;
+  logger.info(`[BIAS] calculateBiasConfidenceScore result: ${score}`);
   return Math.min(1, score);
 };
 

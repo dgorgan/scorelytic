@@ -48,30 +48,34 @@ const defaultHelpers: TranscriptionHelpers = {
     // eslint-disable-next-line no-console
     if (cookiesExists) console.log('[yt-dlp] cookies.txt sha256:', cookiesHash);
     const ytDlpWrap = new YTDlpWrap();
-    await ytDlpWrap.execPromise([
-      videoUrl,
-      '--extract-audio',
-      '--audio-format',
-      'mp3',
-      '--audio-quality',
-      audioQuality,
-      '--match-filter',
-      `duration < ${maxDurationMinutes * 60}`,
-      '--output',
-      audioPath.replace('.mp3', '.%(ext)s'),
-      '--no-playlist',
-      '--cookies',
-      cookiesPath,
-    ]);
+    await retryWithBackoff(() =>
+      ytDlpWrap.execPromise([
+        videoUrl,
+        '--extract-audio',
+        '--audio-format',
+        'mp3',
+        '--audio-quality',
+        audioQuality,
+        '--match-filter',
+        `duration < ${maxDurationMinutes * 60}`,
+        '--output',
+        audioPath.replace('.mp3', '.%(ext)s'),
+        '--no-playlist',
+        '--cookies',
+        cookiesPath,
+      ]),
+    );
   },
   transcribeAudioWithOpenAI: async (audioPath, language) => {
     const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
-    const transcription = await openai.audio.transcriptions.create({
-      file: fs.createReadStream(audioPath),
-      model: 'whisper-1',
-      language,
-      response_format: 'text',
-    });
+    const transcription = await retryWithBackoff(() =>
+      openai.audio.transcriptions.create({
+        file: fs.createReadStream(audioPath),
+        model: 'whisper-1',
+        language,
+        response_format: 'text',
+      }),
+    );
     return transcription;
   },
   getVideoDuration: async (videoId) => {
@@ -92,7 +96,9 @@ const defaultHelpers: TranscriptionHelpers = {
     if (cookiesExists) console.log('[yt-dlp] cookies.txt sha256:', cookiesHash);
     const ytDlpWrap = new YTDlpWrap();
     const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-    const out = await ytDlpWrap.execPromise([videoUrl, '--dump-json', '--cookies', cookiesPath]);
+    const out = await retryWithBackoff(() =>
+      ytDlpWrap.execPromise([videoUrl, '--dump-json', '--cookies', cookiesPath]),
+    );
     const info = JSON.parse(out);
     return Math.ceil((info.duration || 0) / 60);
   },
@@ -136,6 +142,42 @@ const splitAudioFile = async (
   return chunkPaths;
 };
 
+// --- Retry helper ---
+const retryWithBackoff = async <T>(
+  fn: () => Promise<T>,
+  maxRetries = 3,
+  baseDelay = 500,
+): Promise<T> => {
+  let lastErr;
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (err: any) {
+      lastErr = err;
+      const msg = err?.message || '';
+      if (
+        attempt < maxRetries - 1 &&
+        (msg.includes('timeout') ||
+          msg.includes('502') ||
+          msg.includes('rate limit') ||
+          msg.includes('429') ||
+          msg.includes('network') ||
+          (err.response && err.response.status >= 500))
+      ) {
+        const delay = baseDelay * Math.pow(2, attempt);
+        // eslint-disable-next-line no-console
+        console.warn(
+          `[Whisper] Retry ${attempt + 1}/${maxRetries} after error: ${msg}. Waiting ${delay}ms...`,
+        );
+        await new Promise((res) => setTimeout(res, delay));
+        continue;
+      }
+      break;
+    }
+  }
+  throw lastErr;
+};
+
 /**
  * Extracts audio from YouTube video and transcribes it using OpenAI Whisper
  */
@@ -177,12 +219,18 @@ export const transcribeYouTubeAudio = async (
     if (stat.size > 25 * 1024 * 1024) {
       // Split and transcribe each chunk
       const chunkPaths = await splitAudioFile(audioPath);
-      for (const chunkPath of chunkPaths) {
-        transcript += await helpers.transcribeAudioWithOpenAI(chunkPath, language, forceEnglish);
-        await helpers.unlinkFile(chunkPath);
-      }
+      // Parallelize chunk transcription with concurrency limit
+      const pLimit = require('p-limit');
+      const limit = pLimit(3); // Limit concurrency to 3
+      const transcribeChunk = (chunkPath: string) =>
+        helpers
+          .transcribeAudioWithOpenAI(chunkPath, language, forceEnglish)
+          .finally(() => helpers.unlinkFile(chunkPath));
+      // Maintain order by mapping to index
+      const chunkPromises = chunkPaths.map((chunkPath) => limit(() => transcribeChunk(chunkPath)));
+      const transcripts = await Promise.all(chunkPromises);
       await helpers.unlinkFile(audioPath);
-      return transcript;
+      return transcripts.join('');
     } else {
       // Transcribe whole file
       transcript = await helpers.transcribeAudioWithOpenAI(audioPath, language, forceEnglish);
@@ -242,7 +290,9 @@ export const getVideoDuration = async (videoId: string): Promise<number> => {
   const ytDlpWrap = new YTDlpWrap();
   const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
   try {
-    const out = await ytDlpWrap.execPromise([videoUrl, '--dump-json', '--cookies', cookiesPath]);
+    const out = await retryWithBackoff(() =>
+      ytDlpWrap.execPromise([videoUrl, '--dump-json', '--cookies', cookiesPath]),
+    );
     const info = JSON.parse(out);
     return Math.ceil((info.duration || 0) / 60); // Return duration in minutes
   } catch (error: any) {
