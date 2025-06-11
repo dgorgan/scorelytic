@@ -155,7 +155,7 @@ export const youtubeController = {
         if (review.transcript && review.transcript.trim().length > 0) {
           if (generalAnalysis) {
             emit('Running general analysis...');
-            const generalResult = await analyzeGeneralSummary(review.transcript!, 'gpt-4o');
+            const generalResult = await analyzeGeneralSummary(review.transcript!, 'o3-pro');
             const llmDebug =
               'LLM generalAnalysis result (raw): ' + JSON.stringify(generalResult, null, 2);
             debugLog.push(llmDebug);
@@ -183,7 +183,7 @@ export const youtubeController = {
               debug: debugLog,
               slug,
             };
-            await upsertDemoReview(videoUrl, minimal, slug);
+            await upsertDemoReview(videoUrl, minimal, slug, review.transcript);
             return res.json({
               success: true,
               data: {
@@ -212,22 +212,27 @@ export const youtubeController = {
             emit('Running bias/sentiment analysis...');
             const llmResult = await analyzeTextWithBiasAdjustmentFull(
               review.transcript!,
-              'gpt-4o',
+              'o3-pro',
               undefined,
               undefined,
               review.title,
             );
-            sentiment = normalizeSentiment(flattenSentiment(llmResult));
+            sentiment = {
+              ...llmResult.sentiment,
+              biasDetection: llmResult.biasDetection,
+              biasAdjustment: llmResult.biasAdjustment,
+              sentimentSnapshot: llmResult.sentimentSnapshot,
+              score: llmResult.sentiment.sentimentScore ?? 0,
+            };
           }
         } else {
           emit('No transcript found.');
-          sentiment = normalizeSentiment(flattenSentiment({}));
+          sentiment = undefined;
         }
         const slug = createSlug(review.title || review.videoUrl || videoId);
         const minimal = {
           reviewId: review.videoUrl,
           sentiment,
-          transcript: review.transcript,
           debug: debugLog,
           metadata: {
             title: review.title,
@@ -237,13 +242,12 @@ export const youtubeController = {
             description: review.description,
             thumbnails: review.thumbnails,
             tags: review.tags,
-            transcript: review.transcript,
           },
           transcriptMethod: review.transcriptMethod,
           transcriptDebug: review.transcriptDebug,
           transcriptError: review.transcriptError,
         };
-        await upsertDemoReview(videoUrl, minimal, slug);
+        await upsertDemoReview(videoUrl, minimal, slug, review.transcript);
         return res.json({
           success: true,
           data: {
@@ -257,7 +261,6 @@ export const youtubeController = {
               description: review.description,
               thumbnails: review.thumbnails,
               tags: review.tags,
-              transcript: review.transcript,
             },
             transcript: review.transcript,
             transcriptMethod: review.transcriptMethod,
@@ -268,7 +271,7 @@ export const youtubeController = {
         });
       } else {
         const review = await processYouTubeVideo(videoId, language);
-        let sentiment: SentimentAnalysisResponse['sentiment'];
+        let sentiment: any = undefined;
         let debugArr = review.transcriptDebug || [];
         // Use YouTube metadata for all fields if available
         const meta = (review._youtubeMeta || {}) as YoutubeMeta;
@@ -285,7 +288,7 @@ export const youtubeController = {
         };
         if (review.transcript && review.transcript.trim().length > 0) {
           if (generalAnalysis) {
-            const generalResult = await analyzeGeneralSummary(review.transcript!, 'gpt-4o');
+            const generalResult = await analyzeGeneralSummary(review.transcript!, 'o3-pro');
             // Debug: log and include raw LLM output
             const llmDebug =
               'LLM generalAnalysis result (raw): ' + JSON.stringify(generalResult, null, 2);
@@ -303,15 +306,28 @@ export const youtubeController = {
           } else {
             const llmResult = await analyzeTextWithBiasAdjustmentFull(
               review.transcript!,
-              'gpt-4o',
+              'o3-pro',
               undefined,
               undefined,
               review.title,
             );
-            sentiment = normalizeSentiment(flattenSentiment(llmResult));
+            sentiment =
+              llmResult && llmResult.sentiment
+                ? {
+                    ...llmResult.sentiment,
+                    ...(llmResult.biasDetection ? { biasDetection: llmResult.biasDetection } : {}),
+                    ...(llmResult.biasAdjustment
+                      ? { biasAdjustment: llmResult.biasAdjustment }
+                      : {}),
+                    ...(llmResult.sentimentSnapshot
+                      ? { sentimentSnapshot: llmResult.sentimentSnapshot }
+                      : {}),
+                    score: llmResult.sentiment.sentimentScore ?? 0,
+                  }
+                : undefined;
           }
         } else {
-          sentiment = normalizeSentiment(flattenSentiment({}));
+          sentiment = undefined;
         }
         const isValidSentiment =
           sentiment &&
@@ -322,17 +338,17 @@ export const youtubeController = {
             (sentiment.summary && sentiment.summary.trim().length > 0) ||
             (sentiment.pros && sentiment.pros.length > 0) ||
             (sentiment.cons && sentiment.cons.length > 0));
-        if (review.transcript && review.transcript.trim().length > 0 && isValidSentiment) {
-          const { ...reviewForDatabase } = review;
-          const reviewToUpsert = { ...reviewForDatabase, sentiment } as Review;
-          await upsertReviewToSupabase(reviewToUpsert);
-        }
+        // if (review.transcript && review.transcript.trim().length > 0 && isValidSentiment) {
+        //   const { ...reviewForDatabase } = review;
+        //   const reviewToUpsert = { ...reviewForDatabase, sentiment } as Review;
+        //   await upsertReviewToSupabase(reviewToUpsert);
+        // }
         const freshMeta = await fetchYouTubeVideoMetadata(videoId);
         return res.json({
           success: true,
           data: {
             reviewId: review.videoUrl,
-            sentiment,
+            ...(sentiment ? { sentiment } : {}),
             // metadata: metadataObj,
             metadata: freshMeta,
             transcript: review.transcript,
@@ -388,7 +404,7 @@ export const youtubeController = {
       if (review.transcript && review.transcript.trim().length > 0) {
         if (generalAnalysisBool) {
           emit('Running general analysis...');
-          const generalResult = await analyzeGeneralSummary(review.transcript!, 'gpt-4o');
+          const generalResult = await analyzeGeneralSummary(review.transcript!, 'o3-pro');
           const llmDebug =
             'LLM generalAnalysis result (raw): ' + JSON.stringify(generalResult, null, 2);
           debugLog.push(llmDebug);
@@ -420,16 +436,22 @@ export const youtubeController = {
           emit('Running bias/sentiment analysis...');
           const llmResult = await analyzeTextWithBiasAdjustmentFull(
             review.transcript!,
-            'gpt-4o',
+            'o3-pro',
             undefined,
             undefined,
             review.title,
           );
-          sentiment = normalizeSentiment(flattenSentiment(llmResult));
+          sentiment = {
+            ...llmResult.sentiment,
+            biasDetection: llmResult.biasDetection,
+            biasAdjustment: llmResult.biasAdjustment,
+            sentimentSnapshot: llmResult.sentimentSnapshot,
+            score: llmResult.sentiment.sentimentScore ?? 0,
+          };
         }
       } else {
         emit('No transcript found.');
-        sentiment = normalizeSentiment(flattenSentiment({}));
+        sentiment = undefined;
       }
       sendEvent('result', {
         success: true,
