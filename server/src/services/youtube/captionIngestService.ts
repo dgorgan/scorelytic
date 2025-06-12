@@ -14,13 +14,13 @@ export const fetchYoutubeCaptions = async (
 ): Promise<string> => {
   const fallbackLangs = ['es', 'fr', 'de', 'it', 'pt', 'ru', 'ja', 'ko'];
   try {
-    console.debug(`[YT] Fetching captions for videoId: ${videoId}, lang: ${language}`);
+    logger.info({ videoId, lang: language }, '[YT] Fetching captions for videoId');
     // Try English first
     let captions = await getSubtitles({ videoID: videoId, lang: language });
     if (captions && captions.length > 0) {
       const transcript = captions.map((c: { text: string }) => c.text).join(' ');
       if (transcript.trim().length > 0) {
-        console.debug(`[YT] Captions found in ${language}`);
+        logger.info({ lang: language }, '[YT] Captions found in');
         return transcript;
       }
     }
@@ -32,7 +32,7 @@ export const fetchYoutubeCaptions = async (
           if (altCaptions && altCaptions.length > 0) {
             const altTranscript = altCaptions.map((c: { text: string }) => c.text).join(' ');
             if (altTranscript.trim().length > 0) {
-              console.debug(`[YT] Captions found in ${langCode} (parallel batch)`);
+              logger.info({ lang: langCode }, '[YT] Captions found in');
               return { transcript: altTranscript, lang: langCode };
             }
           }
@@ -51,22 +51,29 @@ export const fetchYoutubeCaptions = async (
     for (const langCode of fallbackLangs.slice(4)) {
       if (langCode === language) continue;
       try {
-        console.debug(`[YT] Trying captions in language: ${langCode}`);
+        logger.info({ lang: langCode }, '[YT] Trying captions in language');
         const altCaptions = await getSubtitles({ videoID: videoId, lang: langCode });
         if (altCaptions && altCaptions.length > 0) {
           const altTranscript = altCaptions.map((c: { text: string }) => c.text).join(' ');
           if (altTranscript.trim().length > 0) {
-            console.debug(`[YT] Captions found in ${langCode} (serial)`);
+            logger.info({ lang: langCode }, '[YT] Captions found in');
             return altTranscript;
           }
         }
       } catch (err) {
-        console.debug(`[YT] Error fetching captions for lang ${langCode}:`, err);
+        const errorObj = err as any;
+        logger.error(
+          { message: errorObj.message, stack: errorObj.stack, lang: langCode },
+          '[YT] Error fetching captions for lang',
+        );
       }
     }
     throw new Error('No captions available in any language.');
   } catch (err: any) {
-    console.debug(`[YT] Error fetching captions:`, err);
+    logger.error(
+      { message: err.message, stack: err.stack, videoId },
+      '[YT] Error fetching captions',
+    );
     // Handle specific error cases
     if (err.message?.includes('Video unavailable')) {
       throw new Error(
@@ -196,27 +203,76 @@ export const upsertDemoReview = async (
   slug: string,
   transcript?: string,
   metadata?: any,
+  transcriptHash?: string,
 ): Promise<void> => {
   try {
-    const { error } = await supabase
-      .from('demo_reviews')
-      .upsert([{ video_url: videoUrl, data, slug, transcript, metadata }], {
-        onConflict: 'video_url',
-      });
+    const payload: any = { video_url: videoUrl, data, slug, transcript, metadata };
+    if (transcriptHash) payload.transcript_hash = transcriptHash;
+    logger.info(
+      {
+        location: 'upsertDemoReview',
+        SUPABASE_URL: process.env.SUPABASE_URL,
+        SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+        payload,
+      },
+      '[SUPABASE DEBUG] Before upsert',
+    );
+    const { error } = await supabase.from('demo_reviews').upsert([payload], {
+      onConflict: 'video_url',
+    });
+    logger.info(
+      {
+        location: 'upsertDemoReview',
+        result: error ? 'error' : 'success',
+        error,
+      },
+      '[SUPABASE DEBUG] After upsert',
+    );
     if (error) {
-      logger.error('Demo review upsert failed:', error.message);
+      logger.error(
+        { message: error.message, stack: error.stack, error, payload },
+        'Demo review upsert failed',
+      );
     }
   } catch (err: any) {
-    logger.error('Demo review upsert crashed:', err.message);
+    logger.error({ message: err.message, stack: err.stack, err }, 'Demo review upsert crashed');
   }
 };
 
 export const fetchDemoReviewByVideoUrl = async (videoUrl: string) => {
+  logger.info(
+    {
+      location: 'fetchDemoReviewByVideoUrl',
+      SUPABASE_URL: process.env.SUPABASE_URL,
+      SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+      videoUrl,
+    },
+    '[SUPABASE DEBUG] Before fetch',
+  );
   const { data, error } = await supabase
     .from('demo_reviews')
-    .select('transcript, metadata, slug')
+    .select('transcript, metadata, slug, transcript_hash, data')
     .eq('video_url', videoUrl)
     .single();
-  if (error) throw new Error(`Failed to fetch demo_review: ${error.message}`);
+  logger.info(
+    {
+      location: 'fetchDemoReviewByVideoUrl',
+      result: error ? 'error' : 'success',
+      error,
+      data,
+    },
+    '[SUPABASE DEBUG] After fetch',
+  );
+  if (error) {
+    if (error.code === 'PGRST116' || error.message?.includes('multiple (or no) rows returned')) {
+      // No row found, return null (cache miss)
+      return null;
+    }
+    logger.error(
+      { message: error.message, stack: error.stack, error },
+      '[SUPABASE DEBUG] Fetch error object',
+    );
+    throw new Error(`Failed to fetch demo_review: ${error.message}`);
+  }
   return data;
 };

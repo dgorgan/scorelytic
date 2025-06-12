@@ -1,6 +1,6 @@
 import request from 'supertest';
 import express from 'express';
-import { youtubeController, youtubeMetadataHandler } from '../youtubeController';
+import { youtubeController } from '../youtubeController';
 
 jest.mock('../../services/youtube/captionIngestService', () => ({
   normalizeYoutubeToReview: jest.fn(async (args) => ({
@@ -59,7 +59,8 @@ const app = express();
 app.use(express.json());
 app.post('/process', youtubeController.processVideo);
 app.get('/stream', youtubeController.processVideoStream);
-app.get('/meta/:videoId', youtubeMetadataHandler);
+app.get('/meta/:videoId', youtubeController.youtubeMetadataHandler);
+app.get('/general-analysis', youtubeController.generalAnalysisHandler);
 
 describe('youtubeController', () => {
   it('returns 400 if videoId is missing', async () => {

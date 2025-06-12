@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { analyzeSentiment } from '@/services/sentiment';
+import { analyzeText } from '@/services/sentiment';
 import {
   SentimentAnalysisRequest,
   SentimentAnalysisResponse,
@@ -24,7 +24,7 @@ export const sentimentController = {
       }
 
       // Analyze sentiment
-      const sentiment = await analyzeSentiment(text);
+      const sentiment = await analyzeText(text);
 
       // Only include pros/cons if present and non-empty
       const sentimentObj: any = {

@@ -9,7 +9,7 @@ const defaultVideoIds = '';
 const YouTubeBatchProcessor: React.FC = () => {
   const [videoIds, setVideoIds] = useState<string>(defaultVideoIds);
   const [mode, setMode] = useState<'full' | 'llm-only' | 'llm-test'>('full');
-  const [llmModel, setLlmModel] = useState<string>('o3-pro');
+  const [llmModel, setLlmModel] = useState<string>('gpt-4o');
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

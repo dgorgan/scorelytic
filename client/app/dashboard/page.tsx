@@ -122,7 +122,11 @@ export default function Dashboard() {
           .select('*');
 
         if (overridesError) {
-          console.error('Error loading overrides:', overridesError);
+          // console.error('Error loading overrides:', overridesError);
+          console.error(
+            'Error loading overrides:',
+            overridesError instanceof Error ? overridesError.message : overridesError,
+          );
         } else {
           // Store overrides for filtering
           setOverrides(overrides || []);

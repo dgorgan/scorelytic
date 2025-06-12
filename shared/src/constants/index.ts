@@ -6,6 +6,7 @@ export {
   buildYouTubeMetadataUrl,
   buildYouTubeProcessUrl,
   buildYouTubeProcessStreamUrl,
+  buildYouTubeGeneralAnalysisUrl,
 } from './api';
 
 export { ReviewStatus } from './reviewStatuses';

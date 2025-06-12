@@ -1,10 +1,11 @@
 // ===================== Imports =====================
+import 'dotenv/config';
 import pLimit from 'p-limit';
 import fetch from 'node-fetch';
 import { createClient } from '@supabase/supabase-js';
-import { env } from '@/config/env';
-import { analyzeTextWithBiasAdjustmentFull } from '@/services/sentiment/sentimentService';
-import { upsertDemoReview } from '@/services/youtube/captionIngestService';
+import { env } from './src/config/env';
+import { analyzeTextWithBiasAdjustmentFull } from './src/services/sentiment/sentimentService';
+import { upsertDemoReview } from './src/services/youtube/captionIngestService';
 
 // ===================== Setup =====================
 const API_URL = 'http://localhost:5000/api/youtube/process';
@@ -14,7 +15,8 @@ const videoIds = [
   // 'kMzqGUyoG1U', 'voX0IY71_jw', 'F6dZxoob8CY',
   // 'MHrsygIxC5k', 'VpevTNRK-_M', 'JliVeSsajO0',
   // 'Vf3Kpi_OZqE',
-  'TuFUFiz4Emc',
+  // 'TuFUFiz4Emc',
+  '_tsFZ8F_qcY',
 ];
 const limit = pLimit(5); // Limit concurrency
 const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
@@ -40,12 +42,12 @@ async function runBatch() {
 }
 
 // ===================== Single Video LLM Analysis =====================
-async function runSingleLLMAnalysis(videoId) {
+async function runSingleLLMAnalysis(videoId: string) {
   console.log(`[LLM] Fetching demo_review for videoId: ${videoId}`);
 
   const { data: reviews, error } = await supabase
     .from('demo_reviews')
-    .select('id, video_url, data, slug')
+    .select('id, video_url, data, slug, transcript')
     .eq('video_url', `https://www.youtube.com/watch?v=${videoId}`);
 
   if (error) throw new Error('❌ Failed to fetch demo_review: ' + error.message);
@@ -66,7 +68,7 @@ async function runSingleLLMAnalysis(videoId) {
   const llmResult = await analyzeTextWithBiasAdjustmentFull(transcript, 'gpt-4o');
   const newData = { ...review.data, sentiment: llmResult.sentiment };
 
-  await upsertDemoReview(review.video_url, newData, review.slug, transcript);
+  await upsertDemoReview(review.video_url, newData, review.slug);
   console.log(`[LLM] ✅ Updated sentiment for ${review.video_url}`);
 }
 
@@ -76,7 +78,7 @@ async function runLLMBatchOnDemoReviews() {
 
   const { data: reviews, error } = await supabase
     .from('demo_reviews')
-    .select('id, video_url, data, slug');
+    .select('id, video_url, data, slug, transcript');
 
   if (error) throw new Error('❌ Failed to fetch demo_reviews: ' + error.message);
 
@@ -89,7 +91,7 @@ async function runLLMBatchOnDemoReviews() {
 
     const llmResult = await analyzeTextWithBiasAdjustmentFull(transcript, 'gpt-4o');
     const newData = { ...review.data, sentiment: llmResult.sentiment };
-    await upsertDemoReview(review.video_url, newData, review.slug, transcript);
+    await upsertDemoReview(review.video_url, newData, review.slug);
     console.log(`✅ Updated sentiment for ${review.video_url}`);
   }
 
