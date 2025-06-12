@@ -1,22 +1,13 @@
 import { Request, Response } from 'express';
-import {
-  normalizeYoutubeToReview,
-  upsertReviewToSupabase,
-  upsertDemoReview,
-} from '@/services/youtube/captionIngestService';
+import { normalizeYoutubeToReview } from '@/services/youtube/captionIngestService';
 import {
   fetchYouTubeVideoMetadata,
   extractGameFromMetadata,
   createSlug,
 } from '@/services/youtube/youtubeApiService';
 import { getHybridTranscript } from '@/services/youtube/hybridTranscriptService';
-import { analyzeTextWithBiasAdjustmentFull, analyzeGeneralSummary } from '@/services/sentiment';
-import type {
-  Review,
-  SentimentAnalysisResponse,
-  ApiResponse,
-  ReviewAnalysisResponse,
-} from '@scorelytic/shared';
+import type { ApiResponse, ReviewAnalysisResponse } from '@scorelytic/shared';
+import logger from '@/logger';
 
 const flattenSentiment = (
   obj: Record<string, unknown> | null | undefined,
@@ -108,6 +99,11 @@ interface ResultEvent {
   keyNotes?: string[];
   transcript?: string;
   debug: string[];
+  metadata?: any;
+  biasDetection?: any;
+  biasAdjustment?: any;
+  sentimentSnapshot?: any;
+  culturalContext?: any;
 }
 
 interface ErrorEvent {
@@ -146,217 +142,27 @@ export const youtubeController = {
       if (!videoId) {
         return res.status(400).json({ success: false, error: 'videoId is required' });
       }
-      const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
       if (demoMode) {
-        const debugLog: string[] = [];
-        const emit: ProgressEmitter = (msg) => debugLog.push(msg);
-        const review = await processYouTubeVideoWithProgress(videoId, language, emit);
-        let sentiment: ReturnType<typeof normalizeSentiment> | undefined;
-        if (review.transcript && review.transcript.trim().length > 0) {
-          if (generalAnalysis) {
-            emit('Running general analysis...');
-            const generalResult = await analyzeGeneralSummary(review.transcript!, 'o3-pro');
-            const llmDebug =
-              'LLM generalAnalysis result (raw): ' + JSON.stringify(generalResult, null, 2);
-            debugLog.push(llmDebug);
-            const slug = createSlug(review.title || review.videoUrl || videoId);
-            const minimal = {
-              reviewId: review.videoUrl,
-              sentiment: undefined,
-              metadata: {
-                title: review.title,
-                channelTitle: (review as any)['creatorName'] || '',
-                channelId: (review as any)['channelId'] || '',
-                publishedAt: review.publishedAt,
-                videoTitle: review.title,
-                channelUrl:
-                  (review as any)['channelUrl'] ||
-                  ((review as any)['channelId']
-                    ? `https://www.youtube.com/channel/${(review as any)['channelId']}`
-                    : ''),
-                thumbnails: review.thumbnails,
-                tags: review.tags,
-                description: review.description,
-              },
-              transcriptMethod: review.transcriptMethod,
-              transcriptDebug: review.transcriptDebug,
-              debug: debugLog,
-              slug,
-            };
-            await upsertDemoReview(videoUrl, minimal, slug, review.transcript);
-            return res.json({
-              success: true,
-              data: {
-                summary: generalResult.summary,
-                keyNotes: generalResult.keyNotes,
-                transcript: review.transcript,
-                debug: debugLog,
-                metadata: {
-                  gameTitle: review.title,
-                  creatorName: (review as any)['creatorName'] || '',
-                  publishedAt: review.publishedAt,
-                  videoTitle: review.title,
-                  channelTitle: (review as any)['creatorName'] || '',
-                  channelUrl:
-                    (review as any)['channelUrl'] ||
-                    ((review as any)['channelId']
-                      ? `https://www.youtube.com/channel/${(review as any)['channelId']}`
-                      : ''),
-                  thumbnails: review.thumbnails,
-                  tags: review.tags,
-                  transcript: review.transcript,
-                },
-              },
-            });
-          } else {
-            emit('Running bias/sentiment analysis...');
-            const llmResult = await analyzeTextWithBiasAdjustmentFull(
-              review.transcript!,
-              'o3-pro',
-              undefined,
-              undefined,
-              review.title,
-            );
-            sentiment = {
-              ...llmResult.sentiment,
-              biasDetection: llmResult.biasDetection,
-              biasAdjustment: llmResult.biasAdjustment,
-              sentimentSnapshot: llmResult.sentimentSnapshot,
-              score: llmResult.sentiment.sentimentScore ?? 0,
-            };
-          }
-        } else {
-          emit('No transcript found.');
-          sentiment = undefined;
-        }
-        const slug = createSlug(review.title || review.videoUrl || videoId);
-        const minimal = {
-          reviewId: review.videoUrl,
-          sentiment,
-          debug: debugLog,
-          metadata: {
-            title: review.title,
-            channelTitle: review._youtubeMeta?.channelTitle || '',
-            channelId: review._youtubeMeta?.channelId || '',
-            publishedAt: review.publishedAt,
-            description: review.description,
-            thumbnails: review.thumbnails,
-            tags: review.tags,
-          },
-          transcriptMethod: review.transcriptMethod,
-          transcriptDebug: review.transcriptDebug,
-          transcriptError: review.transcriptError,
-        };
-        await upsertDemoReview(videoUrl, minimal, slug, review.transcript);
+        const pipelineResult =
+          await require('@/services/youtube/pipelineRunner').runYouTubePipeline(videoId, {
+            transcriptOptions: { language },
+            generalAnalysis,
+            demoMode: true,
+          });
         return res.json({
           success: true,
-          data: {
-            reviewId: review.videoUrl,
-            sentiment,
-            metadata: {
-              title: review.title,
-              channelTitle: review._youtubeMeta?.channelTitle || '',
-              channelId: review._youtubeMeta?.channelId || '',
-              publishedAt: review.publishedAt,
-              description: review.description,
-              thumbnails: review.thumbnails,
-              tags: review.tags,
-            },
-            transcript: review.transcript,
-            transcriptMethod: review.transcriptMethod,
-            transcriptDebug: review.transcriptDebug,
-            transcriptError: review.transcriptError,
-            debug: debugLog,
-          },
+          data: pipelineResult,
         });
       } else {
-        const review = await processYouTubeVideo(videoId, language);
-        let sentiment: any = undefined;
-        let debugArr = review.transcriptDebug || [];
-        // Use YouTube metadata for all fields if available
-        const meta = (review._youtubeMeta || {}) as YoutubeMeta;
-        const metadataObj = {
-          title: meta.title || '',
-          channelTitle: meta.channelTitle || '',
-          channelId: meta.channelId || '',
-          publishedAt: meta.publishedAt || '',
-          description: meta.description || '',
-          thumbnails: meta.thumbnails || {},
-          tags: meta.tags || [],
-          channelUrl: meta.channelId ? `https://www.youtube.com/channel/${meta.channelId}` : '',
-          transcript: review.transcript,
-        };
-        if (review.transcript && review.transcript.trim().length > 0) {
-          if (generalAnalysis) {
-            const generalResult = await analyzeGeneralSummary(review.transcript!, 'o3-pro');
-            // Debug: log and include raw LLM output
-            const llmDebug =
-              'LLM generalAnalysis result (raw): ' + JSON.stringify(generalResult, null, 2);
-            debugArr = [...debugArr, llmDebug];
-            return res.json({
-              success: true,
-              data: {
-                summary: generalResult.summary,
-                keyNotes: generalResult.keyNotes,
-                transcript: review.transcript,
-                debug: debugArr,
-                metadata: metadataObj,
-              },
-            });
-          } else {
-            const llmResult = await analyzeTextWithBiasAdjustmentFull(
-              review.transcript!,
-              'o3-pro',
-              undefined,
-              undefined,
-              review.title,
-            );
-            sentiment =
-              llmResult && llmResult.sentiment
-                ? {
-                    ...llmResult.sentiment,
-                    ...(llmResult.biasDetection ? { biasDetection: llmResult.biasDetection } : {}),
-                    ...(llmResult.biasAdjustment
-                      ? { biasAdjustment: llmResult.biasAdjustment }
-                      : {}),
-                    ...(llmResult.sentimentSnapshot
-                      ? { sentimentSnapshot: llmResult.sentimentSnapshot }
-                      : {}),
-                    score: llmResult.sentiment.sentimentScore ?? 0,
-                  }
-                : undefined;
-          }
-        } else {
-          sentiment = undefined;
-        }
-        const isValidSentiment =
-          sentiment &&
-          ((sentiment.score !== 0 && sentiment.score !== undefined) ||
-            ('sentimentScore' in sentiment &&
-              sentiment.sentimentScore !== 0 &&
-              sentiment.sentimentScore !== undefined) ||
-            (sentiment.summary && sentiment.summary.trim().length > 0) ||
-            (sentiment.pros && sentiment.pros.length > 0) ||
-            (sentiment.cons && sentiment.cons.length > 0));
-        // if (review.transcript && review.transcript.trim().length > 0 && isValidSentiment) {
-        //   const { ...reviewForDatabase } = review;
-        //   const reviewToUpsert = { ...reviewForDatabase, sentiment } as Review;
-        //   await upsertReviewToSupabase(reviewToUpsert);
-        // }
-        const freshMeta = await fetchYouTubeVideoMetadata(videoId);
+        // Modular pipeline
+        const pipelineResult =
+          await require('@/services/youtube/pipelineRunner').runYouTubePipeline(videoId, {
+            transcriptOptions: { language },
+            generalAnalysis,
+          });
         return res.json({
           success: true,
-          data: {
-            reviewId: review.videoUrl,
-            ...(sentiment ? { sentiment } : {}),
-            // metadata: metadataObj,
-            metadata: freshMeta,
-            transcript: review.transcript,
-            transcriptMethod: review.transcriptMethod,
-            transcriptDebug: review.transcriptDebug,
-            transcriptError: review.transcriptError,
-            debug: debugArr,
-          },
+          data: pipelineResult,
         });
       }
     } catch (error: any) {
@@ -399,64 +205,17 @@ export const youtubeController = {
         debugLog.push(msg);
         sendEvent('progress', { message: msg });
       };
-      const review = await processYouTubeVideoWithProgress(videoId, language, emit);
-      let sentiment: ReturnType<typeof normalizeSentiment> | undefined;
-      if (review.transcript && review.transcript.trim().length > 0) {
-        if (generalAnalysisBool) {
-          emit('Running general analysis...');
-          const generalResult = await analyzeGeneralSummary(review.transcript!, 'o3-pro');
-          const llmDebug =
-            'LLM generalAnalysis result (raw): ' + JSON.stringify(generalResult, null, 2);
-          debugLog.push(llmDebug);
-          sendEvent('result', {
-            success: true,
-            summary: generalResult.summary,
-            keyNotes: generalResult.keyNotes,
-            transcript: review.transcript,
-            debug: debugLog,
-            metadata: {
-              gameTitle: review.title,
-              creatorName: (review as any)['creatorName'] || '',
-              publishedAt: review.publishedAt,
-              videoTitle: review.title,
-              channelTitle: (review as any)['creatorName'] || '',
-              channelUrl:
-                (review as any)['channelUrl'] ||
-                ((review as any)['channelId']
-                  ? `https://www.youtube.com/channel/${(review as any)['channelId']}`
-                  : ''),
-              thumbnails: review.thumbnails,
-              tags: review.tags,
-              transcript: review.transcript,
-            },
-          } as any);
-          res.end();
-          return;
-        } else {
-          emit('Running bias/sentiment analysis...');
-          const llmResult = await analyzeTextWithBiasAdjustmentFull(
-            review.transcript!,
-            'o3-pro',
-            undefined,
-            undefined,
-            review.title,
-          );
-          sentiment = {
-            ...llmResult.sentiment,
-            biasDetection: llmResult.biasDetection,
-            biasAdjustment: llmResult.biasAdjustment,
-            sentimentSnapshot: llmResult.sentimentSnapshot,
-            score: llmResult.sentiment.sentimentScore ?? 0,
-          };
-        }
-      } else {
-        emit('No transcript found.');
-        sentiment = undefined;
-      }
+      // Run modular pipeline with emit for progress
+      const pipelineResult = await require('@/services/youtube/pipelineRunner').runYouTubePipeline(
+        videoId,
+        {
+          transcriptOptions: { language, emit },
+          generalAnalysis: generalAnalysisBool,
+        },
+      );
       sendEvent('result', {
         success: true,
-        sentiment,
-        transcript: review.transcript,
+        ...pipelineResult,
         debug: debugLog,
       });
       res.end();
@@ -487,8 +246,8 @@ async function processYouTubeVideoWithProgress(
     language,
     emit,
   });
-  console.log(
-    'DEBUG: processYouTubeVideo transcript:',
+  logger.info(
+    'processYouTubeVideo transcript:',
     typeof transcriptResult.transcript,
     transcriptResult.transcript && transcriptResult.transcript.length,
   );
@@ -503,13 +262,13 @@ async function processYouTubeVideoWithProgress(
     channelUrl: `https://www.youtube.com/channel/${metadata.channelId}`,
     publishedAt: metadata.publishedAt,
   });
-  console.log(
-    'DEBUG: processYouTubeVideo transcript:',
+  logger.info(
+    'processYouTubeVideo transcript:',
     typeof transcriptResult.transcript,
     transcriptResult.transcript && transcriptResult.transcript.length,
   );
-  console.log(
-    'DEBUG: processYouTubeVideo returned transcript:',
+  logger.info(
+    'processYouTubeVideo returned transcript:',
     typeof review.transcript,
     review.transcript && review.transcript.length,
   );
