@@ -12,6 +12,7 @@ import reviewRoutes from '@/routes/review';
 import gameRoutes from '@/routes/game';
 import youtubeRoutes from '@/routes/youtube';
 import creatorRoutes from '@/routes/creator';
+import youtubeBatchRouter from '@/routes/youtubeBatch';
 
 const app: express.Application = express();
 
@@ -35,6 +36,7 @@ app.use('/api/sentiment', sentimentRoutes);
 app.use('/api/review', reviewRoutes);
 app.use('/api/games', gameRoutes);
 app.use('/api/youtube', youtubeRoutes);
+app.use('/api/youtube', youtubeBatchRouter);
 app.use('/api/creator', creatorRoutes);
 
 // Debug/test route for Sentry

@@ -18,6 +18,7 @@ import {
   BatchResultRow,
   SweepSummaryRow,
 } from '@/components/dashboard/utils';
+import YouTubeBatchProcessor from '@/components/dashboard/YouTubeBatchProcessor';
 
 export default function Dashboard() {
   const [results, setResults] = useState<Result[]>([]);
@@ -468,6 +469,7 @@ export default function Dashboard() {
               {/* YouTube Video Processor */}
               <div className="mb-8">
                 <YouTubeProcessor />
+                <YouTubeBatchProcessor />
               </div>
 
               <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-400 rounded">

@@ -2,6 +2,7 @@ import { Review } from '@scorelytic/shared';
 import { getSubtitles } from 'youtube-captions-scraper';
 import { supabase } from '@/config/database';
 import { toSnake } from '@/utils/caseMapping';
+import logger from '@/logger';
 
 /**
  * Fetches captions for a given YouTube video ID.
@@ -194,18 +195,28 @@ export const upsertDemoReview = async (
   data: any,
   slug: string,
   transcript?: string,
+  metadata?: any,
 ): Promise<void> => {
   try {
     const { error } = await supabase
       .from('demo_reviews')
-      .upsert([{ video_url: videoUrl, data, slug, transcript }], { onConflict: 'video_url' });
+      .upsert([{ video_url: videoUrl, data, slug, transcript, metadata }], {
+        onConflict: 'video_url',
+      });
     if (error) {
-      // Log but never throw
-      // eslint-disable-next-line no-console
-      console.error('Demo review upsert failed:', error.message);
+      logger.error('Demo review upsert failed:', error.message);
     }
   } catch (err: any) {
-    // eslint-disable-next-line no-console
-    console.error('Demo review upsert crashed:', err.message);
+    logger.error('Demo review upsert crashed:', err.message);
   }
+};
+
+export const fetchDemoReviewByVideoUrl = async (videoUrl: string) => {
+  const { data, error } = await supabase
+    .from('demo_reviews')
+    .select('transcript, metadata, slug')
+    .eq('video_url', videoUrl)
+    .single();
+  if (error) throw new Error(`Failed to fetch demo_review: ${error.message}`);
+  return data;
 };
