@@ -3,21 +3,21 @@ export * from './Review';
 export interface DemoReview {
   id: string;
   video_url: string;
-  data: {
-    metadata?: {
-      title?: string;
-      channelTitle?: string;
-      channelId?: string;
-      publishedAt?: string;
-      thumbnails?: {
-        maxres?: { url: string };
-        high?: { url: string };
-        default?: { url: string };
-      };
-      slug?: string;
-      tags?: string[];
-      description?: string;
+  metadata?: {
+    title?: string;
+    channelTitle?: string;
+    channelId?: string;
+    publishedAt?: string;
+    thumbnails?: {
+      maxres?: { url: string };
+      high?: { url: string };
+      default?: { url: string };
     };
+    tags?: string[];
+    description?: string;
+  };
+  slug?: string;
+  data: {
     sentiment?: {
       score?: number;
       verdict?: string;

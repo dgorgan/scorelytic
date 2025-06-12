@@ -444,6 +444,9 @@ importers:
       p-limit:
         specifier: ^6.2.0
         version: 6.2.0
+      pg:
+        specifier: ^8.16.0
+        version: 8.16.0
       pino:
         specifier: ^9.7.0
         version: 9.7.0
