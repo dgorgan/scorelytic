@@ -9,7 +9,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export const fetchDemoReviews = async (): Promise<DemoReview[]> => {
   const { data, error } = await supabase
     .from('demo_reviews')
-    .select('id, video_url, data')
+    .select('id, video_url, data, metadata, slug')
     .order('created_at', { ascending: false });
   if (error) throw error;
   return data || [];
@@ -24,7 +24,7 @@ export const fetchDemoReviewSlugs = async (): Promise<string[]> => {
 export const fetchDemoReviewBySlug = async (slug: string): Promise<DemoReview | null> => {
   const { data, error } = await supabase
     .from('demo_reviews')
-    .select('*')
+    .select('id, video_url, data, metadata, slug')
     .eq('slug', slug)
     .maybeSingle();
   if (error) throw error;

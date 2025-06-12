@@ -27,7 +27,7 @@ export default async function GameDemoDetailPage({ params }: Props) {
   if (!data) {
     return <SkeletonDetail />;
   }
-  const meta = data.data?.metadata || {};
+  const meta = data.metadata || {};
   const sentiment = data.data?.sentiment || {};
   const videoId = extractVideoId(data.video_url);
   const thumb =

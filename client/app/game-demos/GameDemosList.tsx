@@ -47,24 +47,24 @@ export default function GameDemosList({ initialReviews }: GameDemosListProps) {
         </span>
       </h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-9">
-        {reviews.map((r) => {
-          const meta = r.data?.metadata || {};
+        {reviews.map((review) => {
+          const meta = review.metadata || {};
           const thumb =
             meta.thumbnails?.maxres?.url ||
             meta.thumbnails?.high?.url ||
             meta.thumbnails?.default?.url ||
             '/game-case-placeholder.png';
-          const slug = meta.slug || (meta.title ? slugify(meta.title) : r.id);
+          const slug = review.slug || (meta.title ? slugify(meta.title) : review.id);
           return (
             <GameCard
-              key={r.id}
-              id={r.id}
+              key={review.id}
+              id={review.id}
               slug={slug}
               thumb={thumb}
               title={meta.title || 'Untitled Game'}
               channelTitle={meta.channelTitle || 'Unknown Channel'}
               releaseYear={meta.publishedAt ? new Date(meta.publishedAt).getFullYear() : ''}
-              score={r.data?.sentiment?.score}
+              score={review.data?.sentiment?.score}
             />
           );
         })}

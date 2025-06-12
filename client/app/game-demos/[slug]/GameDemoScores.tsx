@@ -655,9 +655,9 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
         <span className="text-xs font-orbitron uppercase tracking-widest text-violet-300 mb-1">
           Should You Play This?
         </span>
-        {sentiment.sentimentSnapshot?.verdict && (
+        {(sentiment.sentimentSummaryFriendlyVerdict || sentiment.sentimentSummary) && (
           <div className="text-lg sm:text-xl font-orbitron font-bold italic text-violet-100 bg-gradient-to-r from-violet-800/80 to-violet-700/80 rounded-full px-6 py-3 shadow border border-violet-600 text-center">
-            {sentiment.sentimentSnapshot.verdict}
+            {sentiment.sentimentSummaryFriendlyVerdict || sentiment.sentimentSummary}
           </div>
         )}
       </div>
@@ -812,7 +812,8 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
       )}
 
       {/* Detected Biases Section */}
-      {sentiment.biasDetection && (
+      {Array.isArray(sentiment.biasDetection?.biasesDetected) &&
+      sentiment.biasDetection.biasesDetected.length > 0 ? (
         <div>
           <div className="flex items-center gap-2">
             <div className="text-base sm:text-lg font-bold text-yellow-400 font-orbitron uppercase tracking-wide">
@@ -825,18 +826,15 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
               What is this?
             </span>
           </div>
-          {Array.isArray(sentiment.biasDetection?.biasesDetected) &&
-            sentiment.biasDetection.biasesDetected.length > 0 && (
-              <div className="text-yellow-200 mb-6">
-                {sentiment.biasDetection.biasesDetected.length} bias
-                {sentiment.biasDetection.biasesDetected.length > 1 ? 'es' : ''} detected, total
-                adjustment:{' '}
-                {totalScoreAdjustment < 0
-                  ? `score reduced by ${Math.abs(totalScoreAdjustment).toFixed(2)}`
-                  : `score increased by ${Math.abs(totalScoreAdjustment).toFixed(2)}`}{' '}
-                due to bias
-              </div>
-            )}
+          <div className="text-yellow-200 mb-6">
+            {sentiment.biasDetection.biasesDetected.length} bias
+            {sentiment.biasDetection.biasesDetected.length > 1 ? 'es' : ''} detected, total
+            adjustment:{' '}
+            {totalScoreAdjustment < 0
+              ? `score reduced by ${Math.abs(totalScoreAdjustment).toFixed(2)}`
+              : `score increased by ${Math.abs(totalScoreAdjustment).toFixed(2)}`}{' '}
+            due to bias
+          </div>
           {showBiasInfo && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
               <div className="bg-gray-900 rounded-lg p-6 max-w-md w-full text-white shadow-xl relative">
@@ -855,111 +853,136 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
               </div>
             </div>
           )}
-
           {/* Bias cards grid */}
-          {sentiment.biasDetection.biasesDetected.length > 0 && (
-            <div className="w-full ">
-              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-8">
-                {sentiment.biasDetection.biasesDetected.map((b: any, i: number) => {
-                  // Gamer-flavored dynamic clue string
-                  let clueString = '';
-                  const evidenceIsNone =
-                    b.evidence?.length === 1 && b.evidence[0] === '(no explicit evidence found)';
-                  if (evidenceIsNone && (!b.detectedIn || b.detectedIn.length === 0)) {
-                    clueString =
-                      'No obvious phrases or clues, but our AI still picked up on this bias from the overall vibe.';
-                  } else if (
-                    (b.evidence?.length && !evidenceIsNone) ||
-                    (b.detectedIn?.length && b.detectedIn[0])
-                  ) {
-                    if (b.evidence?.length && !evidenceIsNone && b.detectedIn?.length) {
-                      clueString = `Phrases like "${b.evidence.join(', ')}" and the review's ${b.detectedIn.join(', ')} tipped off our AI to possible ${b.name.toLowerCase()}.`;
-                    } else if (b.evidence?.length && !evidenceIsNone) {
-                      clueString = `Phrases like "${b.evidence.join(', ')}" tipped off our AI to possible ${b.name.toLowerCase()}.`;
-                    } else if (b.detectedIn?.length) {
-                      clueString = `The review's ${b.detectedIn.join(', ')} tipped off our AI to possible ${b.name.toLowerCase()}.`;
-                    }
-                  } else {
-                    clueString =
-                      'No obvious phrases or clues, but our AI still picked up on this bias from the overall vibe.';
+          <div className="w-full ">
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-8">
+              {sentiment.biasDetection.biasesDetected.map((b: any, i: number) => {
+                // Gamer-flavored dynamic clue string
+                let clueString = '';
+                const evidenceIsNone =
+                  b.evidence?.length === 1 && b.evidence[0] === '(no explicit evidence found)';
+                if (evidenceIsNone && (!b.detectedIn || b.detectedIn.length === 0)) {
+                  clueString =
+                    'No obvious phrases or clues, but our AI still picked up on this bias from the overall vibe.';
+                } else if (
+                  (b.evidence?.length && !evidenceIsNone) ||
+                  (b.detectedIn?.length && b.detectedIn[0])
+                ) {
+                  if (b.evidence?.length && !evidenceIsNone && b.detectedIn?.length) {
+                    clueString = `Phrases like "${b.evidence.join(', ')}" and the review's ${b.detectedIn.join(', ')} tipped off our AI to possible ${b.name.toLowerCase()}.`;
+                  } else if (b.evidence?.length && !evidenceIsNone) {
+                    clueString = `Phrases like "${b.evidence.join(', ')}" tipped off our AI to possible ${b.name.toLowerCase()}.`;
+                  } else if (b.detectedIn?.length) {
+                    clueString = `The review's ${b.detectedIn.join(', ')} tipped off our AI to possible ${b.name.toLowerCase()}.`;
                   }
-                  // Only show summary if it's not redundant with why it matters
-                  const showSummary = b.explanation && b.explanation !== b.impactOnExperience;
-                  return (
-                    <li
-                      key={`${b.name || 'bias'}-${b.severity || 'unknown'}-${b.scoreInfluence ?? '0'}-${i}`}
-                      className="relative border border-yellow-200 bg-yellow-50 p-5 sm:p-8 shadow-lg flex flex-col gap-4 w-full flex-1 mb-4 rounded-2xl min-w-[280px] max-w-[480px] mx-auto"
-                      style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.08)' }}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div>
-                          <div className="font-orbitron text-lg sm:text-xl font-extrabold uppercase tracking-widest text-yellow-900 mb-1">
-                            {b.name}
-                          </div>
+                } else {
+                  clueString =
+                    'No obvious phrases or clues, but our AI still picked up on this bias from the overall vibe.';
+                }
+                // Only show summary if it's not redundant with why it matters
+                const showSummary = b.explanation && b.explanation !== b.impactOnExperience;
+                return (
+                  <li
+                    key={`${b.name || 'bias'}-${b.severity || 'unknown'}-${b.scoreInfluence ?? '0'}-${i}`}
+                    className="relative border border-yellow-200 bg-yellow-50 p-5 sm:p-8 shadow-lg flex flex-col gap-4 w-full flex-1 mb-4 rounded-2xl min-w-[280px] max-w-[480px] mx-auto"
+                    style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.08)' }}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <div className="font-orbitron text-lg sm:text-xl font-extrabold uppercase tracking-widest text-yellow-900 mb-1">
+                          {b.name}
                         </div>
-                        {/* Bias effect, bold number, right-aligned in a box */}
-                        {typeof b.adjustedInfluence === 'number' && (
-                          <div
-                            className="px-3 py-1 rounded-lg bg-gray-100 border border-gray-200 flex flex-col items-center shadow-sm ml-4"
-                            style={{ minWidth: 80 }}
-                          >
-                            <span className="text-[11px] text-gray-500 font-semibold tracking-wide uppercase">
-                              Bias Effect
-                            </span>
-                            <span
-                              className={`text-xl font-mono font-extrabold ${b.adjustedInfluence > 0 ? 'text-green-700' : b.adjustedInfluence < 0 ? 'text-red-700' : 'text-gray-700'}`}
-                            >
-                              {b.adjustedInfluence > 0 ? '+' : ''}
-                              {b.adjustedInfluence?.toFixed(2)}
-                            </span>
-                          </div>
-                        )}
                       </div>
-                      {/* Status bar: severity + confidence */}
-                      <div className="flex items-center gap-4 mb-3">
-                        <span className="uppercase font-bold text-xs px-3 py-1 rounded-full bg-violet-200 text-violet-800 tracking-wider shadow-sm">
-                          {b.severity}
-                        </span>
-                        <span className="uppercase font-bold text-xs text-violet-800 tracking-wider">
-                          Confidence:
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <div className="w-24 h-3 bg-violet-100 rounded-full overflow-hidden">
-                            <div
-                              className="h-3 rounded-full bg-gradient-to-r from-violet-400 to-blue-400 transition-all duration-700"
-                              style={{ width: `${Math.round((b.confidenceScore || 0) * 100)}%` }}
-                            />
-                          </div>
-                          <span className="text-xs font-mono text-violet-900 ml-1">
-                            {Math.round((b.confidenceScore || 0) * 100)}%
+                      {/* Bias effect, bold number, right-aligned in a box */}
+                      {typeof b.adjustedInfluence === 'number' && (
+                        <div
+                          className="px-3 py-1 rounded-lg bg-gray-100 border border-gray-200 flex flex-col items-center shadow-sm ml-4"
+                          style={{ minWidth: 80 }}
+                        >
+                          <span className="text-[11px] text-gray-500 font-semibold tracking-wide uppercase">
+                            Bias Effect
+                          </span>
+                          <span
+                            className={`text-xl font-mono font-extrabold ${b.adjustedInfluence > 0 ? 'text-green-700' : b.adjustedInfluence < 0 ? 'text-red-700' : 'text-gray-700'}`}
+                          >
+                            {b.adjustedInfluence > 0 ? '+' : ''}
+                            {b.adjustedInfluence?.toFixed(2)}
                           </span>
                         </div>
-                      </div>
-                      {/* Why this matters - highlight box, blue/violet gradient border for contrast */}
-                      <div className="mb-2 p-3 rounded-xl border-2 border-violet-300 bg-violet-50/80 flex flex-col">
-                        <span className="font-bold text-violet-700 text-base mb-1 uppercase tracking-wide">
-                          Why it matters for gamers
-                        </span>
-                        <span className="text-violet-900 text-lg font-bold leading-snug">
-                          {b.impactOnExperience ||
-                            b.explanation ||
-                            'This bias may affect how the review is scored.'}
-                        </span>
-                      </div>
-                      {/* What we noticed - gamer flavor */}
-                      <div className="italic text-sm text-blue-900 mb-2">
-                        <span className="font-bold">What tipped off the AI:</span> {clueString}
-                      </div>
-                      {/* Summary at the bottom, only if not redundant */}
-                      {showSummary && (
-                        <div className="text-base text-yellow-900 italic">{b.explanation}</div>
                       )}
-                    </li>
-                  );
-                })}
-              </ul>
+                    </div>
+                    {/* Status bar: severity + confidence */}
+                    <div className="flex items-center gap-4 mb-3">
+                      <span className="uppercase font-bold text-xs px-3 py-1 rounded-full bg-violet-200 text-violet-800 tracking-wider shadow-sm">
+                        {b.severity}
+                      </span>
+                      <span className="uppercase font-bold text-xs text-violet-800 tracking-wider">
+                        Confidence:
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-24 h-3 bg-violet-100 rounded-full overflow-hidden">
+                          <div
+                            className="h-3 rounded-full bg-gradient-to-r from-violet-400 to-blue-400 transition-all duration-700"
+                            style={{ width: `${Math.round((b.confidenceScore || 0) * 100)}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-mono text-violet-900 ml-1">
+                          {Math.round((b.confidenceScore || 0) * 100)}%
+                        </span>
+                      </div>
+                    </div>
+                    {/* Why this matters - highlight box, blue/violet gradient border for contrast */}
+                    <div className="mb-2 p-3 rounded-xl border-2 border-violet-300 bg-violet-50/80 flex flex-col">
+                      <span className="font-bold text-violet-700 text-base mb-1 uppercase tracking-wide">
+                        Why it matters for gamers
+                      </span>
+                      <span className="text-violet-900 text-lg font-bold leading-snug">
+                        {b.impactOnExperience ||
+                          b.explanation ||
+                          'This bias may affect how the review is scored.'}
+                      </span>
+                    </div>
+                    {/* What we noticed - gamer flavor */}
+                    <div className="italic text-sm text-blue-900 mb-2">
+                      <span className="font-bold">What tipped off the AI:</span> {clueString}
+                    </div>
+                    {/* Summary at the bottom, only if not redundant */}
+                    {showSummary && (
+                      <div className="text-base text-yellow-900 italic">{b.explanation}</div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </div>
+      ) : (
+        <div className="w-full flex justify-center my-8">
+          <div className="border-2 border-yellow-400 bg-yellow-50/80 rounded-2xl px-8 py-10 shadow-lg  w-full flex flex-col items-center">
+            <svg className="w-12 h-12 text-yellow-400 mb-4" fill="none" viewBox="0 0 24 24">
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                fill="#FEF9C3"
+              />
+              <path
+                d="M8 12h8M12 8v8"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+            </svg>
+            <div className="text-xl sm:text-2xl font-bold font-orbitron text-yellow-900 mb-2 text-center">
+              No Noticeable Bias Detected
             </div>
-          )}
+            <div className="text-base sm:text-lg text-yellow-800 text-center max-w-md">
+              The AI detected no noticeable bias in this review. This review appears balanced and
+              objective, with no significant emotional or contextual influences affecting the score.
+            </div>
+          </div>
         </div>
       )}
 
