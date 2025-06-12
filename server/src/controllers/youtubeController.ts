@@ -1,26 +1,7 @@
 import { Request, Response } from 'express';
-import { normalizeYoutubeToReview } from '@/services/youtube/captionIngestService';
-import {
-  fetchYouTubeVideoMetadata,
-  extractGameFromMetadata,
-  createSlug,
-} from '@/services/youtube/youtubeApiService';
-import { getHybridTranscript } from '@/services/youtube/hybridTranscriptService';
+import { fetchYouTubeVideoMetadata } from '@/services/youtube/youtubeApiService';
 import type { ApiResponse, ReviewAnalysisResponse } from '@scorelytic/shared';
-import logger from '@/logger';
-
-const flattenSentiment = (
-  obj: Record<string, unknown> | null | undefined,
-): Record<string, unknown> => {
-  if (!obj) return {};
-  if (obj.sentiment && typeof obj.sentiment === 'object') {
-    return {
-      ...(obj.sentiment as Record<string, unknown>),
-      ...Object.fromEntries(Object.entries(obj).filter(([k]) => k !== 'sentiment')),
-    };
-  }
-  return obj;
-};
+import { generalAnalysisStep } from '@/services/youtube/generalAnalysisStep';
 
 const normalizeSentiment = (obj: any) => {
   const score = obj.sentimentScore ?? obj.sentiment_score ?? obj.score ?? 0;
@@ -49,42 +30,6 @@ const normalizeSentiment = (obj: any) => {
     },
     sentimentSnapshot: obj.sentimentSnapshot ?? obj.sentiment_snapshot ?? {},
     culturalContext: obj.culturalContext ?? obj.cultural_context ?? {},
-  };
-};
-
-const processYouTubeVideo = async (videoId: string, language: string = 'en') => {
-  const metadata = await fetchYouTubeVideoMetadata(videoId);
-  const extractedGameTitle = extractGameFromMetadata(metadata);
-  const gameSlug = extractedGameTitle ? createSlug(extractedGameTitle) : 'unknown-game';
-  const creatorSlug = createSlug(metadata.channelTitle);
-  const transcriptResult = await getHybridTranscript(videoId, {
-    allowAudioFallback: true,
-    maxCostUSD: 0.5,
-    maxDurationMinutes: 20,
-    language,
-  });
-  const review = await normalizeYoutubeToReview({
-    videoId,
-    transcript: transcriptResult.transcript,
-    gameSlug,
-    creatorSlug,
-    gameTitle: extractedGameTitle || metadata.title,
-    creatorName: metadata.channelTitle,
-    channelUrl: `https://www.youtube.com/channel/${metadata.channelId}`,
-    publishedAt: metadata.publishedAt,
-  });
-  return {
-    ...review,
-    title: metadata.title,
-    description: metadata.description,
-    thumbnails: metadata.thumbnails,
-    tags: metadata.tags,
-    publishedAt: metadata.publishedAt,
-    transcriptMethod: transcriptResult.method,
-    transcriptCost: transcriptResult.cost,
-    transcriptError: transcriptResult.error,
-    transcriptDebug: transcriptResult.debug,
-    _youtubeMeta: metadata,
   };
 };
 
@@ -131,12 +76,10 @@ export const youtubeController = {
       const {
         videoId,
         language = 'en',
-        generalAnalysis = false,
         demoMode = false,
       } = req.body as {
         videoId?: string;
         language?: string;
-        generalAnalysis?: boolean;
         demoMode?: boolean;
       };
       if (!videoId) {
@@ -146,7 +89,6 @@ export const youtubeController = {
         const pipelineResult =
           await require('@/services/youtube/pipelineRunner').runYouTubePipeline(videoId, {
             transcriptOptions: { language },
-            generalAnalysis,
             demoMode: true,
           });
         return res.json({
@@ -158,7 +100,6 @@ export const youtubeController = {
         const pipelineResult =
           await require('@/services/youtube/pipelineRunner').runYouTubePipeline(videoId, {
             transcriptOptions: { language },
-            generalAnalysis,
           });
         return res.json({
           success: true,
@@ -184,22 +125,15 @@ export const youtubeController = {
     };
 
     try {
-      const {
-        videoId,
-        language = 'en',
-        generalAnalysis = false,
-      } = req.query as {
+      const { videoId, language = 'en' } = req.query as {
         videoId?: string;
         language?: string;
-        generalAnalysis?: string | boolean;
       };
       if (!videoId) {
         sendEvent('error', { error: 'videoId is required' });
         res.end();
         return;
       }
-      const generalAnalysisBool =
-        typeof generalAnalysis === 'string' ? generalAnalysis === 'true' : !!generalAnalysis;
       const debugLog: string[] = [];
       const emit: ProgressEmitter = (msg) => {
         debugLog.push(msg);
@@ -210,7 +144,6 @@ export const youtubeController = {
         videoId,
         {
           transcriptOptions: { language, emit },
-          generalAnalysis: generalAnalysisBool,
         },
       );
       sendEvent('result', {
@@ -225,77 +158,43 @@ export const youtubeController = {
       res.end();
     }
   },
-};
 
-async function processYouTubeVideoWithProgress(
-  videoId: string,
-  language: string = 'en',
-  emit: ProgressEmitter = (_msg) => {},
-): Promise<ReturnType<typeof processYouTubeVideo>> {
-  emit('Fetching metadata...');
-  const metadata = await fetchYouTubeVideoMetadata(videoId);
-  emit('Extracting game/channel info...');
-  const extractedGameTitle = extractGameFromMetadata(metadata);
-  const gameSlug = extractedGameTitle ? createSlug(extractedGameTitle) : 'unknown-game';
-  const creatorSlug = createSlug(metadata.channelTitle);
-  emit('Getting transcript (captions/audio)...');
-  const transcriptResult = await getHybridTranscript(videoId, {
-    allowAudioFallback: true,
-    maxCostUSD: 0.5,
-    maxDurationMinutes: 60,
-    language,
-    emit,
-  });
-  logger.info(
-    'processYouTubeVideo transcript:',
-    typeof transcriptResult.transcript,
-    transcriptResult.transcript && transcriptResult.transcript.length,
-  );
-  emit('Normalizing review...');
-  const review = await normalizeYoutubeToReview({
-    videoId,
-    transcript: transcriptResult.transcript,
-    gameSlug,
-    creatorSlug,
-    gameTitle: extractedGameTitle || metadata.title,
-    creatorName: metadata.channelTitle,
-    channelUrl: `https://www.youtube.com/channel/${metadata.channelId}`,
-    publishedAt: metadata.publishedAt,
-  });
-  logger.info(
-    'processYouTubeVideo transcript:',
-    typeof transcriptResult.transcript,
-    transcriptResult.transcript && transcriptResult.transcript.length,
-  );
-  logger.info(
-    'processYouTubeVideo returned transcript:',
-    typeof review.transcript,
-    review.transcript && review.transcript.length,
-  );
-  return {
-    ...review,
-    title: metadata.title,
-    description: metadata.description,
-    thumbnails: metadata.thumbnails,
-    tags: metadata.tags,
-    publishedAt: metadata.publishedAt,
-    transcriptMethod: transcriptResult.method,
-    transcriptCost: transcriptResult.cost,
-    transcriptError: transcriptResult.error,
-    transcriptDebug: transcriptResult.debug,
-    _youtubeMeta: metadata,
-  };
-}
+  generalAnalysisHandler: async (req: Request, res: Response) => {
+    const { videoId, language = 'en' } = req.query as { videoId?: string; language?: string };
+    if (!videoId) {
+      return res.status(400).json({ error: 'Missing videoId' });
+    }
+    try {
+      // Fetch transcript (captions/audio)
+      const transcriptResult =
+        await require('@/services/youtube/pipelineSteps').fetchTranscriptStep(
+          { videoId, options: { language } },
+          {},
+        );
+      if (!transcriptResult.transcript || !transcriptResult.transcript.trim()) {
+        throw new Error('Transcript not found');
+      }
+      // Run general analysis
+      const generalResult = await generalAnalysisStep(
+        { transcript: transcriptResult.transcript },
+        {},
+      );
+      return res.json({ generalResult });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  },
 
-export const youtubeMetadataHandler = async (req: Request, res: Response) => {
-  const { videoId } = req.params;
-  if (!videoId) {
-    return res.status(400).json({ error: 'videoId is required' });
-  }
-  try {
-    const metadata = await fetchYouTubeVideoMetadata(videoId);
-    res.json(metadata);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message || 'Failed to fetch YouTube metadata' });
-  }
+  youtubeMetadataHandler: async (req: Request, res: Response) => {
+    const { videoId } = req.params;
+    if (!videoId) {
+      return res.status(400).json({ error: 'videoId is required' });
+    }
+    try {
+      const metadata: YoutubeMeta = await fetchYouTubeVideoMetadata(videoId);
+      res.json(metadata);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || 'Failed to fetch YouTube metadata' });
+    }
+  },
 };

@@ -10,6 +10,7 @@ import {
   analyzeTextWithBiasAdjustmentFull,
   analyzeGeneralSummary,
 } from '@/services/sentiment/sentimentService';
+import logger from '@/logger';
 
 interface PipelineContext {
   videoId: string;
@@ -17,32 +18,61 @@ interface PipelineContext {
 }
 
 export const fetchMetadataStep = async (input: { videoId: string }, context: PipelineContext) => {
-  const metadata = await fetchYouTubeVideoMetadata(input.videoId);
-  context.metadata = metadata;
-  return metadata;
+  try {
+    const metadata = await fetchYouTubeVideoMetadata(input.videoId);
+    context.metadata = metadata;
+    logger.info({ metadata }, '[PIPELINE] Metadata fetched');
+    return metadata;
+  } catch (err: any) {
+    const errorObj = err as any;
+    logger.error(
+      { message: errorObj.message, stack: errorObj.stack, videoId: input.videoId },
+      '[PIPELINE] Error in fetchMetadataStep',
+    );
+    throw err;
+  }
 };
 
 export const extractGameInfoStep = async (
   input: { metadata: YouTubeVideoMetadata },
   context: PipelineContext,
 ) => {
-  const gameTitle = extractGameFromMetadata(input.metadata);
-  const gameSlug = gameTitle ? createSlug(gameTitle) : null;
-  context.gameTitle = gameTitle;
-  context.gameSlug = gameSlug;
-  return { gameTitle, gameSlug };
+  try {
+    const gameTitle = extractGameFromMetadata(input.metadata);
+    const gameSlug = gameTitle ? createSlug(gameTitle) : null;
+    context.gameTitle = gameTitle;
+    context.gameSlug = gameSlug;
+    return { gameTitle, gameSlug };
+  } catch (err: any) {
+    const errorObj = err as any;
+    logger.error('[PIPELINE] Error in extractGameInfoStep', {
+      message: errorObj.message,
+      stack: errorObj.stack,
+    });
+    throw err;
+  }
 };
 
 export const fetchTranscriptStep = async (
   input: { videoId: string; options?: any },
   context: PipelineContext,
 ) => {
-  const transcriptResult: HybridTranscriptResult = await getHybridTranscript(
-    input.videoId,
-    input.options || {},
-  );
-  context.transcriptResult = transcriptResult;
-  return transcriptResult;
+  try {
+    const transcriptResult: HybridTranscriptResult = await getHybridTranscript(
+      input.videoId,
+      input.options || {},
+    );
+    context.transcriptResult = transcriptResult;
+    return transcriptResult;
+  } catch (err: any) {
+    const errorObj = err as any;
+    logger.error('[PIPELINE] Error in fetchTranscriptStep', {
+      message: errorObj.message,
+      stack: errorObj.stack,
+      videoId: input.videoId,
+    });
+    throw err;
+  }
 };
 
 export const normalizeReviewStep = async (
@@ -58,39 +88,45 @@ export const normalizeReviewStep = async (
   },
   context: PipelineContext,
 ) => {
-  const review = await normalizeYoutubeToReview(input);
-  context.review = review;
-  return review;
+  try {
+    const review = await normalizeYoutubeToReview(input);
+    context.review = review;
+    return review;
+  } catch (err: any) {
+    const errorObj = err as any;
+    logger.error('[PIPELINE] Error in normalizeReviewStep', {
+      message: errorObj.message,
+      stack: errorObj.stack,
+      videoId: input.videoId,
+    });
+    throw err;
+  }
 };
 
 export const llmAnalysisStep = async (
   input: { transcript: string; title?: string; model?: string },
   context: PipelineContext,
 ) => {
-  if (!input.transcript || !input.transcript.trim()) {
-    context.llmResult = undefined;
-    return undefined;
+  try {
+    if (!input.transcript || !input.transcript.trim()) {
+      context.llmResult = undefined;
+      return undefined;
+    }
+    const llmResult = await analyzeTextWithBiasAdjustmentFull(
+      input.transcript,
+      input.model || 'gpt-4o',
+      undefined,
+      undefined,
+      input.title,
+    );
+    context.llmResult = llmResult;
+    return llmResult;
+  } catch (err: any) {
+    const errorObj = err as any;
+    logger.error('[PIPELINE] Error in llmAnalysisStep', {
+      message: errorObj.message,
+      stack: errorObj.stack,
+    });
+    throw err;
   }
-  const llmResult = await analyzeTextWithBiasAdjustmentFull(
-    input.transcript,
-    input.model || 'o3-pro',
-    undefined,
-    undefined,
-    input.title,
-  );
-  context.llmResult = llmResult;
-  return llmResult;
-};
-
-export const generalAnalysisStep = async (
-  input: { transcript: string; model?: string },
-  context: PipelineContext,
-) => {
-  if (!input.transcript || !input.transcript.trim()) {
-    context.generalResult = undefined;
-    return undefined;
-  }
-  const generalResult = await analyzeGeneralSummary(input.transcript, input.model || 'o3-pro');
-  context.generalResult = generalResult;
-  return generalResult;
 };

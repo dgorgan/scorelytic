@@ -19,7 +19,7 @@ if (fs.existsSync(cookiesPath)) {
 const PORT = env.PORT;
 
 if (!PORT) {
-  logger.error('PORT is not defined in the environment');
+  logger.error({ env: process.env }, 'PORT is not defined in the environment');
   process.exit(1);
 }
 
@@ -28,18 +28,19 @@ app.use('/demos', express.static(path.join(__dirname, '../demos')));
 
 // Start server
 app.listen(PORT, () => {
-  logger.info(`✅ Server running on port ${PORT}`);
+  logger.info({ port: PORT }, '✅ Server running');
 });
 
 // Graceful error handling
 process.on('uncaughtException', (err) => {
-  logger.error(err, '❌ Uncaught Exception');
+  logger.error({ message: err.message, stack: err.stack }, '❌ Uncaught Exception');
   Sentry.captureException(err);
   process.exit(1);
 });
 
 process.on('unhandledRejection', (reason) => {
-  logger.error(reason, '❌ Unhandled Rejection');
+  const errorObj = reason as any;
+  logger.error({ message: errorObj?.message, stack: errorObj?.stack }, '❌ Unhandled Rejection');
   Sentry.captureException(reason);
   process.exit(1);
 });

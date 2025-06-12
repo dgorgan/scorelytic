@@ -6,6 +6,7 @@ import { promisify } from 'util';
 import { env } from '@/config/env';
 import { execSync } from 'child_process';
 import ffmpeg from 'fluent-ffmpeg';
+import logger from '@/logger';
 
 const unlinkAsync = promisify(fs.unlink);
 
@@ -41,12 +42,9 @@ const defaultHelpers: TranscriptionHelpers = {
       ? crypto.createHash('sha256').update(cookiesContent).digest('hex')
       : null;
     // Debug logs
-    // eslint-disable-next-line no-console
-    console.log('[yt-dlp] cookies.txt path:', cookiesPath);
-    // eslint-disable-next-line no-console
-    console.log('[yt-dlp] cookies.txt exists:', cookiesExists);
-    // eslint-disable-next-line no-console
-    if (cookiesExists) console.log('[yt-dlp] cookies.txt sha256:', cookiesHash);
+    logger.info('[yt-dlp] cookies.txt path:', cookiesPath);
+    logger.info('[yt-dlp] cookies.txt exists:', cookiesExists);
+    if (cookiesExists) logger.info('[yt-dlp] cookies.txt sha256:', cookiesHash);
     const ytDlpWrap = new YTDlpWrap();
     await retryWithBackoff(() =>
       ytDlpWrap.execPromise([
@@ -80,7 +78,7 @@ const defaultHelpers: TranscriptionHelpers = {
   },
   getVideoDuration: async (videoId) => {
     const cookiesPath = path.join(process.cwd(), 'src/cookies.txt');
-    console.log('cookiesPath', cookiesPath);
+    logger.info('cookiesPath', cookiesPath);
     const cookiesExists = fs.existsSync(cookiesPath);
     const cookiesContent = cookiesExists ? fs.readFileSync(cookiesPath, 'utf8') : '';
     const crypto = require('crypto');
@@ -88,12 +86,9 @@ const defaultHelpers: TranscriptionHelpers = {
       ? crypto.createHash('sha256').update(cookiesContent).digest('hex')
       : null;
     // Debug logs
-    // eslint-disable-next-line no-console
-    console.log('[yt-dlp] cookies.txt path:', cookiesPath);
-    // eslint-disable-next-line no-console
-    console.log('[yt-dlp] cookies.txt exists:', cookiesExists);
-    // eslint-disable-next-line no-console
-    if (cookiesExists) console.log('[yt-dlp] cookies.txt sha256:', cookiesHash);
+    logger.info('[yt-dlp] cookies.txt path:', cookiesPath);
+    logger.info('[yt-dlp] cookies.txt exists:', cookiesExists);
+    if (cookiesExists) logger.info('[yt-dlp] cookies.txt sha256:', cookiesHash);
     const ytDlpWrap = new YTDlpWrap();
     const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
     const out = await retryWithBackoff(() =>
@@ -273,7 +268,7 @@ export const estimateTranscriptionCost = (durationMinutes: number): number => {
  */
 export const getVideoDuration = async (videoId: string): Promise<number> => {
   const cookiesPath = path.join(process.cwd(), 'src/cookies.txt');
-  console.log('cookiesPath', cookiesPath);
+  logger.info('cookiesPath', cookiesPath);
   const cookiesExists = fs.existsSync(cookiesPath);
   const cookiesContent = cookiesExists ? fs.readFileSync(cookiesPath, 'utf8') : '';
   const crypto = require('crypto');
@@ -281,12 +276,9 @@ export const getVideoDuration = async (videoId: string): Promise<number> => {
     ? crypto.createHash('sha256').update(cookiesContent).digest('hex')
     : null;
   // Debug logs
-  // eslint-disable-next-line no-console
-  console.log('[yt-dlp] cookies.txt path:', cookiesPath);
-  // eslint-disable-next-line no-console
-  console.log('[yt-dlp] cookies.txt exists:', cookiesExists);
-  // eslint-disable-next-line no-console
-  if (cookiesExists) console.log('[yt-dlp] cookies.txt sha256:', cookiesHash);
+  logger.info('[yt-dlp] cookies.txt path:', cookiesPath);
+  logger.info('[yt-dlp] cookies.txt exists:', cookiesExists);
+  if (cookiesExists) logger.info('[yt-dlp] cookies.txt sha256:', cookiesHash);
   const ytDlpWrap = new YTDlpWrap();
   const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
   try {

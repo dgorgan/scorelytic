@@ -52,7 +52,7 @@
   - Try English captions first (`fetchYoutubeCaptions(videoId, 'en')`).
   - If not found, fetch the list of available caption languages for the video.
   - Try to fetch captions in each available language (prefer human-uploaded, then auto-generated).
-  - If found, pass them to the LLM (let the LLM translate/analyze directly; o3-pro can handle this).
+  - If found, pass them to the LLM (let the LLM translate/analyze directly; gpt-4o can handle this).
   - Only fall back to Whisper audio transcription if no captions in any language are available.
 - **Implementation:**
   - Update `fetchYoutubeCaptions` to support multi-language fallback.
@@ -75,33 +75,50 @@
 
 ---
 
-## 7. Test Suite Robustness
+## 7. Batch Dashboard Processing
+
+- Add a "Batch Processor" section to the dashboard UI:
+  - Input: textarea or list for multiple videoIds.
+  - Buttons: "Run Full Pipeline Batch", "Run LLM-Only Batch", "Run LLM-Only for Selected IDs".
+  - Show per-video progress/results/errors in a table or list.
+- Backend:
+  - New API route (e.g. `/api/youtube/batch-process`) accepts array of videoIds and a mode (`full`, `llm-only`, etc).
+  - For "LLM-only", fetch transcripts from `demo_reviews` and run LLM analysis/upsert as in CLI.
+  - For "full", POST to `/process` for each videoId (like CLI).
+  - Return per-video results/progress/errors.
+- Frontend:
+  - Visualize progress/results for each videoId.
+  - Optionally allow cancel/retry for failed videos.
+- Use `/process` for batch unless you want real-time logs per video (then use `/process/stream`).
+- Consider resource usage and rate limits for parallel jobs.
+
+## 8. Test Suite Robustness
 
 - Audit and fix tests, especially for `/stream` and batch.
 - Add tests for transcript caching, parallel chunking, retry, and LLM output shape.
 
 ---
 
-## 8. Documentation
+## 9. Documentation
 
 - Update this scratchpad and main docs as changes are made.
 
 ---
 
-## 9. Future-Proofing
+## 10. Future-Proofing
 
 - Plan for main reviews upsert: decide on rich JSONB vs. flat analytics shape.
 
 ---
 
-## 10. yt-dlp Cookie Usage
+## 11. yt-dlp Cookie Usage
 
 - Remove use of cookies with yt-dlp for YouTube downloads, or make it optional/configurable.
 - Document when/why cookies are needed (e.g. age-restricted/private videos).
 
 ---
 
-## 11. LLM Fallback Prompt Investigation
+## 12. LLM Fallback Prompt Investigation
 
 ### Problems
 
@@ -132,7 +149,7 @@
 
 ---
 
-## 12. Diagnosis Summary
+## 13. Diagnosis Summary
 
 Area
 Problem
@@ -238,9 +255,9 @@ Fixes (High-Confidence, Actionable)
 
 ---
 
-## 13. Centralize Constants (API, Models, etc.)
+## 14. Centralize Constants (API, Models, etc.)
 
-- Audit the codebase for hardcoded model names (e.g., 'o3-pro', 'gpt-4o'), API endpoints, and other magic strings.
+- Audit the codebase for hardcoded model names (e.g., 'gpt-4o', 'gpt-4o'), API endpoints, and other magic strings.
 - Move all such values to `shared/src/constants` (e.g., `api.ts`, `models.ts`).
 - Refactor all usages to import from these consts, so future changes (like model swaps) are one-line and robust.
 - Improves maintainability, reduces bugs, and makes global config/feature switches trivial.

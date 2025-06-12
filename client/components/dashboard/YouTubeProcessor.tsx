@@ -4,6 +4,7 @@ import {
   buildYouTubeMetadataUrl,
   buildYouTubeProcessUrl,
   buildYouTubeProcessStreamUrl,
+  buildYouTubeGeneralAnalysisUrl,
   ERROR_MESSAGES,
   extractVideoId,
 } from '@scorelytic/shared';
@@ -174,17 +175,28 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
   const [showDetails, setShowDetails] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
 
-  const fullResult = { ...result, ...(result?.data || {}) };
-  const isGeneralAnalysis = !!fullResult.summary && Array.isArray(fullResult.keyNotes);
-  const transcript = fullResult.transcript;
-  const transcriptError =
-    typeof fullResult.transcriptError === 'string' ? fullResult.transcriptError.trim() : '';
+  const generalResult = result?.generalResult || null;
+  const meta = result?.metadata || null;
+  const transcript = result?.transcript || null;
+  const transcriptError = result?.transcriptError || '';
   const isTranscriptOk = typeof transcript === 'string' && transcript.trim().length > 0;
   const hasTranscriptError = !!transcriptError && !isTranscriptOk;
-  const sentiment = fullResult.sentiment;
+  const isGeneralAnalysis = !!generalResult?.summary && Array.isArray(generalResult?.keyNotes);
   const isTrulySuccess = isGeneralAnalysis
     ? isTranscriptOk && !transcriptError
-    : !!sentiment && isTranscriptOk && !error;
+    : isTranscriptOk && !error;
+  const sentiment = result?.data?.sentiment;
+  const biasDetection = result?.data?.biasDetection;
+  const biasAdjustment = result?.data?.biasAdjustment;
+  // const sentimentSnapshot = result?.data?.sentimentSnapshot;
+  const alsoRecommends = sentiment?.alsoRecommends || [];
+  const biasIndicators = sentiment?.biasIndicators || [];
+  const detectedBiases = biasDetection?.biasesDetected || [];
+  const rationale = biasAdjustment?.rationale || biasAdjustment?.adjustmentRationale;
+  const biasAdjustedScore = biasAdjustment?.biasAdjustedScore;
+  const originalScore = biasDetection?.originalScore ?? sentiment?.score;
+  const context = sentiment?.culturalContext;
+  const debugLog = result?.debug || [];
 
   useEffect(() => {
     if (progressLogs.length > 0) {
@@ -258,13 +270,34 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
     }
     setProcessing(true);
     resetProgress();
+    if (generalAnalysis) {
+      // General analysis: stateless endpoint, no streaming
+      try {
+        const metaPromise = fetch(buildYouTubeMetadataUrl(extractedId))
+          .then((r) => r.json())
+          .catch(() => null);
+        const url = buildYouTubeGeneralAnalysisUrl(extractedId);
+        const [res, metaData] = await Promise.all([fetch(url).then((r) => r.json()), metaPromise]);
+        if (res.error) throw new Error(res.error);
+        const merged = { ...res, metadata: metaData };
+        setResult(merged);
+        onProcessComplete?.(merged);
+        setIsSuccess(true);
+      } catch (err: any) {
+        setError(err.message || ERROR_MESSAGES.YOUTUBE.PROCESS_FAILED);
+        setIsSuccess(false);
+      } finally {
+        setProcessing(false);
+      }
+      return;
+    }
     if (useStreaming) {
       // Always fetch metadata in parallel
       const metaPromise = fetch(buildYouTubeMetadataUrl(extractedId))
         .then((r) => r.json())
         .catch(() => null);
       // SSE mode
-      const url = buildYouTubeProcessStreamUrl(extractedId, generalAnalysis);
+      const url = buildYouTubeProcessStreamUrl(extractedId);
       const es = new window.EventSource(url);
       eventSourceRef.current = es;
       es.onmessage = async (event) => {
@@ -767,7 +800,7 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
           <div className="p-4 bg-gray-50 border border-gray-200 rounded-md">
             <h4 className="font-medium text-gray-900 mb-2">Result:</h4>
             <pre className="text-xs text-gray-700 overflow-auto max-h-96">
-              {JSON.stringify(fullResult, null, 2)}
+              {JSON.stringify(result, null, 2)}
             </pre>
           </div>
         )}
@@ -818,19 +851,6 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
         )}
 
         {(() => {
-          const meta = fullResult.metadata || fullResult.data?.metadata;
-          const isGeneralAnalysis = !!fullResult.summary && Array.isArray(fullResult.keyNotes);
-          const sentiment = fullResult.sentiment;
-          const biasAdjustment = fullResult.biasAdjustment || fullResult.sentiment?.biasAdjustment;
-          const biasDetection = fullResult.biasDetection || fullResult.sentiment?.biasDetection;
-          const context = fullResult.culturalContext || fullResult.sentiment?.culturalContext;
-          const alsoRecommends = sentiment?.alsoRecommends || [];
-          const biasIndicators = sentiment?.biasIndicators || [];
-          const detectedBiases = biasDetection?.biasesDetected || [];
-          const rationale = biasAdjustment?.rationale || biasAdjustment?.adjustmentRationale;
-          const biasAdjustedScore = biasAdjustment?.biasAdjustedScore;
-          const originalScore = biasDetection?.originalScore ?? sentiment?.score;
-          // If general analysis is checked and data is present, show ONLY the general analysis block
           if (generalAnalysis && isGeneralAnalysis) {
             return (
               <div className="mt-8">
@@ -844,33 +864,34 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
                 {/* General analysis summary card */}
                 <div className="bg-white rounded-lg shadow border border-gray-200 p-6 mb-6">
                   <div className="text-xl font-bold text-gray-900 mb-2">Video Summary</div>
-                  <div className="text-base text-gray-800 mb-4">{fullResult.summary}</div>
+                  <div className="text-base text-gray-800 mb-4">{generalResult.summary}</div>
                   <div className="text-lg font-semibold text-blue-700 mb-2">Key Notes</div>
                   <ul className="list-disc list-inside text-sm text-gray-800 mb-4">
-                    {fullResult.keyNotes.map((note: string, i: number) => (
+                    {generalResult.keyNotes.map((note: string, i: number) => (
                       <li key={i}>{note}</li>
                     ))}
                   </ul>
-                  <details className="mt-2">
-                    <summary className="cursor-pointer text-xs text-gray-500 hover:underline">
-                      Show full transcript
-                    </summary>
-                    <pre className="text-xs text-gray-700 bg-gray-50 rounded p-2 mt-2 max-h-96 overflow-auto whitespace-pre-wrap">
-                      {fullResult.transcript}
-                    </pre>
-                  </details>
+                  {transcript && (
+                    <details className="mt-2">
+                      <summary className="cursor-pointer text-xs text-gray-500 hover:underline">
+                        Show full transcript
+                      </summary>
+                      <pre className="text-xs text-gray-700 bg-gray-50 rounded p-2 mt-2 max-h-96 overflow-auto whitespace-pre-wrap">
+                        {transcript}
+                      </pre>
+                    </details>
+                  )}
                 </div>
               </div>
             );
           }
-          // Otherwise, show the original review/bias block (full process details)
-          if (meta && sentiment) {
+          if (sentiment) {
             return (
               <div
                 ref={resultRef}
                 className="mt-8 bg-white rounded-lg shadow border border-gray-200"
               >
-                {/* Metadata card (same as general analysis) */}
+                {/* Metadata card */}
                 <YouTubeMetaCard
                   meta={meta}
                   videoId={videoId}
@@ -1099,6 +1120,28 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
                             </li>
                           </ul>
                         </div>
+                      )}
+                      {/* Debug log */}
+                      {debugLog.length > 0 && (
+                        <div>
+                          <div className="text-xs text-gray-500 font-semibold mb-1">Debug Log</div>
+                          <ul className="list-disc list-inside text-xs text-gray-700">
+                            {debugLog.map((msg: string, i: number) => (
+                              <li key={i}>{msg}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {/* Transcript */}
+                      {transcript && (
+                        <details className="mt-2">
+                          <summary className="cursor-pointer text-xs text-gray-500 hover:underline">
+                            Show full transcript
+                          </summary>
+                          <pre className="text-xs text-gray-700 bg-gray-50 rounded p-2 mt-2 max-h-96 overflow-auto whitespace-pre-wrap">
+                            {transcript}
+                          </pre>
+                        </details>
                       )}
                     </div>
                   )}

@@ -10,6 +10,7 @@ export type SentimentResult = {
   sentimentScore: number | null;
   verdict: string | null;
   sentimentSummary: string | null;
+  sentimentSummaryFriendlyVerdict: string | null;
   biasIndicators: string[];
   alsoRecommends: string[];
   pros: string[];
@@ -24,7 +25,7 @@ export const getEmbedding = async (
 ): Promise<number[]> => {
   // Kill switch to prevent OpenAI costs
   if (env.DISABLE_OPENAI) {
-    logger.info('[LLM] OpenAI embeddings disabled via DISABLE_OPENAI env var');
+    logger.info({ model }, '[LLM] OpenAI embeddings disabled via DISABLE_OPENAI env var');
     return new Array(1536).fill(0); // Return zero vector
   }
 
@@ -44,7 +45,7 @@ const supportsJsonResponse = (model: string) => {
 export type BiasDetectionPhaseOutput = {
   originalScore: number;
   biasesDetected: BiasImpact[];
-  reviewSummary: string;
+  noBiasExplanation?: string;
 };
 
 export type BiasAdjustmentPhaseOutput = {
@@ -78,237 +79,61 @@ export type FullBiasScoringOutput = {
 };
 
 // // === Updated unified prompt with implied bias detection instructions and dynamic culturalContext ===
-// export const UNIFIED_LLM_PROMPT = `You are a precise and evidence-based cognitive/emotional bias detector analyzing video game review transcripts.
+export const UNIFIED_LLM_PROMPT = `You are a precise and evidence-based cognitive/emotional bias detector analyzing video game review transcripts.
 
-// Your job is to:
-// 1. Assign a sentiment score from 1 (very negative) to 10 (very positive).
-// 2. Detect any cognitive or emotional biases present in the transcript.
-// 3. For each detected bias, provide:
-//    - Name of the bias
-//    - Confidence (percentage between 40% and 100%)
-//    - Effect on sentiment score (a number between -1.0 and 1.0)
-//    - Why this bias matters for gamers
-//    - Specific evidence from the transcript (quote, phrase, tone, or structural cue)
+Your job is to:
+1. Assign a sentiment score from 1 (very negative) to 10 (very positive).
+2. Detect any cognitive or emotional biases present in the transcript.
+3. For each detected bias, provide:
+   - Name of the bias
+   - Confidence (percentage between 40% and 100%)
+   - Effect on sentiment score (a number between -1.0 and 1.0)
+   - Why this bias matters for gamers
+   - Specific evidence from the transcript (quote, phrase, tone, or structural cue)
 
-// Rules:
-// - Only report a bias if:
-//   - Confidence is **≥ 40%**
-//   - Absolute score effect is **≥ 0.1**
-// - If no biases meet both criteria, return:
-//   **"No clear biases detected in this segment."**
-// - Never guess or infer without quoting evidence.
-// - Avoid vague reasoning like "picked up from the vibe."
-// - Use the approved bias definitions and triggers below. Do not invent new ones.
+Rules:
+- Only report a bias if:
+  - Confidence is **≥ 40%**
+  - Absolute score effect is **≥ 0.1**
+- If no biases meet both criteria, return:
+  **"No clear biases detected in this segment."**
+- Never guess or infer without quoting evidence.
+- Avoid vague reasoning like "picked up from the vibe."
+- Use the approved bias definitions and triggers below. Do not invent new ones.
 
-// Bias Definitions and Detection Triggers:
+Bias Definitions and Detection Triggers:
 
-// 1. **Nostalgia Bias**
-//    *Definition:* Favoring the game due to fond memories of past titles in the series.
-//    *Triggers:* "reminds me of", "return to form", "finally back", excited tone when discussing old games.
+1. **Nostalgia Bias**
+   *Definition:* Favoring the game due to fond memories of past titles in the series.
+   *Triggers:* "reminds me of", "return to form", "finally back", excited tone when discussing old games.
 
-// 2. **Hype Bias**
-//    *Definition:* Inflated positivity driven by excitement, marketing, or community buzz.
-//    *Triggers:* "most anticipated", "everyone's talking about", "blew my mind", over-the-top delivery.
+2. **Hype Bias**
+   *Definition:* Inflated positivity driven by excitement, marketing, or community buzz.
+   *Triggers:* "most anticipated", "everyone's talking about", "blew my mind", over-the-top delivery.
 
-// 3. **Cynicism Bias**
-//    *Definition:* Excessive skepticism or negativity, often tied to expectations or distrust.
-//    *Triggers:* "not what I expected", "disappointing", "overhyped", dismissive or irritated tone.
+3. **Cynicism Bias**
+   *Definition:* Excessive skepticism or negativity, often tied to expectations or distrust.
+   *Triggers:* "not what I expected", "disappointing", "overhyped", dismissive or irritated tone.
 
-// 4. **Personal Attachment Bias**
-//    *Definition:* Bias caused by a personal connection or long-standing relationship with the content.
-//    *Triggers:* "I've always loved", "my favorite", "I've followed this for years".
+4. **Personal Attachment Bias**
+   *Definition:* Bias caused by a personal connection or long-standing relationship with the content.
+   *Triggers:* "I've always loved", "my favorite", "I've followed this for years".
 
-// 5. **Sarcasm (Flag Only)**
-//    *Definition:* Use of irony or mocking tone that may flip the apparent sentiment.
-//    *Detection:* Flag if present, but do not score unless the sarcasm clearly influences sentiment or bias.
-
-// ---
-
-// ### OUTPUT STRUCTURE
-
-// Return a single JSON object with these fields:
-
-// {
-//   "sentimentScore": number (0–10),
-//   "verdict": string,
-//   "sentimentSummary": string,  // concise factual sentiment summary
-//   "sentimentSummaryFriendlyVerdict": string,  // natural, punchy "Should You Play This?" style summary
-//   "pros": string[],
-//   "cons": string[],
-//   "biasIndicators": string[],
-//   "alsoRecommends": string[],
-//   "reviewSummary": string,
-//   "biasDetection": {
-//     "originalScore": number,
-//     "biasesDetected": BiasImpact[],
-//     "reviewSummary": string
-//   },
-//   "biasAdjustment": {
-//     "biasAdjustedScore": number,
-//     "totalScoreAdjustment": number,
-//     "rationale": string
-//   },
-//   "sentimentSnapshot": {
-//     "inferredScore": number,
-//     "verdict": string,
-//     "confidenceLevel": "low" | "moderate" | "high",
-//     "recommendationStrength": "low" | "moderate" | "strong"
-//   },
-//   "culturalContext": {
-//     "justification": string,  // Justification for cultural context, why it's relevant
-//     "ideologicalThemes": string[],  // What cultural/ideological themes are highlighted
-//     "audienceReactions": {
-//       "aligned": string,  // Which audience aligns with this context (e.g., fans of gothic horror, etc.)
-//       "neutral": string,  // Audience that is indifferent to cultural specifics
-//       "opposed": string   // Audience that might reject this cultural context (e.g., players from different cultural backgrounds)
-//     }
-//   }
-// }
-
-// ---
-
-// ### Examples:
-
-// **Example 1: Nostalgia Bias**
-
-// Transcript:
-// > "I really love how this game finally returns to form. It reminds me of the classics I grew up with."
-
-// Sentiment score: 8.5
-
-// Detected biases:
-// - **Nostalgia Bias**
-//   Confidence: 85%
-//   Effect: +0.3
-//   Why it matters: Gamers may overrate the experience due to past emotional attachment.
-//   Evidence: "finally returns to form" and "reminds me of the classics" show nostalgic framing.
-
-// ---
-
-// **Example 2: Hype Bias**
-
-// Transcript:
-// > "This was the most anticipated release of the year, and it definitely blew my mind! Everyone's talking about it."
-
-// Sentiment score: 9.0
-
-// Detected biases:
-// - **Hype Bias**
-//   Confidence: 90%
-//   Effect: +0.4
-//   Why it matters: Community hype or marketing may distort actual review accuracy.
-//   Evidence: "most anticipated," "blew my mind," and "everyone's talking about it" suggest external excitement.
-
-// ---
-
-// **Example 3: Sarcasm + Cynicism Bias**
-
-// Transcript:
-// > "Oh sure, this is definitely what we were all waiting for… A recycled mess with microtransactions! Brilliant move."
-
-// Sentiment score: 3.5
-
-// Detected biases:
-// - **Cynicism Bias**
-//   Confidence: 80%
-//   Effect: –0.5
-//   Why it matters: Excess skepticism may cause the reviewer to ignore redeeming qualities.
-//   Evidence: Sarcastic phrasing ("this is definitely what we were all waiting for"), critical tone, and the phrase "recycled mess" indicate a cynical framing.
-
-// - **Sarcasm (Flag)**
-//   Present: ✅
-//   Reason: The exaggerated praise ("definitely what we were all waiting for… brilliant move") is clearly ironic, used to mock the game's monetization.
-
-// ---
-
-// **Example 4: Conflicting Tone (Positive + Negative)**
-
-// Transcript:
-// > "The art style is honestly stunning, and I had fun for the first few hours. But then it all fell apart — buggy, repetitive, and way too grindy."
-
-// Sentiment score: 6.0
-
-// Detected biases:
-// - **Cynicism Bias**
-//   Confidence: 70%
-//   Effect: –0.3
-//   Why it matters: Reviewer may focus on flaws in a way that disproportionately drags down the overall score.
-//   Evidence: "fell apart," "buggy," "repetitive," "way too grindy" — suggests mounting frustration, even after a positive start.
-
-// Note: No sarcasm detected — this is a sincere tone, just mixed sentiment.
-
-// ---
-
-// **Example 5: Personal Attachment Bias**
-
-// Transcript:
-// > "I've been following this developer since their first indie game. Honestly, I can overlook the issues — this one just hits differently."
-
-// Sentiment score: 8.0
-
-// Detected biases:
-// - **Personal Attachment Bias**
-//   Confidence: 75%
-//   Effect: +0.2
-//   Why it matters: Prior loyalty might lead the reviewer to downplay flaws or exaggerate enjoyment.
-//   Evidence: "I've been following this developer since their first indie game" and "I can overlook the issues" show clear personal connection.
-
-// ---
-
-// Now analyze the following transcript segment:
-
-// Transcript:
-// """
-// {TRANSCRIPT_CHUNK}
-// """
-// `;
-
-// === Updated unified prompt with implied bias detection instructions and dynamic culturalContext ===
-export const UNIFIED_LLM_PROMPT = `
-You are an expert assistant analyzing video game review transcripts for sentiment, reviewer bias, and cultural context. Your goal is to extract structured insights that power a bias-aware recommendation engine. Be precise, infer only when justified, and cite textual evidence.
-
-You must identify **both explicit and implied biases**, including tonal, habitual, or emotional indicators. If the bias is not clearly stated, inference is allowed — but **only** when supported by specific phrases or patterns. Provide **explanations** and **direct evidence** for each detected bias.
+5. **Sarcasm (Flag Only)**
+   *Definition:* Use of irony or mocking tone that may flip the apparent sentiment.
+   *Detection:* Flag if present, but do not score unless the sarcasm clearly influences sentiment or bias.
 
 ---
 
-💡 COMMON BIAS CATEGORIES TO LOOK FOR:
+### OUTPUT STRUCTURE
 
-- **Nostalgia Bias**: Emotional callbacks to older titles or childhood memories.
-- **Franchise Bias / Studio Reputation Bias**: Inflated sentiment from brand loyalty or dev trust.
-- **Influencer/Sponsored Bias**: Overemphasis on praise, defensiveness, or disclaimers ("not sponsored").
-- **Reviewer Fatigue**: Signs of burnout or disengagement ("I've played too many lately", "nothing feels fresh").
-- **Genre Aversion**: Dislike rooted in genre, not quality ("not a fan of these types of games").
-- **Technical Criticism Bias**: Overemphasis on performance, bugs, or mechanics.
-- **Contrarian Bias**: Strong rejection of broadly praised games.
-- **Difficulty Bias**: Frustration caused by challenge or accessibility.
-- **Comparative Bias**: Score deflation due to comparisons ("X did it better").
-- **Cultural Bias**: Bias rooted in cultural preferences or values (e.g., certain cultural expectations around difficulty or gameplay pacing).
-
-You may add new bias types if you justify them clearly.
-
----
-
-🔍 FOR EACH DETECTED BIAS:
-
-Include:
-- **name** (e.g. "nostalgia bias")
-- **severity** (low / moderate / high)
-- **explanation** (what pattern or phrasing triggered it)
-- **scoreInfluence** (number between -1 and +1)
-- **detectedIn** (e.g. "tone", "phrasing", "explicit statements", "examples")
-- **evidence** (direct phrases or short quotes)
-- **reviewerIntent** (explicit / implied / unclear)
-
----
-
-📦 OUTPUT STRUCTURE:
-
-Return a single JSON object with the following:
+Return a single JSON object with these fields:
 
 {
   "sentimentScore": number (0–10),
   "verdict": string,
-  "sentimentSummary": string,
+  "sentimentSummary": string,  // concise factual sentiment summary
+  "sentimentSummaryFriendlyVerdict": string,  // natural, punchy "Should You Play This?" style summary
   "pros": string[],
   "cons": string[],
   "biasIndicators": string[],
@@ -317,7 +142,6 @@ Return a single JSON object with the following:
   "biasDetection": {
     "originalScore": number,
     "biasesDetected": BiasImpact[],
-    "reviewSummary": string
   },
   "biasAdjustment": {
     "biasAdjustedScore": number,
@@ -343,48 +167,224 @@ Return a single JSON object with the following:
 
 ---
 
-📘 EXAMPLES:
+### Examples:
 
-**Example 1 — Reviewer Fatigue**
-Transcript: "After playing so many open world games this year, I just didn't feel like finishing this one."
-Biases: [{
-  "name": "reviewer fatigue",
-  "severity": "moderate",
-  "scoreInfluence": -0.4,
-  "explanation": "Mentions burnout and lack of energy to continue.",
-  "detectedIn": ["phrasing"],
-  "evidence": ["didn't feel like finishing"],
-  "reviewerIntent": "implied"
-}]
+**Example 1: Nostalgia Bias**
 
-**Example 2 — Nostalgia & Studio Reputation**
-Transcript: "This feels like classic BioWare. They've never let me down."
-Biases: [{
-  "name": "nostalgia bias",
-  "severity": "moderate",
-  "scoreInfluence": 0.3,
-  "explanation": "References emotional legacy of previous titles.",
-  "detectedIn": ["tone", "phrasing"],
-  "evidence": ["feels like classic BioWare", "never let me down"],
-  "reviewerIntent": "implied"
-}]
+Transcript:
+> "I really love how this game finally returns to form. It reminds me of the classics I grew up with."
 
-**Example 3 — Cultural Context**
-Transcript: "The game's difficulty is punishing, which is just how I like my platformers."
-Biases: [{
-  "name": "difficulty bias",
-  "severity": "moderate",
-  "scoreInfluence": 0.2,
-  "explanation": "Strong preference for difficult games, indicating cultural context for challenging gameplay.",
-  "detectedIn": ["tone"],
-  "evidence": ["punishing", "how I like my platformers"],
-  "reviewerIntent": "implied"
-}]
+Sentiment score: 8.5
+
+Detected biases:
+- **Nostalgia Bias**
+  Confidence: 85%
+  Effect: +0.3
+  Why it matters: Gamers may overrate the experience due to past emotional attachment.
+  Evidence: "finally returns to form" and "reminds me of the classics" show nostalgic framing.
+
 ---
 
-Review Transcript:
-{{REVIEW_TRANSCRIPT}};
-`;
+**Example 2: Hype Bias**
+
+Transcript:
+> "This was the most anticipated release of the year, and it definitely blew my mind! Everyone's talking about it."
+
+Sentiment score: 9.0
+
+Detected biases:
+- **Hype Bias**
+  Confidence: 90%
+  Effect: +0.4
+  Why it matters: Community hype or marketing may distort actual review accuracy.
+  Evidence: "most anticipated," "blew my mind," and "everyone's talking about it" suggest external excitement.
+
+---
+
+**Example 3: Sarcasm + Cynicism Bias**
+
+Transcript:
+> "Oh sure, this is definitely what we were all waiting for… A recycled mess with microtransactions! Brilliant move."
+
+Sentiment score: 3.5
+
+Detected biases:
+- **Cynicism Bias**
+  Confidence: 80%
+  Effect: –0.5
+  Why it matters: Excess skepticism may cause the reviewer to ignore redeeming qualities.
+  Evidence: Sarcastic phrasing ("this is definitely what we were all waiting for"), critical tone, and the phrase "recycled mess" indicate a cynical framing.
+
+- **Sarcasm (Flag)**
+  Present: ✅
+  Reason: The exaggerated praise ("definitely what we were all waiting for… brilliant move") is clearly ironic, used to mock the game's monetization.
+
+---
+
+**Example 4: Conflicting Tone (Positive + Negative)**
+
+Transcript:
+> "The art style is honestly stunning, and I had fun for the first few hours. But then it all fell apart — buggy, repetitive, and way too grindy."
+
+Sentiment score: 6.0
+
+Detected biases:
+- **Cynicism Bias**
+  Confidence: 70%
+  Effect: –0.3
+  Why it matters: Reviewer may focus on flaws in a way that disproportionately drags down the overall score.
+  Evidence: "fell apart," "buggy," "repetitive," "way too grindy" — suggests mounting frustration, even after a positive start.
+
+Note: No sarcasm detected — this is a sincere tone, just mixed sentiment.
+
+---
+
+**Example 5: Personal Attachment Bias**
+
+Transcript:
+> "I've been following this developer since their first indie game. Honestly, I can overlook the issues — this one just hits differently."
+
+Sentiment score: 8.0
+
+Detected biases:
+- **Personal Attachment Bias**
+  Confidence: 75%
+  Effect: +0.2
+  Why it matters: Prior loyalty might lead the reviewer to downplay flaws or exaggerate enjoyment.
+  Evidence: "I've been following this developer since their first indie game" and "I can overlook the issues" show clear personal connection.
+
+---
+
+Now analyze the following transcript segment:
+
+Transcript:
+"""
+{TRANSCRIPT_CHUNK}
+"""
+// `;
+
+// === Updated unified prompt with implied bias detection instructions and dynamic culturalContext ===
+// export const UNIFIED_LLM_PROMPT = `
+// You are an expert assistant analyzing video game review transcripts for sentiment, reviewer bias, and cultural context. Your goal is to extract structured insights that power a bias-aware recommendation engine. Be precise, infer only when justified, and cite textual evidence.
+
+// You must identify **both explicit and implied biases**, including tonal, habitual, or emotional indicators. If the bias is not clearly stated, inference is allowed — but **only** when supported by specific phrases or patterns. Provide **explanations** and **direct evidence** for each detected bias.
+
+// ---
+
+// 💡 COMMON BIAS CATEGORIES TO LOOK FOR:
+
+// - **Nostalgia Bias**: Emotional callbacks to older titles or childhood memories.
+// - **Franchise Bias / Studio Reputation Bias**: Inflated sentiment from brand loyalty or dev trust.
+// - **Influencer/Sponsored Bias**: Overemphasis on praise, defensiveness, or disclaimers ("not sponsored").
+// - **Reviewer Fatigue**: Signs of burnout or disengagement ("I've played too many lately", "nothing feels fresh").
+// - **Genre Aversion**: Dislike rooted in genre, not quality ("not a fan of these types of games").
+// - **Technical Criticism Bias**: Overemphasis on performance, bugs, or mechanics.
+// - **Contrarian Bias**: Strong rejection of broadly praised games.
+// - **Difficulty Bias**: Frustration caused by challenge or accessibility.
+// - **Comparative Bias**: Score deflation due to comparisons ("X did it better").
+// - **Cultural Bias**: Bias rooted in cultural preferences or values (e.g., certain cultural expectations around difficulty or gameplay pacing).
+
+// You may add new bias types if you justify them clearly.
+
+// ---
+
+// 🔍 FOR EACH DETECTED BIAS:
+
+// Include:
+// - **name** (e.g. "nostalgia bias")
+// - **severity** (low / moderate / high)
+// - **explanation** (what pattern or phrasing triggered it)
+// - **scoreInfluence** (number between -1 and +1)
+// - **detectedIn** (e.g. "tone", "phrasing", "explicit statements", "examples")
+// - **evidence** (direct phrases or short quotes)
+// - **reviewerIntent** (explicit / implied / unclear)
+
+// ---
+
+// 📦 OUTPUT STRUCTURE:
+
+// Return a single JSON object with the following:
+
+// {
+//   "sentimentScore": number (0–10),
+//   "verdict": string,
+//   "sentimentSummary": string,
+//   "sentimentSummaryFriendlyVerdict": string,
+//   "pros": string[],
+//   "cons": string[],
+//   "biasIndicators": string[],
+//   "alsoRecommends": string[],
+//   "reviewSummary": string,
+//   "biasDetection": {
+//     "originalScore": number,
+//     "biasesDetected": BiasImpact[],
+//   },
+//   "biasAdjustment": {
+//     "biasAdjustedScore": number,
+//     "totalScoreAdjustment": number,
+//     "rationale": string
+//   },
+//   "sentimentSnapshot": {
+//     "inferredScore": number,
+//     "verdict": string,
+//     "confidenceLevel": "low" | "moderate" | "high",
+//     "recommendationStrength": "low" | "moderate" | "strong"
+//   },
+//   "culturalContext": {
+//     "justification": string,  // Justification for cultural context, why it's relevant
+//     "ideologicalThemes": string[],  // What cultural/ideological themes are highlighted
+//     "audienceReactions": {
+//       "aligned": string,  // Which audience aligns with this context (e.g., fans of gothic horror, etc.)
+//       "neutral": string,  // Audience that is indifferent to cultural specifics
+//       "opposed": string   // Audience that might reject this cultural context (e.g., players from different cultural backgrounds)
+//     }
+//   }
+// }
+
+// ---
+
+// 📘 EXAMPLES:
+
+// **Example 1 — Reviewer Fatigue**
+// Transcript: "After playing so many open world games this year, I just didn't feel like finishing this one."
+// Biases: [{
+//   "name": "reviewer fatigue",
+//   "severity": "moderate",
+//   "scoreInfluence": -0.4,
+//   "explanation": "Mentions burnout and lack of energy to continue.",
+//   "detectedIn": ["phrasing"],
+//   "evidence": ["didn't feel like finishing"],
+//   "reviewerIntent": "implied"
+// }]
+
+// **Example 2 — Nostalgia & Studio Reputation**
+// Transcript: "This feels like classic BioWare. They've never let me down."
+// Biases: [{
+//   "name": "nostalgia bias",
+//   "severity": "moderate",
+//   "scoreInfluence": 0.3,
+//   "explanation": "References emotional legacy of previous titles.",
+//   "detectedIn": ["tone", "phrasing"],
+//   "evidence": ["feels like classic BioWare", "never let me down"],
+//   "reviewerIntent": "implied"
+// }]
+
+// **Example 3 — Cultural Context**
+// Transcript: "The game's difficulty is punishing, which is just how I like my platformers."
+// Biases: [{
+//   "name": "difficulty bias",
+//   "severity": "moderate",
+//   "scoreInfluence": 0.2,
+//   "explanation": "Strong preference for difficult games, indicating cultural context for challenging gameplay.",
+//   "detectedIn": ["tone"],
+//   "evidence": ["punishing", "how I like my platformers"],
+//   "reviewerIntent": "implied"
+// }]
+// ---
+
+// Review Transcript:
+// {{REVIEW_TRANSCRIPT}};
+// `;
 
 const SYSTEM_PROMPT = `You are an expert sentiment analysis assistant specialized in video game reviews. Extract nuanced sentiment, tone, reviewer biases, and key pros/cons based on both explicit statements and implied tone. Inferred insights are allowed if strongly implied. Do not invent details not supported by the text.`;
 
@@ -480,6 +480,7 @@ const retryWithBackoff = async <T>(
       ) {
         const delay = baseDelay * Math.pow(2, attempt);
         logger.warn(
+          { delay },
           `[LLM] Retry ${attempt + 1}/${maxRetries} after error: ${msg}. Waiting ${delay}ms...`,
         );
         await new Promise((res) => setTimeout(res, delay));
@@ -500,25 +501,28 @@ export const analyzeText = async (
   creatorName?: string,
 ): Promise<SentimentResult> => {
   logger.info(
-    `[SENTIMENT] analyzeText called with text length: ${text.length}, model: ${preferredModel}, customPrompt: ${!!customPrompt}`,
+    { textLength: text.length, model: preferredModel, customPrompt: !!customPrompt },
+    '[SENTIMENT] analyzeText called',
   );
   if (env.isTest || env.isProd) {
-    logger.info('[TRANSCRIPT] First 500 chars:\n', text.slice(0, 500));
+    logger.info({ first500chars: text.slice(0, 500) }, '[TRANSCRIPT] First 500 chars:\n');
   }
   // Log which model is being used for transcript analysis
-  let model = preferredModel || 'o3-pro';
-  if (!['o3-pro', 'gpt-4o', 'gpt-4-turbo', 'gpt-3.5-turbo'].includes(model)) model = 'o3-pro';
-  logger.info(`[TRANSCRIPT] Using OpenAI model: ${model}`);
+  let model = preferredModel || 'gpt-4o';
+  if (!['gpt-4o', 'gpt-4o', 'gpt-4-turbo', 'gpt-3.5-turbo'].includes(model)) model = 'gpt-4o';
+  logger.info({ model }, '[TRANSCRIPT] Using OpenAI model');
   logger.info(
-    `[TRANSCRIPT] Using prompt (first 500 chars): ${(customPrompt || UNIFIED_LLM_PROMPT).slice(0, 500)}`,
+    { first500chars: (customPrompt || UNIFIED_LLM_PROMPT).slice(0, 500) },
+    '[TRANSCRIPT] Using prompt (first 500 chars):',
   );
   if (env.DISABLE_OPENAI) {
-    logger.info('[LLM] OpenAI disabled via DISABLE_OPENAI env var');
+    logger.info({ model }, '[LLM] OpenAI disabled via DISABLE_OPENAI env var');
     return {
       summary: 'No clear summary detected.',
       sentimentScore: 5,
       verdict: 'mixed',
       sentimentSummary: 'Mixed',
+      sentimentSummaryFriendlyVerdict: 'Mixed',
       biasIndicators: [],
       alsoRecommends: [],
       pros: [],
@@ -533,7 +537,8 @@ export const analyzeText = async (
   // --- Prompt selection logic ---
   const promptToUse = customPrompt || UNIFIED_LLM_PROMPT;
   logger.info(
-    `[TRANSCRIPT] Prompt length: ${promptToUse.length} chars, transcript length: ${text.length} chars`,
+    { promptLength: promptToUse.length, textLength: text.length },
+    '[TRANSCRIPT] Prompt length: chars, transcript length: chars',
   );
 
   // --- Chunking logic ---
@@ -542,19 +547,73 @@ export const analyzeText = async (
   for (let i = 0; i < text.length; i += MAX_CHUNK_LENGTH) {
     transcriptChunks.push(text.slice(i, i + MAX_CHUNK_LENGTH));
   }
-  logger.info(`[TRANSCRIPT] Transcript split into ${transcriptChunks.length} chunk(s)`);
+  logger.info(
+    { transcriptChunksLength: transcriptChunks.length },
+    '[TRANSCRIPT] Transcript split into chunk(s)',
+  );
 
   // --- Helper to process a single chunk ---
+  const REQUIRED_FIELDS = [
+    'summary',
+    'sentimentScore',
+    'verdict',
+    'sentimentSummary',
+    'sentimentSummaryFriendlyVerdict',
+    'biasIndicators',
+    'alsoRecommends',
+    'pros',
+    'cons',
+    'reviewSummary',
+  ];
+  const getDefaultForField = (field: string) => {
+    switch (field) {
+      case 'summary':
+        return 'No clear summary detected.';
+      case 'sentimentScore':
+        return 5;
+      case 'verdict':
+        return 'mixed';
+      case 'sentimentSummary':
+        return 'Mixed';
+      case 'sentimentSummaryFriendlyVerdict':
+        return 'Mixed';
+      case 'biasIndicators':
+      case 'alsoRecommends':
+      case 'pros':
+      case 'cons':
+        return [];
+      case 'reviewSummary':
+        return 'No review summary available.';
+      default:
+        return null;
+    }
+  };
   const tryParseJson = (raw: string): any | null => {
     const match = raw.match(/\{[\s\S]*\}/);
     try {
-      return JSON.parse(match ? match[0] : raw);
-    } catch {
+      const parsed = JSON.parse(match ? match[0] : raw);
+      // Only require at least one core field
+      if (!('sentimentScore' in parsed) && !('summary' in parsed)) {
+        logger.error({ raw }, '[LLM] Missing core fields in LLM output');
+        return null;
+      }
+      // Fill in missing fields with defaults
+      for (const field of REQUIRED_FIELDS) {
+        if (!(field in parsed)) parsed[field] = getDefaultForField(field);
+      }
+      return parsed;
+    } catch (err) {
+      const errorObj = err as any;
+      logger.error({ message: errorObj.message, stack: errorObj.stack }, '[LLM] JSON parse error:');
       return null;
     }
   };
 
-  const processChunk = async (chunk: string, prompt: string): Promise<any> => {
+  // --- Fallback prompt: much simpler, only core fields ---
+  const buildFallbackPrompt = (chunk: string) =>
+    `You are an expert at extracting sentiment and key points from video game review transcripts. Return a JSON object with these fields only:\n{\n  "sentimentScore": number (0-10),\n  "summary": string,\n  "pros": string[],\n  "cons": string[]\n}\nTranscript:\n"""${chunk}"""`;
+
+  const processChunk = async (chunk: string, prompt: string, isFallback = false): Promise<any> => {
     const contextInfo = [
       gameTitle ? `Game Title: ${gameTitle}` : '',
       creatorName ? `Creator: ${creatorName}` : '',
@@ -569,9 +628,9 @@ export const analyzeText = async (
       { role: 'user', content: userMessage },
     ];
 
-    // Try o3-pro, fallback to gpt-4o if it fails
+    // Try gpt-4o, fallback to gpt-4o if it fails
     let lastError = null;
-    for (const tryModel of [model, model === 'o3-pro' ? 'gpt-4o' : null]) {
+    for (const tryModel of [model, model === 'gpt-4o' ? 'gpt-4o' : null]) {
       if (!tryModel) continue;
       try {
         const completion = await retryWithBackoff(() =>
@@ -583,12 +642,24 @@ export const analyzeText = async (
           }),
         );
         const raw = completion.choices[0]?.message?.content?.trim() || '{}';
-        logger.info(`[LLM] Raw response (${tryModel}):`, raw);
+        logger.info({ raw }, `[LLM] Raw response (${tryModel}${isFallback ? ' Fallback' : ''}):`);
         const parsed = tryParseJson(raw);
-        logger.info(`[LLM] Parsed JSON (${tryModel}):`, JSON.stringify(parsed));
-        return parsed;
+        logger.info({ parsed }, `[LLM] Parsed JSON (${tryModel}${isFallback ? ' Fallback' : ''}):`);
+        if (parsed) return parsed;
       } catch (err) {
-        logger.error(`[LLM] Completion error with model ${tryModel}:`, err);
+        const errorObj = err as any;
+        logger.error(
+          {
+            message: errorObj.message,
+            stack: errorObj.stack,
+            model: tryModel,
+            isFallback,
+            ...(errorObj.response && {
+              response: errorObj.response.data || errorObj.response.status,
+            }),
+          },
+          `[LLM] Completion error with model ${tryModel}${isFallback ? ' Fallback' : ''}`,
+        );
         lastError = err;
       }
     }
@@ -599,16 +670,23 @@ export const analyzeText = async (
   const results: Partial<SentimentResult>[] = [];
   for (const chunk of transcriptChunks) {
     let result = await processChunk(chunk, promptToUse);
-    if (!result || !result.summary) {
+    if (!result || (!result.summary && !result.sentimentScore)) {
       logger.warn(
-        '[LLM] Primary prompt failed or missing summary — retrying with alternative prompt.',
+        '[LLM] Primary prompt failed or missing core fields — retrying with fallback prompt.',
       );
-      logger.info(
-        `[LLM] Retrying with fallback prompt (first 500 chars): ${(customPrompt || UNIFIED_LLM_PROMPT).slice(0, 500)}`,
-      );
-      result = await processChunk(chunk, customPrompt || UNIFIED_LLM_PROMPT);
+      logger.info('[LLM] Retrying with fallback prompt (short, core fields only).');
+      result = await processChunk(chunk, buildFallbackPrompt(chunk), true);
     }
-    if (result) results.push(result);
+    // If fallback also fails, salvage what we can from the primary attempt
+    if (!result) {
+      logger.warn('[LLM] Both primary and fallback prompt failed — returning minimal defaults.');
+      result = { summary: 'No clear summary detected.', sentimentScore: 5 };
+    }
+    // Fill in missing fields with defaults
+    for (const field of REQUIRED_FIELDS) {
+      if (!(field in result)) result[field] = getDefaultForField(field);
+    }
+    results.push(result);
   }
 
   // --- Aggregation helpers ---
@@ -632,6 +710,9 @@ export const analyzeText = async (
     results.find((r) => typeof r.sentimentScore === 'number')?.sentimentScore ?? 5;
   const verdict = aggregate('verdict') as string | null;
   const sentimentSummary = aggregate('sentimentSummary') as string | null;
+  const sentimentSummaryFriendlyVerdict = aggregate('sentimentSummaryFriendlyVerdict') as
+    | string
+    | null;
   // --- Deduplicate and canonicalize biasIndicators ---
   let biasIndicators = aggregate('biasIndicators', true) as string[];
   biasIndicators = dedupe((biasIndicators || []).map(mapToCanonicalBias));
@@ -661,6 +742,7 @@ export const analyzeText = async (
         : 5,
     verdict: toStringOrNull(verdict) || 'mixed',
     sentimentSummary: toStringOrNull(sentimentSummary) || 'Mixed',
+    sentimentSummaryFriendlyVerdict: toStringOrNull(sentimentSummaryFriendlyVerdict) || 'Mixed',
     biasIndicators,
     alsoRecommends,
     pros,
@@ -680,12 +762,12 @@ export const analyzeText = async (
     logger.warn('[LLM] Warning: LLM returned mostly empty result, using safe defaults.', result);
   }
 
-  logger.info(`[SENTIMENT] analyzeText results: ${JSON.stringify(results)}`);
-  logger.info(`[SENTIMENT] analyzeText final result: ${JSON.stringify(result)}`);
-  logger.info(`[SENTIMENT] Aggregated biasIndicators: ${JSON.stringify(biasIndicators)}`);
-  logger.info(`[SENTIMENT] Aggregated alsoRecommends: ${JSON.stringify(alsoRecommends)}`);
-  logger.info(`[SENTIMENT] Aggregated pros: ${JSON.stringify(pros)}`);
-  logger.info(`[SENTIMENT] Aggregated cons: ${JSON.stringify(cons)}`);
+  logger.info({ results }, '[SENTIMENT] analyzeText results:');
+  logger.info({ result }, '[SENTIMENT] analyzeText final result:');
+  logger.info({ biasIndicators }, '[SENTIMENT] Aggregated biasIndicators:');
+  logger.info({ alsoRecommends }, '[SENTIMENT] Aggregated alsoRecommends:');
+  logger.info({ pros }, '[SENTIMENT] Aggregated pros:');
+  logger.info({ cons }, '[SENTIMENT] Aggregated cons:');
   return result;
 };
 
@@ -724,74 +806,113 @@ export const analyzeTextWithBiasAdjustmentFull = async (
   gameTitle?: string,
   creatorName?: string,
 ): Promise<FullBiasScoringOutput> => {
-  logger.info(
-    `[SENTIMENT] analyzeTextWithBiasAdjustmentFull called with text length: ${text.length}, model: ${preferredModel}, customPrompt: ${!!customPrompt}`,
-  );
-  const sentiment = await analyzeText(text, preferredModel, customPrompt, gameTitle, creatorName);
-  let biasesDetected: BiasImpact[] = [];
-  if (sentiment.biasIndicators && sentiment.biasIndicators.length > 0) {
-    biasesDetected = mapBiasLabelsToObjects(
-      sentiment.biasIndicators,
-      sentiment.reviewSummary || '',
-      sentiment.pros,
-      sentiment.cons,
+  try {
+    logger.info(
+      { textLength: text.length, model: preferredModel, customPrompt: !!customPrompt },
+      '[SENTIMENT] analyzeTextWithBiasAdjustmentFull called',
     );
+    const sentiment = await analyzeText(text, preferredModel, customPrompt, gameTitle, creatorName);
+    let biasesDetected: BiasImpact[] = [];
+    let noBiasExplanation: string | undefined = undefined;
+    if (sentiment.biasIndicators && sentiment.biasIndicators.length > 0) {
+      biasesDetected = mapBiasLabelsToObjects(
+        sentiment.biasIndicators,
+        sentiment.reviewSummary || '',
+        sentiment.pros,
+        sentiment.cons,
+      );
+      // --- Bias filtering: confidenceScore >= 0.4 and evidence.length > 0 ---
+      biasesDetected = biasesDetected.filter(
+        (b) =>
+          (typeof b.confidenceScore === 'number' ? b.confidenceScore >= 0.4 : true) &&
+          Array.isArray(b.evidence) &&
+          b.evidence.length > 0,
+      );
+      if (biasesDetected.length === 0) {
+        // No valid biases remain
+        noBiasExplanation = 'No clear biases detected in this segment.';
+      }
+    }
+    // --- Score normalization and logging ---
+    const biasDetection: BiasDetectionPhaseOutput = {
+      originalScore: sentiment.sentimentScore ?? 5,
+      biasesDetected,
+      ...(noBiasExplanation ? { noBiasExplanation } : {}),
+    };
+    const totalScoreAdjustmentRaw = biasesDetected.reduce(
+      (sum, b) => sum + (b.adjustedInfluence || 0),
+      0,
+    );
+    const biasAdjustedScoreRaw = +(biasDetection.originalScore + totalScoreAdjustmentRaw);
+    const biasAdjustedScore = roundScoreForDisplay(biasAdjustedScoreRaw);
+    const totalScoreAdjustment = roundScoreForDisplay(totalScoreAdjustmentRaw);
+    if (biasDetection.originalScore !== biasAdjustedScore) {
+      logger.info(
+        { original: biasDetection.originalScore, adjusted: biasAdjustedScore },
+        '[SENTIMENT] Score normalization:',
+      );
+    }
+    const biasAdjustment: BiasAdjustmentPhaseOutput = {
+      biasAdjustedScore, // for display
+      totalScoreAdjustment,
+      rationale: biasesDetected.length
+        ? biasesDetected
+            .map((b) => {
+              const influence =
+                b.adjustedInfluence > 0
+                  ? `${b.name} inflated by ${b.adjustedInfluence.toFixed(2)}`
+                  : `${b.name} deflated by ${Math.abs(b.adjustedInfluence).toFixed(2)}`;
+              return influence;
+            })
+            .join(', ')
+        : 'No significant bias detected.',
+    };
+    // Attach raw values for backend/debugging
+    (biasAdjustment as any).biasAdjustedScoreRaw = +biasAdjustedScoreRaw.toFixed(4);
+    (biasAdjustment as any).totalScoreAdjustmentRaw = +totalScoreAdjustmentRaw.toFixed(4);
+    // Sentiment snapshot (simple heuristics for now)
+    const confidenceLevel: 'low' | 'moderate' | 'high' =
+      Math.abs((sentiment.sentimentScore ?? 5) - 5) > 2 ? 'high' : 'moderate';
+    const recommendationStrength: 'low' | 'moderate' | 'strong' =
+      (sentiment.sentimentScore ?? 5) > 7
+        ? 'strong'
+        : (sentiment.sentimentScore ?? 5) > 5
+          ? 'moderate'
+          : 'low';
+    const sentimentSnapshot: SentimentSnapshot = {
+      inferredScore: sentiment.sentimentScore ?? 5,
+      verdict: sentiment.verdict || 'mixed',
+      confidenceLevel,
+      recommendationStrength,
+    };
+    // If LLM did not provide culturalContext, synthesize and set it inside sentiment
+    if (!sentiment.culturalContext) {
+      sentiment.culturalContext = generateCulturalContext(biasesDetected);
+    }
+    logger.info(
+      { sentiment, biasDetection, biasAdjustment, sentimentSnapshot },
+      '[SENTIMENT] analyzeTextWithBiasAdjustmentFull output:',
+    );
+    return {
+      sentiment,
+      biasDetection,
+      biasAdjustment,
+      sentimentSnapshot,
+    };
+  } catch (err: any) {
+    logger.error(
+      {
+        message: err.message,
+        stack: err.stack,
+        textLength: text?.length,
+        preferredModel,
+        gameTitle,
+        creatorName,
+      },
+      '[SENTIMENT] Error in analyzeTextWithBiasAdjustmentFull',
+    );
+    throw err;
   }
-  const biasDetection: BiasDetectionPhaseOutput = {
-    originalScore: sentiment.sentimentScore ?? 5,
-    biasesDetected,
-    reviewSummary: sentiment.reviewSummary || '',
-  };
-  const totalScoreAdjustmentRaw = biasesDetected.reduce((sum, b) => sum + b.adjustedInfluence, 0);
-  const biasAdjustedScoreRaw = +(biasDetection.originalScore + totalScoreAdjustmentRaw);
-  const biasAdjustedScore = roundScoreForDisplay(biasAdjustedScoreRaw);
-  const totalScoreAdjustment = roundScoreForDisplay(totalScoreAdjustmentRaw);
-  const biasAdjustment: BiasAdjustmentPhaseOutput = {
-    biasAdjustedScore, // for display
-    totalScoreAdjustment,
-    rationale: biasesDetected.length
-      ? biasesDetected
-          .map((b) => {
-            const influence =
-              b.adjustedInfluence > 0
-                ? `${b.name} inflated by ${b.adjustedInfluence.toFixed(2)}`
-                : `${b.name} deflated by ${Math.abs(b.adjustedInfluence).toFixed(2)}`;
-            return influence;
-          })
-          .join(', ')
-      : 'No significant bias detected.',
-  };
-  // Attach raw values for backend/debugging
-  (biasAdjustment as any).biasAdjustedScoreRaw = +biasAdjustedScoreRaw.toFixed(4);
-  (biasAdjustment as any).totalScoreAdjustmentRaw = +totalScoreAdjustmentRaw.toFixed(4);
-  // Sentiment snapshot (simple heuristics for now)
-  const confidenceLevel: 'low' | 'moderate' | 'high' =
-    Math.abs((sentiment.sentimentScore ?? 5) - 5) > 2 ? 'high' : 'moderate';
-  const recommendationStrength: 'low' | 'moderate' | 'strong' =
-    (sentiment.sentimentScore ?? 5) > 7
-      ? 'strong'
-      : (sentiment.sentimentScore ?? 5) > 5
-        ? 'moderate'
-        : 'low';
-  const sentimentSnapshot: SentimentSnapshot = {
-    inferredScore: sentiment.sentimentScore ?? 5,
-    verdict: sentiment.verdict || 'mixed',
-    confidenceLevel,
-    recommendationStrength,
-  };
-  // If LLM did not provide culturalContext, synthesize and set it inside sentiment
-  if (!sentiment.culturalContext) {
-    sentiment.culturalContext = generateCulturalContext(biasesDetected);
-  }
-  logger.info(
-    `[SENTIMENT] analyzeTextWithBiasAdjustmentFull output: ${JSON.stringify({ sentiment, biasDetection, biasAdjustment, sentimentSnapshot })}`,
-  );
-  return {
-    sentiment,
-    biasDetection,
-    biasAdjustment,
-    sentimentSnapshot,
-  };
 };
 
 // --- Mock output example ---
@@ -802,6 +923,7 @@ export const MOCK_FULL_BIAS_SCORING_OUTPUT: FullBiasScoringOutput = {
     sentimentScore: 9.2,
     verdict: 'positive',
     sentimentSummary: 'Highly positive',
+    sentimentSummaryFriendlyVerdict: 'Highly positive',
     biasIndicators: [
       'nostalgia bias',
       'studio reputation bias',
@@ -874,8 +996,6 @@ export const MOCK_FULL_BIAS_SCORING_OUTPUT: FullBiasScoringOutput = {
         evidence: ['never let me down'],
       },
     ],
-    reviewSummary:
-      "Dragon Age: The Veilguard revitalizes BioWare's RPG legacy with its stunning visuals, engaging storytelling, and rich character development, though some combat aspects may disappoint tactical purists.",
   },
   biasAdjustment: {
     biasAdjustedScore: 8.3,
@@ -894,38 +1014,44 @@ export const analyzeGeneralSummary = async (
   text: string,
   preferredModel?: string,
 ): Promise<{ summary: string; keyNotes: string[] }> => {
-  const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
-  let model = preferredModel || 'o3-pro';
-  if (!['o3-pro', 'gpt-4o', 'gpt-4-turbo', 'gpt-3.5-turbo'].includes(model)) model = 'o3-pro';
-  const prompt = `Summarize what this video is about and list any key notes or important points. Return a JSON object with two fields: summary (string), keyNotes (array of strings).`;
-  const messages = [
-    { role: 'system', content: 'You are an expert assistant for summarizing YouTube videos.' },
-    { role: 'user', content: prompt },
-    { role: 'user', content: `Transcript:\n${text}` },
-  ];
-  let lastError = null;
-  for (const tryModel of [model, model === 'o3-pro' ? 'gpt-4o' : null]) {
-    if (!tryModel) continue;
-    try {
-      const completion = await retryWithBackoff(() =>
-        openai.chat.completions.create({
-          model: tryModel,
-          messages: messages as any,
-          ...(supportsJsonResponse(tryModel) ? { response_format: { type: 'json_object' } } : {}),
-          temperature: 0.7,
-        }),
-      );
-      const raw = completion.choices[0]?.message?.content?.trim() || '{}';
-      const parsed = JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0] || raw);
-      return {
-        summary: parsed.summary || '',
-        keyNotes: Array.isArray(parsed.keyNotes) ? parsed.keyNotes : [],
-      };
-    } catch (err) {
-      lastError = err;
+  try {
+    const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
+    let model = preferredModel || 'gpt-4o';
+    if (!['gpt-4o', 'gpt-4o', 'gpt-4-turbo', 'gpt-3.5-turbo'].includes(model)) model = 'gpt-4o';
+    const prompt = `Summarize what this video is about and list any key notes or important points. Return a JSON object with two fields: summary (string), keyNotes (array of strings).`;
+    const messages = [
+      { role: 'system', content: 'You are an expert assistant for summarizing YouTube videos.' },
+      { role: 'user', content: prompt },
+      { role: 'user', content: `Transcript:\n${text}` },
+    ];
+    let lastError = null;
+    for (const tryModel of [model, model === 'gpt-4o' ? 'gpt-4o' : null]) {
+      if (!tryModel) continue;
+      try {
+        const completion = await retryWithBackoff(() =>
+          openai.chat.completions.create({
+            model: tryModel,
+            messages: messages as any,
+            ...(supportsJsonResponse(tryModel) ? { response_format: { type: 'json_object' } } : {}),
+            temperature: 0.7,
+          }),
+        );
+        const raw = completion.choices[0]?.message?.content?.trim() || '{}';
+        const parsed = JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0] || raw);
+        return {
+          summary: parsed.summary || '',
+          keyNotes: Array.isArray(parsed.keyNotes) ? parsed.keyNotes : [],
+        };
+      } catch (err) {
+        lastError = err;
+      }
     }
+    throw new Error(`Both gpt-4o and gpt-4o failed for analyzeGeneralSummary: ${lastError}`);
+  } catch (err: any) {
+    logger.error(
+      { message: err.message, stack: err.stack, textLength: text?.length, preferredModel },
+      '[SENTIMENT] Error in analyzeGeneralSummary',
+    );
+    throw err;
   }
-  throw new Error(`Both o3-pro and gpt-4o failed for analyzeGeneralSummary: ${lastError}`);
 };
-
-export { analyzeText as analyzeSentiment };
