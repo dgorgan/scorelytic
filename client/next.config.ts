@@ -7,7 +7,24 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    domains: ['i.ytimg.com', 'www.scorelytic.com', 'www.youtube.com', 'yt3.ggpht.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'i.ytimg.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.scorelytic.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.youtube.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'yt3.ggpht.com',
+      },
+    ],
   },
   webpack: (config) => {
     config.resolve.alias = {
