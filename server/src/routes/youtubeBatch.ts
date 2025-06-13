@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import { upsertDemoReview } from '@/services/youtube/captionIngestService';
-import { extractVideoId } from '../../../shared/src/utils/youtube';
+import { extractVideoId } from '@scorelytic/shared/utils/youtube';
 import { runYouTubePipeline, runLLMOnlyPipeline } from '@/services/youtube/pipelineRunner';
 import { supabase } from '@/config/database';
-import logger from '@/logger';
-import { env } from '@/config/env';
+// import logger from '@/logger';
+// import { env } from '@/config/env';
 
 const router: ReturnType<typeof Router> = Router();
 
