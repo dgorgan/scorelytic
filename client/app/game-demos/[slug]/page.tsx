@@ -297,7 +297,7 @@ export default async function GameDemoDetailPage({ params }: Props) {
             {sentiment.culturalContext && (
               <div>
                 <div className="text-base sm:text-lg font-bold text-purple-300 mb-2 font-orbitron uppercase tracking-wide">
-                  Cultural Context
+                  Legacy & Influence
                 </div>
                 <div className="text-base text-purple-100 mb-4 italic">
                   {sentiment.culturalContext.justification}
@@ -313,7 +313,7 @@ export default async function GameDemoDetailPage({ params }: Props) {
                   ))}
                 </div>
                 <div className="text-base text-purple-200 font-semibold mb-1 mt-4 font-orbitron">
-                  Audience Reactions:
+                  Player Fit:
                 </div>
                 <ul className="space-y-2">
                   <li className="flex items-center gap-2 bg-green-900/20 rounded px-3 py-1">
