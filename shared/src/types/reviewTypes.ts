@@ -1,4 +1,4 @@
-import type { BiasImpact } from '@/utils/biasAdjustment';
+// import type { BiasImpact } from '@scorelytic/shared/';
 
 export * from './Review';
 
@@ -29,7 +29,13 @@ export interface DemoReview {
       alsoRecommends?: string[];
       biasDetection?: {
         originalScore: number;
-        biasesDetected: BiasImpact[];
+        biasesDetected?: Array<{
+          name: string;
+          severity: string;
+          impactOnExperience: string;
+          scoreInfluence: string;
+          explanation: string;
+        }>;
         noBiasExplanation?: string;
         reviewSummary?: string;
       };
