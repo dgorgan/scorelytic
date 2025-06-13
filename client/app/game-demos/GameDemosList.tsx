@@ -64,7 +64,7 @@ export default function GameDemosList({ initialReviews }: GameDemosListProps) {
               title={meta.title || 'Untitled Game'}
               channelTitle={meta.channelTitle || 'Unknown Channel'}
               releaseYear={meta.publishedAt ? new Date(meta.publishedAt).getFullYear() : ''}
-              score={review.data?.sentiment?.score}
+              score={review.data?.sentiment?.sentimentSnapshot?.inferredScore}
             />
           );
         })}
