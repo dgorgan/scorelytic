@@ -484,7 +484,26 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
   const [showScoreInfo, setShowScoreInfo] = useState(false);
   const [showBiasInfo, setShowBiasInfo] = useState(false);
 
-  const rawScore = sentiment.sentimentScore ?? sentiment.score ?? 0;
+  const sentimentSnapshot = sentiment.sentimentSnapshot || {};
+  const verdict = sentimentSnapshot.verdict || '';
+  let verdictLabel = 'Positive';
+  let verdictBg = 'bg-gradient-to-br from-green-900/40 to-green-700/30';
+  let verdictText = 'text-green-300';
+  if (verdict.toLowerCase().includes('neg')) {
+    verdictLabel = 'Negative';
+    verdictBg = 'bg-gradient-to-br from-red-900/40 to-red-700/30';
+    verdictText = 'text-red-300';
+  } else if (verdict.toLowerCase().includes('mix')) {
+    verdictLabel = 'Mixed';
+    verdictBg = 'bg-gradient-to-br from-yellow-900/40 to-yellow-700/30';
+    verdictText = 'text-yellow-300';
+  } else if (verdict.toLowerCase().includes('neut')) {
+    verdictLabel = 'Neutral';
+    verdictBg = 'bg-gradient-to-br from-blue-900/40 to-blue-700/30';
+    verdictText = 'text-blue-300';
+  }
+
+  const rawScore = sentimentSnapshot.inferredScore ?? 0;
   const biasesDetected = sentiment.biasDetection?.biasesDetected || [];
   // Subtract adjustedInfluence for each bias (removes inflation, restores deflation)
   const totalScoreAdjustment = biasesDetected.reduce(
@@ -500,28 +519,6 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
   // TODO: temporary fix till we update the server to return the biasAdjustedScore
   const biasAdjusted = +(originalScore + totalScoreAdjustment);
   const adjustment = biasAdjusted - rawScore;
-
-  const verdict = sentiment.verdict || sentiment.sentimentSnapshot?.verdict || '';
-  // let verdictColor = 'text-green-300 bg-gradient-to-br from-green-900/40 to-green-700/30';
-  let verdictLabel = 'Positive';
-  let verdictBg = 'bg-gradient-to-br from-green-900/40 to-green-700/30';
-  let verdictText = 'text-green-300';
-  if (verdict.toLowerCase().includes('neg')) {
-    // verdictColor = 'text-red-300 bg-gradient-to-br from-red-900/40 to-red-700/30';
-    verdictLabel = 'Negative';
-    verdictBg = 'bg-gradient-to-br from-red-900/40 to-red-700/30';
-    verdictText = 'text-red-300';
-  } else if (verdict.toLowerCase().includes('mix')) {
-    // verdictColor = 'text-yellow-300 bg-gradient-to-br from-yellow-900/40 to-yellow-700/30';
-    verdictLabel = 'Mixed';
-    verdictBg = 'bg-gradient-to-br from-yellow-900/40 to-yellow-700/30';
-    verdictText = 'text-yellow-300';
-  } else if (verdict.toLowerCase().includes('neut')) {
-    // verdictColor = 'text-blue-300 bg-gradient-to-br from-blue-900/40 to-blue-700/30';
-    verdictLabel = 'Neutral';
-    verdictBg = 'bg-gradient-to-br from-blue-900/40 to-blue-700/30';
-    verdictText = 'text-blue-300';
-  }
 
   // Bias meter logic
   const netBiasAdjustment = biasAdjusted - rawScore;

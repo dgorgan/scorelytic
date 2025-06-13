@@ -132,13 +132,14 @@ Return a single JSON object with these fields:
 {
   "sentimentScore": number (0–10),
   "verdict": string,
-  "sentimentSummary": string,  // concise factual sentiment summary
-  "sentimentSummaryFriendlyVerdict": string,  // natural, punchy "Should You Play This?" style summary
+  "sentimentSummary": string,  //  Write a short, opinionated “reviewer take” in the style of a critic’s closing thoughts.
+- "noBiasExplanation": If no significant biases are detected, write a short, context-aware explanation (1–2 sentences) describing why the review appears balanced and objective. Reference the review’s tone, evidence, or lack of emotional/habitual patterns. Mention if the reviewer presents both pros and cons, uses neutral language, or avoids strong emotional language.
+  "sentimentSummaryFriendlyVerdict": string,  // Write a punchy, recommendation-style line (e.g., "Worth playing for fans of the genre, but not a must-play for everyone.")
   "pros": string[],
   "cons": string[],
   "biasIndicators": string[],
   "alsoRecommends": string[],
-  "reviewSummary": string,
+  "reviewSummary": string, //  Write a factual, objective summary of the review’s main points.
   "biasDetection": {
     "originalScore": number,
     "biasesDetected": BiasImpact[],
@@ -154,6 +155,7 @@ Return a single JSON object with these fields:
     "confidenceLevel": "low" | "moderate" | "high",
     "recommendationStrength": "low" | "moderate" | "strong"
   },
+  "noBiasExplanation": string, // If no significant biases are detected, write a short, context-aware explanation (1–2 sentences) describing why the review appears balanced and objective. Reference the review’s tone, evidence, or lack of emotional/habitual patterns. Mention if the reviewer presents both pros and cons, uses neutral language, or avoids strong emotional language.
   "culturalContext": {
     "justification": string,  // Justification for cultural context, why it's relevant
     "ideologicalThemes": string[],  // What cultural/ideological themes are highlighted

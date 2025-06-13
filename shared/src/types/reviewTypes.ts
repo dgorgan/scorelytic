@@ -1,3 +1,5 @@
+import type { BiasImpact } from '@/utils/biasAdjustment';
+
 export * from './Review';
 
 export interface DemoReview {
@@ -18,36 +20,43 @@ export interface DemoReview {
   };
   slug?: string;
   data: {
-    sentiment?: {
-      score?: number;
-      verdict?: string;
-      sentimentScore?: number;
-      biasAdjustment?: {
-        biasAdjustedScore?: number;
-      };
-      summary?: string;
+    sentiment: {
       pros?: string[];
       cons?: string[];
-      biasIndicators?: string[];
+      sentimentSummary?: string;
+      sentimentSummaryFriendlyVerdict?: string;
+      reviewSummary?: string;
       alsoRecommends?: string[];
       biasDetection?: {
-        biasesDetected?: Array<{
-          name: string;
-          severity: string;
-          impactOnExperience: string;
-          scoreInfluence: string;
-          explanation: string;
-        }>;
+        originalScore: number;
+        biasesDetected: BiasImpact[];
+        noBiasExplanation?: string;
+        reviewSummary?: string;
       };
+      biasAdjustment?: {
+        rationale: string;
+        biasAdjustedScore: number;
+        biasAdjustedScoreRaw?: number;
+        totalScoreAdjustment: number;
+        totalScoreAdjustmentRaw?: number;
+      };
+      biasIndicators?: string[];
       culturalContext?: {
-        justification?: string;
-        ideologicalThemes?: string[];
-        audienceReactions?: {
-          aligned?: string;
-          neutral?: string;
-          opposed?: string;
+        justification: string;
+        audienceReactions: {
+          aligned: string;
+          neutral: string;
+          opposed: string;
         };
+        ideologicalThemes: string[];
       };
+      sentimentSnapshot?: {
+        verdict: string;
+        inferredScore: number;
+        confidenceLevel: string;
+        recommendationStrength: string;
+      };
+      noBiasExplanation?: string;
     };
     debug?: string[];
   };
