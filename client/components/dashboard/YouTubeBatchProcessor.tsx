@@ -78,7 +78,7 @@ const YouTubeBatchProcessor: React.FC = () => {
           disabled={loading}
         />
       </div>
-      <div className="flex items-center gap-4 mb-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-4">
         <label className="text-sm font-medium text-gray-700">Mode:</label>
         <select
           className="border border-gray-300 rounded px-2 py-1 text-gray-700"
@@ -90,7 +90,7 @@ const YouTubeBatchProcessor: React.FC = () => {
           <option value="llm-only">LLM-Only (demo_reviews, upsert)</option>
           <option value="llm-test">LLM-Only (test, no upsert)</option>
         </select>
-        <label className="text-sm font-medium text-gray-700 ml-4">LLM Model:</label>
+        <label className="text-sm font-medium text-gray-700">LLM Model:</label>
         <input
           className="border border-gray-300 rounded px-2 py-1 w-32 text-gray-700"
           value={llmModel}

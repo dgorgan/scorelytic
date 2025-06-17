@@ -426,59 +426,69 @@ export default function Dashboard() {
       style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #e0b6f9 100%)' }}
     >
       <main className="w-full">
-        <div className="max-w-[1300px] w-full mx-auto px-4 py-8">
-          <div className="mb-8">
-            <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-900 p-4 rounded-lg flex flex-col sm:flex-row items-start sm:items-center gap-2">
-              <span className="font-bold text-lg">⚠️ YouTube Processor Notice:</span>
-              <span className="text-base">
-                The YouTube Processor currently <b>only works on localhost</b> due to YouTube API
-                rate limiting (429 errors).
-                <br />
-                Please run this locally and see the{' '}
-                <a
-                  href="https://github.com/dgorgan/scorelytic#installation"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline text-blue-700"
-                >
-                  README
-                </a>{' '}
-                for setup instructions.
-                <br />
-                <a
-                  href="/game-demos"
-                  className="inline-block mt-2 px-4 py-1 bg-violet-700 text-white rounded-full font-bold hover:bg-fuchsia-600 transition"
-                >
-                  View Working Game Demos
-                </a>
+        <div className="max-w-[1300px] w-full mx-auto px-4 sm:px-4 py-6 sm:py-8">
+          <div className="mb-4 sm:mb-8">
+            <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-900 p-3 sm:p-4 rounded-lg flex flex-col gap-2 sm:gap-3">
+              <span className="font-bold text-base sm:text-lg flex items-center gap-2">
+                <span className="text-lg sm:text-xl">⚠️</span>
+                YouTube Processor Notice:
               </span>
+              <div className="text-sm sm:text-base space-y-2">
+                <p>
+                  The YouTube Processor currently <b>only works on localhost</b> due to YouTube API
+                  rate limiting (429 errors).
+                </p>
+                <p>
+                  Please run this locally and see the{' '}
+                  <a
+                    href="https://github.com/dgorgan/scorelytic#installation"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline text-blue-700 font-medium"
+                  >
+                    README
+                  </a>{' '}
+                  for setup instructions.
+                </p>
+                <div className="pt-2">
+                  <a
+                    href="/game-demos"
+                    className="inline-block px-4 py-2 bg-violet-700 text-white rounded-full text-sm sm:text-base font-bold hover:bg-fuchsia-600 transition-colors"
+                  >
+                    View Working Game Demos
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
           <div
             style={{
               background: 'rgba(255,255,255,0.95)',
-              borderRadius: '24px',
+              borderRadius: '16px',
               boxShadow: '0 8px 32px 0 rgba(160,138,255,0.10)',
-              padding: '32px 24px',
+              padding: '24px 20px',
               width: '100%',
-              marginTop: '32px',
-              marginBottom: '32px',
+              marginTop: '16px',
+              marginBottom: '16px',
             }}
+            className="sm:rounded-3xl sm:p-8 sm:mt-8 sm:mb-8"
           >
             <Tooltip.Provider>
-              <h1 className="text-3xl font-bold text-gray-900 mb-6">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-6">
                 LLM Review Analysis Dashboard
               </h1>
 
               {/* YouTube Video Processor */}
-              <div className="mb-8">
+              <div className="mb-6 sm:mb-8">
                 <YouTubeProcessor />
                 <YouTubeBatchProcessor />
               </div>
 
-              <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-400 rounded">
-                <h2 className="text-lg font-bold text-blue-900 mb-2">How to use this dashboard</h2>
-                <ul className="list-disc pl-6 text-blue-900 text-sm space-y-1">
+              <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-blue-50 border-l-4 border-blue-400 rounded">
+                <h2 className="text-base sm:text-lg font-bold text-blue-900 mb-2">
+                  How to use this dashboard
+                </h2>
+                <ul className="list-disc pl-4 sm:pl-6 text-blue-900 text-xs sm:text-sm space-y-1 sm:space-y-2">
                   <li>
                     <b>Bar graph</b>: Shows mismatches between AI analysis and available ground
                     truth data. <b>High bars for sentimentScore/verdict are EXPECTED</b> - these are
@@ -505,14 +515,18 @@ export default function Dashboard() {
               </div>
 
               {sweepSummary.length > 0 && (
-                <div className="mb-8">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">Sweep Summary</h2>
+                <div className="mb-6 sm:mb-8">
+                  <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4">
+                    Sweep Summary
+                  </h2>
                   <SweepSummaryChart sweepSummary={sweepSummary} />
                 </div>
               )}
 
-              <div className="mb-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Field Mismatches Overview</h2>
+              <div className="mb-6 sm:mb-8">
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4">
+                  Field Mismatches Overview
+                </h2>
                 <FieldMismatchChart fieldCounts={fieldCounts} />
               </div>
 
@@ -544,8 +558,8 @@ export default function Dashboard() {
                 <AdvancedTable filteredResults={filteredResults} onEditResult={editResult} />
               )}
 
-              <div className="mt-8 text-sm text-gray-600">
-                <p>
+              <div className="mt-6 sm:mt-8 text-xs sm:text-sm text-gray-600 px-2 sm:px-0">
+                <p className="text-center sm:text-left">
                   Showing {groupedView ? filteredGroupedResults.length : filteredResults.length} of{' '}
                   {groupedView ? groupedResults.length : results.length} total{' '}
                   {groupedView ? 'reviews' : 'comparisons'}

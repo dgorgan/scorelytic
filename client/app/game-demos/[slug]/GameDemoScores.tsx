@@ -844,15 +844,25 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                 <div className="text-lg font-bold mb-2">What is a bias?</div>
                 <div>
                   Scorelytic detects patterns in reviews that may inflate or deflate the score, such
-                  as nostalgia, franchise loyalty, or contrarianism. We adjust the score to help you
-                  see how much these factors may have influenced the review.
+                  as nostalgia, franchise loyalty, or contrarianism. We adjusted the score to help
+                  you see how much these factors may have influenced the review.
                 </div>
               </div>
             </div>
           )}
           {/* Bias cards grid */}
-          <div className="w-full ">
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-8">
+          <div
+            className={`w-full ${
+              sentiment.biasDetection.biasesDetected.length === 1 ? 'lg:flex lg:justify-center' : ''
+            }`}
+          >
+            <ul
+              className={`grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-8 ${
+                sentiment.biasDetection.biasesDetected.length === 1
+                  ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-1 lg:place-items-center'
+                  : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-2'
+              }`}
+            >
               {sentiment.biasDetection.biasesDetected.map((b: any, i: number) => {
                 // Gamer-flavored dynamic clue string
                 let clueString = '';
@@ -881,26 +891,27 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                 return (
                   <li
                     key={`${b.name || 'bias'}-${b.severity || 'unknown'}-${b.scoreInfluence ?? '0'}-${i}`}
-                    className="relative border border-yellow-200 bg-yellow-50 p-5 sm:p-8 shadow-lg flex flex-col gap-4 w-full flex-1 mb-4 rounded-2xl min-w-[280px] max-w-[480px] mx-auto"
+                    className={`relative border border-yellow-200 bg-yellow-50 p-4 md:p-6 lg:p-8 shadow-lg flex flex-col gap-4 w-full flex-1 mb-4 rounded-2xl min-w-[320px] mx-auto ${
+                      sentiment.biasDetection.biasesDetected.length === 1
+                        ? 'max-w-[480px] lg:max-w-[600px]'
+                        : 'max-w-[480px]'
+                    }`}
                     style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.08)' }}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <div>
-                        <div className="font-orbitron text-lg sm:text-xl font-extrabold uppercase tracking-widest text-yellow-900 mb-1">
+                    <div className="flex items-start justify-between mb-2 gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-orbitron text-lg sm:text-xl font-extrabold uppercase tracking-widest text-yellow-900 mb-1 break-words">
                           {b.name}
                         </div>
                       </div>
                       {/* Bias effect, bold number, right-aligned in a box */}
                       {typeof b.adjustedInfluence === 'number' && (
-                        <div
-                          className="px-3 py-1 rounded-lg bg-gray-100 border border-gray-200 flex flex-col items-center shadow-sm ml-4"
-                          style={{ minWidth: 80 }}
-                        >
-                          <span className="text-[11px] text-gray-500 font-semibold tracking-wide uppercase">
+                        <div className="px-2 sm:px-3 py-1 rounded-lg bg-gray-100 border border-gray-200 flex flex-col items-center shadow-sm flex-shrink-0">
+                          <span className="text-[10px] sm:text-[11px] text-gray-500 font-semibold tracking-wide uppercase whitespace-nowrap">
                             Bias Effect
                           </span>
                           <span
-                            className={`text-xl font-mono font-extrabold ${b.adjustedInfluence > 0 ? 'text-green-700' : b.adjustedInfluence < 0 ? 'text-red-700' : 'text-gray-700'}`}
+                            className={`text-lg sm:text-xl font-mono font-extrabold ${b.adjustedInfluence > 0 ? 'text-green-700' : b.adjustedInfluence < 0 ? 'text-red-700' : 'text-gray-700'}`}
                           >
                             {b.adjustedInfluence > 0 ? '+' : ''}
                             {b.adjustedInfluence?.toFixed(2)}
@@ -909,23 +920,25 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                       )}
                     </div>
                     {/* Status bar: severity + confidence */}
-                    <div className="flex items-center gap-4 mb-3">
-                      <span className="uppercase font-bold text-xs px-3 py-1 rounded-full bg-violet-200 text-violet-800 tracking-wider shadow-sm">
+                    <div className="flex flex-col gap-2 mb-3">
+                      <span className="uppercase font-bold text-xs px-3 py-1 rounded-full bg-violet-200 text-violet-800 tracking-wider shadow-sm w-fit">
                         {b.severity}
                       </span>
-                      <span className="uppercase font-bold text-xs text-violet-800 tracking-wider">
-                        Confidence:
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-24 h-3 bg-violet-100 rounded-full overflow-hidden">
-                          <div
-                            className="h-3 rounded-full bg-gradient-to-r from-violet-400 to-blue-400 transition-all duration-700"
-                            style={{ width: `${Math.round((b.confidenceScore || 0) * 100)}%` }}
-                          />
-                        </div>
-                        <span className="text-xs font-mono text-violet-900 ml-1">
-                          {Math.round((b.confidenceScore || 0) * 100)}%
+                      <div className="flex items-center gap-1 flex-1">
+                        <span className="uppercase font-bold text-xs text-violet-800 tracking-wider whitespace-nowrap">
+                          Confidence:
                         </span>
+                        <div className="flex items-center gap-1 flex-1 min-w-0">
+                          <div className="flex-1 h-3 bg-violet-100 rounded-full overflow-hidden min-w-[40px]">
+                            <div
+                              className="h-3 rounded-full bg-gradient-to-r from-violet-400 to-blue-400 transition-all duration-700"
+                              style={{ width: `${Math.round((b.confidenceScore || 0) * 100)}%` }}
+                            />
+                          </div>
+                          <span className="text-xs font-mono text-violet-900 whitespace-nowrap flex-shrink-0 ml-1">
+                            {Math.round((b.confidenceScore || 0) * 100)}%
+                          </span>
+                        </div>
                       </div>
                     </div>
                     {/* Why this matters - highlight box, blue/violet gradient border for contrast */}
