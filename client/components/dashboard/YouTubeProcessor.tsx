@@ -196,7 +196,7 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
   const biasAdjustedScore = biasAdjustment?.biasAdjustedScore;
   const originalScore =
     biasDetection?.originalScore ?? sentiment?.sentimentScore ?? sentiment?.score;
-  const context = sentiment?.culturalContext;
+  const context = sentiment?.legacyAndInfluence;
   const debugLog = result?.debug || [];
 
   useEffect(() => {
@@ -456,11 +456,10 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
             ],
           },
           sentiment: {
-            summary:
-              'Super Mario Bros. Wonder revitalizes 2D Mario platformers with vibrant visuals, creative Wonder effects, and engaging multiplayer, making it feel like a proper successor to Super Mario World while introducing fresh mechanics like Elephant Mario.',
             sentimentScore: 9,
             verdict: 'positive',
-            sentimentSummary: 'Overwhelmingly positive',
+            sentimentSummary:
+              'Super Mario Bros. Wonder revitalizes 2D Mario platformers with vibrant visuals, creative Wonder effects, and engaging multiplayer, making it feel like a proper successor to Super Mario World while introducing fresh mechanics like Elephant Mario.',
             sentimentSummaryFriendlyVerdict: 'A must-play Mario masterpiece',
             biasIndicators: ['franchise loyalty', 'nostalgia bias'],
             alsoRecommends: [
@@ -488,11 +487,11 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
             ],
             reviewSummary:
               'Super Mario Bros. Wonder is a delightful and visually stunning platformer that reinvents the Mario formula with imaginative level designs and engaging multiplayer features, making it a must-play for fans of the series.',
-            culturalContext: {
+            legacyAndInfluence: {
               justification:
                 "The review reflects positive reception toward Nintendo's innovative approach while maintaining franchise traditions.",
               ideologicalThemes: ['innovation', 'franchise loyalty'],
-              audienceReactions: {
+              playerFit: {
                 aligned:
                   'Nintendo fans and platformer enthusiasts will appreciate the innovation while respecting series traditions.',
                 neutral:
@@ -603,11 +602,10 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
             ],
           },
           sentiment: {
-            summary:
-              'Concord struggles to differentiate itself in a crowded hero shooter market, offering generic gameplay and lackluster content despite some solid technical fundamentals and interesting lore elements.',
             sentimentScore: 3,
             verdict: 'negative',
-            sentimentSummary: 'Negative',
+            sentimentSummary:
+              'Concord fails to leave a mark with its limited content and flawed mechanics, falling short of expectations in a competitive genre dominated by free-to-play giants.',
             sentimentSummaryFriendlyVerdict: 'Skip this one',
             biasIndicators: ['overly critical', 'market comparison bias', 'pricing bias'],
             alsoRecommends: ['Valorant', 'Overwatch 2', 'Overwatch', 'Destiny 2'],
@@ -632,11 +630,11 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
             ],
             reviewSummary:
               'Concord fails to leave a mark with its limited content and flawed mechanics, falling short of expectations in a competitive genre dominated by free-to-play giants.',
-            culturalContext: {
+            legacyAndInfluence: {
               justification:
                 'The review is heavily influenced by market timing and pricing expectations in the competitive shooter landscape.',
               ideologicalThemes: ['market competition', 'pricing expectations'],
-              audienceReactions: {
+              playerFit: {
                 aligned:
                   'Players frustrated with premium pricing in a free-to-play dominated market will agree.',
                 neutral:
@@ -927,9 +925,7 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
                 {/* Review summary, verdict, score, pros, cons */}
                 <div className="px-6 pb-6 mt-2">
                   <div className="text-lg font-semibold text-green-700 mb-2">Review Summary</div>
-                  <div className="text-base text-gray-900 mb-2">
-                    {sentiment.reviewSummary || sentiment.summary}
-                  </div>
+                  <div className="text-base text-gray-900 mb-2">{sentiment.reviewSummary}</div>
                   <div className="flex flex-wrap gap-4 mb-2">
                     <div>
                       <div className="text-xs text-gray-500">Verdict</div>
@@ -1117,7 +1113,7 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
                       {context && (
                         <div>
                           <div className="text-xs text-gray-500 font-semibold mb-1">
-                            Cultural Context
+                            Legacy & Influence
                           </div>
                           <div className="text-xs text-gray-700 mb-1">{context.justification}</div>
                           <div className="flex flex-wrap gap-2 mb-1">
@@ -1130,19 +1126,19 @@ export default function YouTubeProcessor({ onProcessComplete }: YouTubeProcessor
                               </span>
                             ))}
                           </div>
-                          <div className="text-xs text-gray-700">Audience Reactions:</div>
+                          <div className="text-xs text-gray-700">Player Fit:</div>
                           <ul className="ml-4 text-xs text-gray-700">
                             <li>
                               <span className="font-semibold">Aligned:</span>{' '}
-                              {context.audienceReactions?.aligned}
+                              {context.playerFit?.aligned}
                             </li>
                             <li>
                               <span className="font-semibold">Neutral:</span>{' '}
-                              {context.audienceReactions?.neutral}
+                              {context.playerFit?.neutral}
                             </li>
                             <li>
                               <span className="font-semibold">Opposed:</span>{' '}
-                              {context.audienceReactions?.opposed}
+                              {context.playerFit?.opposed}
                             </li>
                           </ul>
                         </div>

@@ -104,7 +104,7 @@ export const normalizeReviewStep = async (
 };
 
 export const llmAnalysisStep = async (
-  input: { transcript: string; title?: string; model?: string },
+  input: { transcript: string; title?: string; creatorName?: string; model?: string },
   context: PipelineContext,
 ) => {
   try {
@@ -116,8 +116,8 @@ export const llmAnalysisStep = async (
       input.transcript,
       input.model || 'gpt-4o',
       undefined,
-      undefined,
       input.title,
+      input.creatorName,
     );
     context.llmResult = llmResult;
     return llmResult;

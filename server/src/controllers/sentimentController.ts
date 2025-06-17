@@ -29,7 +29,6 @@ export const sentimentController = {
       // Only include pros/cons if present and non-empty
       const sentimentObj: any = {
         score: sentiment.sentimentScore ?? 0,
-        summary: sentiment.summary ?? '',
         verdict: sentiment.verdict ?? '',
       };
       if (sentiment.pros && sentiment.pros.length) sentimentObj.pros = sentiment.pros;

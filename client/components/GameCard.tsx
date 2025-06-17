@@ -10,6 +10,7 @@ interface GameCardProps {
   channelTitle: string;
   releaseYear?: number | string;
   score?: number;
+  isBiasAdjusted?: boolean;
 }
 
 const GameCard: React.FC<GameCardProps> = ({
@@ -20,6 +21,7 @@ const GameCard: React.FC<GameCardProps> = ({
   channelTitle,
   releaseYear,
   score,
+  isBiasAdjusted,
 }) => (
   <Link
     key={id}
@@ -57,9 +59,11 @@ const GameCard: React.FC<GameCardProps> = ({
         <div className="flex items-center justify-between w-full">
           <span className="text-base font-bold">{releaseYear || ''}</span>
           {score !== undefined && (
-            <span className="bg-violet-600 px-4 py-1 rounded-full text-lg font-extrabold shadow ml-auto">
-              {score}
-            </span>
+            <div className="flex items-center gap-1">
+              <span className="bg-violet-600 px-4 py-1 rounded-full text-lg font-extrabold shadow">
+                {score}
+              </span>
+            </div>
           )}
         </div>
       </div>

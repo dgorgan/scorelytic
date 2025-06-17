@@ -3,10 +3,9 @@ import type { ChatCompletionMessageParam } from 'openai/resources/chat/completio
 import logger from '@/logger';
 import { env } from '@/config/env';
 import { mapBiasLabelsToObjects, BIAS_KEYWORDS } from '@/services/sentiment/biasAdjustment';
-import type { BiasImpact } from '@scorelytic/shared';
+import type { BiasImpact } from '@scorelytic/shared/types/biasReport';
 
 export type SentimentResult = {
-  summary: string | null;
   sentimentScore: number | null;
   verdict: string | null;
   sentimentSummary: string | null;
@@ -16,7 +15,21 @@ export type SentimentResult = {
   pros: string[];
   cons: string[];
   reviewSummary: string | null;
-  culturalContext: CulturalContextExplanation | null;
+  legacyAndInfluence: legacyAndInfluenceExplanation | null;
+  noBiasExplanationFromLLM?: string;
+  satirical?: boolean; // Flag indicating if the review is satirical/sarcastic in nature
+};
+
+// Type for the raw LLM response that might include bias detection structure
+type LLMRawResponse = Partial<SentimentResult> & {
+  biasDetection?: {
+    noBiasExplanation?: string;
+    originalScore?: number;
+    biasesDetected?: any[];
+    evidenceCount?: number;
+    biasInteractions?: any[];
+  };
+  noBiasExplanation?: string;
 };
 
 export const getEmbedding = async (
@@ -45,6 +58,7 @@ const supportsJsonResponse = (model: string) => {
 export type BiasDetectionPhaseOutput = {
   originalScore: number;
   biasesDetected: BiasImpact[];
+  evidenceCount?: number;
   noBiasExplanation?: string;
 };
 
@@ -61,10 +75,10 @@ export type SentimentSnapshot = {
   recommendationStrength: 'low' | 'moderate' | 'strong';
 };
 
-export type CulturalContextExplanation = {
+export type legacyAndInfluenceExplanation = {
   justification: string;
   ideologicalThemes: string[];
-  audienceReactions: {
+  playerFit: {
     aligned: string;
     neutral: string;
     opposed: string;
@@ -78,7 +92,7 @@ export type FullBiasScoringOutput = {
   sentimentSnapshot: SentimentSnapshot;
 };
 
-// // === Updated unified prompt with implied bias detection instructions and dynamic culturalContext ===
+// // === Updated unified prompt with implied bias detection instructions and dynamic legacyAndInfluence ===
 export const UNIFIED_LLM_PROMPT = `You are a precise and evidence-based cognitive/emotional bias detector analyzing video game review transcripts.
 
 Your job is to:
@@ -90,6 +104,7 @@ Your job is to:
    - Effect on sentiment score (a number between -1.0 and 1.0)
    - Why this bias matters for gamers
    - Specific evidence from the transcript (quote, phrase, tone, or structural cue)
+   - **Evidence count**: Number of distinct occurrences of bias triggers found in the transcript
 
 Rules:
 - Only report a bias if:
@@ -119,9 +134,108 @@ Bias Definitions and Detection Triggers:
    *Definition:* Bias caused by a personal connection or long-standing relationship with the content.
    *Triggers:* "I've always loved", "my favorite", "I've followed this for years".
 
-5. **Sarcasm (Flag Only)**
+5. **Sarcasm (Special Handling)**
    *Definition:* Use of irony or mocking tone that may flip the apparent sentiment.
-   *Detection:* Flag if present, but do not score unless the sarcasm clearly influences sentiment or bias.
+   *Detection:* Flag if present, but handle differently based on context:
+   - **Occasional Sarcasm**: Brief sarcastic remarks in otherwise genuine reviews (score effect: 0.0, flag only)
+   - **Fully Satirical Reviews**: Entire review is satirical performance where reviewer doesn't mean literal words
+   *Special Scoring for Satirical Reviews:* 
+   - If the entire review is satirical, extract the reviewer's ACTUAL opinion about the game beneath the sarcasm
+   - Score should reflect what the reviewer truly thinks, not the literal words
+   - Example: Dunkey's Zelda review is satirical praise disguised as criticism - the actual sentiment is highly positive
+   - Look for context clues: reputation of game, reviewer's known style, consistency of hyperbolic language
+
+6. **Reciprocity Bias**
+   *Definition:* Inflated positivity due to receiving perks, gifts, or special access.
+   *Triggers:* "generously gave me access", "got to preview", "gifted copy", "special treatment".
+
+7. **Availability Bias**
+   *Definition:* Reviewer overweights recent or vivid gameplay experiences.
+   *Triggers:* "what sticks out", "I keep thinking about", "the moment I remember most".
+
+8. **Halo Effect**
+   *Definition:* A strong positive impression in one area affects the overall evaluation.
+   *Triggers:* "because of the art", "due to the soundtrack", "everything feels great".
+
+9. **Horn Effect**
+   *Definition:* A strong negative impression in one area unfairly drags down the review.
+   *Triggers:* "that one issue ruined it", "hard to enjoy anything else", "overshadowed".
+
+10. **Selection Bias**
+    *Definition:* The reviewer focuses on limited game aspects or modes, skewing evaluation.
+    *Triggers:* "I only played", "didn't touch the campaign", "focused on one mode".
+
+11. **Confirmation Bias**
+    *Definition:* Selectively interpreting elements to support pre-existing opinions.
+    *Triggers:* "exactly what I thought", "knew it would suck", "as expected".
+
+12. **Bandwagon Bias**
+    *Definition:* Opinion shaped by popular consensus or online discourse.
+    *Triggers:* "everyone's saying", "the internet hates it", "Reddit loves this".
+
+13. **Survivorship Bias**
+    *Definition:* Ignoring flaws because only good parts were noticed or remembered.
+    *Triggers:* "after a few patches it's fine", "you forget the bad", "just focus on what works".
+
+14. **Emotional Bias**
+    *Definition:* Judgment skewed by strong emotion (e.g., anger, euphoria).
+    *Triggers:* "so frustrating", "absolutely furious", "completely hooked", "pure joy".
+
+**Dynamic Scoring Guidelines:**
+- For each bias, consider the frequency and intensity of trigger phrases to adjust the effect score dynamically.
+- Correlate your confidence level with evidence strength (number and relevance of keyword matches) to adjust the effect score dynamically.
+- If multiple biases frequently co-occur or interact, flag the interaction and adjust their combined effect accordingly.
+
+For each detected bias, provide:
+- Name of the bias
+- Confidence (percentage between 40% and 100%)
+- Effect on sentiment score (a number between -1.0 and 1.0)
+- Why this bias matters for gamers
+- Specific evidence from the transcript (quote, phrase, tone, or structural cue)
+- **Evidence count**: Number of distinct occurrences of bias triggers found in the transcript
+
+---
+
+**IMPORTANT:** All sentiment analysis should focus on THE GAME being reviewed, not the review itself. 
+
+**SATIRICAL REVIEW DETECTION:** If the review appears to be entirely satirical (consistent hyperbolic language, known satirical reviewer, classic/beloved game being "trashed"), extract the TRUE underlying opinion:
+- Does the reviewer actually hate this beloved game, or are they performing satirical criticism?
+- Look for context clues: game's reputation, reviewer's style, over-the-top language consistency
+- Score should reflect the reviewer's genuine opinion, not the literal satirical words
+
+**SARCASM SCORING GUIDANCE:**
+- Occasional sarcasm in genuine reviews: No score adjustment, flag only
+- Fully satirical reviews: Score the actual underlying opinion, not the satirical performance
+
+---
+
+### SATIRICAL REVIEW DECISION FRAMEWORK
+
+**STEP 1: Satirical Detection**
+Before analyzing sentiment, determine if this is a satirical performance:
+
+**Satirical Indicators:**
+- Extremely hyperbolic language throughout ("worst game ever", "developed by monkeys")
+- Absurd claims that are obviously false ("$14 budget", "made in a weekend", "forced bankruptcy")
+- Consistent over-the-top negativity about a well-known/classic game
+- Comedic tone and exaggerated descriptions
+- Claims that contradict known facts about successful games
+
+**STEP 2: Scoring Logic**
+- **If GENUINE review**: Score based on literal content
+- **If SATIRICAL review**: 
+  - Recognize this as comedic performance, not genuine criticism
+  - For well-known games being satirically "trashed": Assume positive underlying sentiment (satirical praise)
+  - Score should be 8-10 range (satirical criticism of classics usually indicates appreciation)
+  - All fields must reflect the ACTUAL game quality, not the satirical performance
+
+**STEP 3: Field Consistency**
+All output fields must be consistent with the satirical/genuine determination:
+- **sentimentScore**: Actual opinion (high for satirical classics)
+- **sentimentSummary**: Should mention satirical nature but focus on actual game quality
+- **sentimentSummaryFriendlyVerdict**: Recommend based on GAME quality, not review style
+- **playerFit**: Based on GAME characteristics, not review style
+- **pros/cons**: Extract any genuine points beneath the satire, or use known game strengths/weaknesses
 
 ---
 
@@ -130,19 +244,25 @@ Bias Definitions and Detection Triggers:
 Return a single JSON object with these fields:
 
 {
-  "sentimentScore": number (0–10),
+  "sentimentScore": number (0–10), // Score reflects the reviewer's actual opinion of the game, accounting for rhetorical devices like sarcasm
   "verdict": string,
-  "sentimentSummary": string,  //  Write a short, opinionated “reviewer take” in the style of a critic’s closing thoughts.
-- "noBiasExplanation": If no significant biases are detected, write a short, context-aware explanation (1–2 sentences) describing why the review appears balanced and objective. Reference the review’s tone, evidence, or lack of emotional/habitual patterns. Mention if the reviewer presents both pros and cons, uses neutral language, or avoids strong emotional language.
-  "sentimentSummaryFriendlyVerdict": string,  // Write a punchy, recommendation-style line (e.g., "Worth playing for fans of the genre, but not a must-play for everyone.")
+  "sentimentSummary": string,  // Write a natural "reviewer take" about the reviewer's overall stance and attitude toward the game
+  "sentimentSummaryFriendlyVerdict": string,  // Write a punchy recommendation about THE GAME ITSELF (not the review). Focus on whether the game is worth playing. Examples: "Worth playing for fans of the genre, but not a must-play for everyone." or "A timeless classic that every gamer should experience." Even if the review is satirical, extract the actual game recommendation.
   "pros": string[],
   "cons": string[],
   "biasIndicators": string[],
   "alsoRecommends": string[],
-  "reviewSummary": string, //  Write a factual, objective summary of the review’s main points.
+  "reviewSummary": string, // Write a clear, helpful summary of what the game is and what it offers - genre, key mechanics, setting, main features. Focus on the game itself, not what the reviewer discussed. Help readers understand what kind of game this is.
   "biasDetection": {
     "originalScore": number,
     "biasesDetected": BiasImpact[],
+    "evidenceCount": number, // Total number of evidence pieces found across all detected biases
+    "noBiasExplanation": string, // If no significant biases are detected, write a short, context-aware explanation (1–2 sentences) describing why the review appears balanced and objective. Reference the review's tone, evidence, or lack of emotional/habitual patterns. Mention if the reviewer presents both pros and cons, uses neutral language, or avoids strong emotional language.
+    "biasInteractions": [{
+      "biases": [string],
+      "combinedEffect": number,
+      "interactionRationale": string
+    }],
   },
   "biasAdjustment": {
     "biasAdjustedScore": number,
@@ -155,105 +275,172 @@ Return a single JSON object with these fields:
     "confidenceLevel": "low" | "moderate" | "high",
     "recommendationStrength": "low" | "moderate" | "strong"
   },
-  "noBiasExplanation": string, // If no significant biases are detected, write a short, context-aware explanation (1–2 sentences) describing why the review appears balanced and objective. Reference the review’s tone, evidence, or lack of emotional/habitual patterns. Mention if the reviewer presents both pros and cons, uses neutral language, or avoids strong emotional language.
-  "culturalContext": {
-    "justification": string,  // Justification for cultural context, why it's relevant
-    "ideologicalThemes": string[],  // What cultural/ideological themes are highlighted
-    "audienceReactions": {
-      "aligned": string,  // Which audience aligns with this context (e.g., fans of gothic horror, etc.)
-      "neutral": string,  // Audience that is indifferent to cultural specifics
-      "opposed": string   // Audience that might reject this cultural context (e.g., players from different cultural backgrounds)
+  "legacyAndInfluence": {
+    "justification": string,  
+    // A brief explanation of the game's historical, artistic, or genre legacy — 
+    // why this background or influence is relevant to how the game is received.
+
+    "ideologicalThemes": string[],  
+    // Key themes, motifs, or ideological leanings that shape the game's story, setting, 
+    // or mechanics — including political, philosophical, or cultural undertones 
+    // (e.g., anti-corporate narrative, collectivism, existential horror, etc.).
+
+    "playerFit": {
+      "aligned": string,  
+      // Describes players who will likely connect with or appreciate this legacy and influence. 
+      // Could be based on taste, background, genre preference, or thematic interest 
+      // (e.g., "Fans of Eastern storytelling and mythological structure").
+
+      "neutral": string,  
+      // Describes players who may not strongly react to the legacy or ideological themes — 
+      // they're not turned off, but it's not a driver of engagement either 
+      // (e.g., "Players focused more on gameplay than narrative depth").
+
+      "opposed": string  
+      // Describes players who might push back against or be alienated by the game's legacy, 
+      // cultural framing, or ideological themes — often due to personal values, 
+      // genre expectations, or unfamiliarity 
+      // (e.g., "Players averse to heavy political allegory or cultural specificity").
     }
   }
 }
 
 ---
 
-### Examples:
+### SATIRICAL REVIEW EXAMPLE
 
-**Example 1: Nostalgia Bias**
+**Input**: "Zelda Ocarina of Time is the worst game ever... developed by monkeys... $14 budget... Nintendo bankruptcy..."
+
+**Correct Output**:
+{
+  "sentimentScore": 9.5,
+  "verdict": "positive", 
+  "sentimentSummary": "Reviewer employs satirical performance to demonstrate appreciation for this classic, using exaggerated negativity as comedic praise.",
+  "sentimentSummaryFriendlyVerdict": "A timeless classic that every gamer should experience - one of the greatest games ever made.",
+  "reviewSummary": "Zelda: Ocarina of Time is a 3D action-adventure game for N64 where you play as Link exploring Hyrule, solving puzzles in themed dungeons, and using musical melodies played on an ocarina to progress through the story and unlock new areas.",
+  "pros": ["Revolutionary 3D gameplay", "Iconic music and sound design", "Innovative Z-targeting system", "Epic adventure and storytelling"],
+  "cons": ["Some dated graphics by modern standards", "Occasional pacing issues"],
+  "playerFit": {
+    "aligned": "Adventure game fans and anyone interested in gaming history",
+    "neutral": "Players who prefer modern graphics and mechanics", 
+    "opposed": "Players who dislike older games or fantasy settings"
+  }
+}
+
+---
+
+### REGULAR REVIEW EXAMPLE
+
+**Input**: "I really enjoyed this RPG. The combat system is engaging with lots of customization options. The story kept me hooked for 40+ hours. Graphics are decent but not groundbreaking. Some side quests felt repetitive though. Overall a solid 8/10 experience."
+
+**Correct Output**:
+{
+  "sentimentScore": 8.0,
+  "verdict": "positive",
+  "sentimentSummary": "Reviewer expresses genuine enthusiasm for the game, appreciating its depth while acknowledging minor flaws in a balanced assessment.",
+  "sentimentSummaryFriendlyVerdict": "A solid RPG worth playing for genre fans who enjoy deep customization and engaging storylines.",
+  "reviewSummary": "Call of Duty: Modern Warfare is a first-person shooter featuring single-player campaign missions and multiplayer modes. Players engage in military combat scenarios using modern weapons and equipment across various global locations.",
+  "pros": ["Engaging combat system", "Extensive customization options", "Compelling 40+ hour story"],
+  "cons": ["Graphics not groundbreaking", "Some repetitive side quests"]
+}
+
+---
+
+### Example Bias Detections
+
+**Example: Halo Effect**
 
 Transcript:
-> "I really love how this game finally returns to form. It reminds me of the classics I grew up with."
+> "The art direction in this game is stunning — it just feels like a masterpiece overall."
 
 Sentiment score: 8.5
 
 Detected biases:
-- **Nostalgia Bias**
-  Confidence: 85%
+- **Halo Effect**
+  Confidence: 75%
   Effect: +0.3
-  Why it matters: Gamers may overrate the experience due to past emotional attachment.
-  Evidence: "finally returns to form" and "reminds me of the classics" show nostalgic framing.
+  Why it matters: A single impressive element may unduly inflate perception of unrelated areas.
+  Evidence: "The art direction... feels like a masterpiece overall" implies art quality is skewing overall evaluation.
 
 ---
 
-**Example 2: Hype Bias**
+**Example: Horn Effect**
 
 Transcript:
-> "This was the most anticipated release of the year, and it definitely blew my mind! Everyone's talking about it."
-
-Sentiment score: 9.0
-
-Detected biases:
-- **Hype Bias**
-  Confidence: 90%
-  Effect: +0.4
-  Why it matters: Community hype or marketing may distort actual review accuracy.
-  Evidence: "most anticipated," "blew my mind," and "everyone's talking about it" suggest external excitement.
-
----
-
-**Example 3: Sarcasm + Cynicism Bias**
-
-Transcript:
-> "Oh sure, this is definitely what we were all waiting for… A recycled mess with microtransactions! Brilliant move."
+> "The UI is so awful I couldn't focus on anything else. Just ruined the experience."
 
 Sentiment score: 3.5
 
 Detected biases:
-- **Cynicism Bias**
+- **Horn Effect**
   Confidence: 80%
-  Effect: –0.5
-  Why it matters: Excess skepticism may cause the reviewer to ignore redeeming qualities.
-  Evidence: Sarcastic phrasing ("this is definitely what we were all waiting for"), critical tone, and the phrase "recycled mess" indicate a cynical framing.
-
-- **Sarcasm (Flag)**
-  Present: ✅
-  Reason: The exaggerated praise ("definitely what we were all waiting for… brilliant move") is clearly ironic, used to mock the game's monetization.
+  Effect: –0.4
+  Why it matters: A single flaw may cause the reviewer to disregard strengths elsewhere.
+  Evidence: "ruined the experience" and "couldn't focus on anything else" suggest the flaw dominates evaluation.
 
 ---
 
-**Example 4: Conflicting Tone (Positive + Negative)**
+**Example: Bandwagon Bias**
 
 Transcript:
-> "The art style is honestly stunning, and I had fun for the first few hours. But then it all fell apart — buggy, repetitive, and way too grindy."
+> "Everyone online is saying it's trash, and honestly, they're not wrong."
 
-Sentiment score: 6.0
+Sentiment score: 4.0
 
 Detected biases:
-- **Cynicism Bias**
+- **Bandwagon Bias**
   Confidence: 70%
   Effect: –0.3
-  Why it matters: Reviewer may focus on flaws in a way that disproportionately drags down the overall score.
-  Evidence: "fell apart," "buggy," "repetitive," "way too grindy" — suggests mounting frustration, even after a positive start.
-
-Note: No sarcasm detected — this is a sincere tone, just mixed sentiment.
+  Why it matters: Community consensus may sway individual judgment unfairly.
+  Evidence: "Everyone online is saying it's trash" suggests reviewer is echoing public sentiment.
 
 ---
 
-**Example 5: Personal Attachment Bias**
+**Example: Availability Bias**
 
 Transcript:
-> "I've been following this developer since their first indie game. Honestly, I can overlook the issues — this one just hits differently."
+> "All I can remember are those few boss fights — they really stick out."
 
-Sentiment score: 8.0
+Sentiment score: 6.5
 
 Detected biases:
-- **Personal Attachment Bias**
-  Confidence: 75%
+- **Availability Bias**
+  Confidence: 65%
   Effect: +0.2
-  Why it matters: Prior loyalty might lead the reviewer to downplay flaws or exaggerate enjoyment.
-  Evidence: "I've been following this developer since their first indie game" and "I can overlook the issues" show clear personal connection.
+  Why it matters: Memorable moments may distort overall impression.
+  Evidence: "really stick out" shows vivid segments may outweigh broader issues.
+
+---
+
+**Example: Confirmation Bias**
+
+Transcript:
+> "I had a feeling this would be a buggy mess — and sure enough, it was just that."
+
+Sentiment score: 3.5
+
+Detected biases:
+- **Confirmation Bias**
+  Confidence: 80%
+  Effect: –0.3
+  Why it matters: Reviewer may selectively emphasize evidence confirming prior beliefs.
+  Evidence: "had a feeling" and "sure enough" reflect pre-formed judgment.
+
+---
+
+**Example: Emotional Bias**
+
+Transcript:
+> "This game made me so angry I wanted to uninstall it on the spot."
+
+Sentiment score: 2.5
+
+Detected biases:
+- **Emotional Bias**
+  Confidence: 85%
+  Effect: –0.4
+  Why it matters: Intense emotion can override balanced analysis.
+  Evidence: "so angry I wanted to uninstall" suggests emotion-led judgment.
 
 ---
 
@@ -263,11 +450,11 @@ Transcript:
 """
 {TRANSCRIPT_CHUNK}
 """
-// `;
+`;
 
-// === Updated unified prompt with implied bias detection instructions and dynamic culturalContext ===
+// === Updated unified prompt with implied bias detection instructions and dynamic legacyAndInfluence ===
 // export const UNIFIED_LLM_PROMPT = `
-// You are an expert assistant analyzing video game review transcripts for sentiment, reviewer bias, and cultural context. Your goal is to extract structured insights that power a bias-aware recommendation engine. Be precise, infer only when justified, and cite textual evidence.
+// You are an expert assistant analyzing video game review transcripts for sentiment, reviewer bias, and legacy & influence. Your goal is to extract structured insights that power a bias-aware recommendation engine. Be precise, infer only when justified, and cite textual evidence.
 
 // You must identify **both explicit and implied biases**, including tonal, habitual, or emotional indicators. If the bias is not clearly stated, inference is allowed — but **only** when supported by specific phrases or patterns. Provide **explanations** and **direct evidence** for each detected bias.
 
@@ -332,13 +519,13 @@ Transcript:
 //     "confidenceLevel": "low" | "moderate" | "high",
 //     "recommendationStrength": "low" | "moderate" | "strong"
 //   },
-//   "culturalContext": {
-//     "justification": string,  // Justification for cultural context, why it's relevant
+//   "legacyAndInfluence": {
+//     "justification": string,  // Justification for legacy & influence, why it's relevant
 //     "ideologicalThemes": string[],  // What cultural/ideological themes are highlighted
-//     "audienceReactions": {
+//     "playerFit": {
 //       "aligned": string,  // Which audience aligns with this context (e.g., fans of gothic horror, etc.)
 //       "neutral": string,  // Audience that is indifferent to cultural specifics
-//       "opposed": string   // Audience that might reject this cultural context (e.g., players from different cultural backgrounds)
+//       "opposed": string   // Audience that might reject this legacy & influence (e.g., players from different cultural backgrounds)
 //     }
 //   }
 // }
@@ -371,13 +558,13 @@ Transcript:
 //   "reviewerIntent": "implied"
 // }]
 
-// **Example 3 — Cultural Context**
+// **Example 3 — legacy & influence**
 // Transcript: "The game's difficulty is punishing, which is just how I like my platformers."
 // Biases: [{
 //   "name": "difficulty bias",
 //   "severity": "moderate",
 //   "scoreInfluence": 0.2,
-//   "explanation": "Strong preference for difficult games, indicating cultural context for challenging gameplay.",
+//   "explanation": "Strong preference for difficult games, indicating legacy & influence for challenging gameplay.",
 //   "detectedIn": ["tone"],
 //   "evidence": ["punishing", "how I like my platformers"],
 //   "reviewerIntent": "implied"
@@ -391,7 +578,7 @@ Transcript:
 const SYSTEM_PROMPT = `You are an expert sentiment analysis assistant specialized in video game reviews. Extract nuanced sentiment, tone, reviewer biases, and key pros/cons based on both explicit statements and implied tone. Inferred insights are allowed if strongly implied. Do not invent details not supported by the text.`;
 
 // --- Utility: dedupe helper ---
-const dedupe = (arr: string[]) => [...new Set(arr.map((s) => s.trim()))];
+const dedupe = (arr: string[]) => Array.from(new Set(arr.map((s) => s.trim())));
 
 // --- Canonical bias labels from BIAS_KEYWORDS ---
 const CANONICAL_BIAS_LABELS = Object.keys(BIAS_KEYWORDS);
@@ -433,13 +620,15 @@ export const detectBiasesFromTextContent = (text: string): string[] => {
   return detected;
 };
 
-// --- Helper: Generate fallback cultural context ---
-export function generateCulturalContext(biasImpact: BiasImpact[]): CulturalContextExplanation {
+// --- Helper: Generate fallback legacy & influence ---
+export function generatelegacyAndInfluence(
+  biasImpact: BiasImpact[],
+): legacyAndInfluenceExplanation {
   if (!biasImpact.length) {
     return {
       justification: 'No significant ideological or cultural bias detected.',
       ideologicalThemes: [],
-      audienceReactions: {
+      playerFit: {
         aligned: 'positive',
         neutral: 'mixed',
         opposed: 'negative',
@@ -449,7 +638,7 @@ export function generateCulturalContext(biasImpact: BiasImpact[]): CulturalConte
   return {
     justification: `Score adjusted to reflect detected biases: ${biasImpact.map((b) => b.name).join(', ')}.`,
     ideologicalThemes: biasImpact.map((b) => b.name),
-    audienceReactions: {
+    playerFit: {
       aligned: 'positive',
       neutral: 'mixed',
       opposed: 'negative',
@@ -520,7 +709,6 @@ export const analyzeText = async (
   if (env.DISABLE_OPENAI) {
     logger.info({ model }, '[LLM] OpenAI disabled via DISABLE_OPENAI env var');
     return {
-      summary: 'No clear summary detected.',
       sentimentScore: 5,
       verdict: 'mixed',
       sentimentSummary: 'Mixed',
@@ -530,7 +718,7 @@ export const analyzeText = async (
       pros: [],
       cons: [],
       reviewSummary: 'No review summary available.',
-      culturalContext: null,
+      legacyAndInfluence: null,
     };
   }
 
@@ -556,7 +744,6 @@ export const analyzeText = async (
 
   // --- Helper to process a single chunk ---
   const REQUIRED_FIELDS = [
-    'summary',
     'sentimentScore',
     'verdict',
     'sentimentSummary',
@@ -569,8 +756,6 @@ export const analyzeText = async (
   ];
   const getDefaultForField = (field: string) => {
     switch (field) {
-      case 'summary':
-        return 'No clear summary detected.';
       case 'sentimentScore':
         return 5;
       case 'verdict':
@@ -595,7 +780,7 @@ export const analyzeText = async (
     try {
       const parsed = JSON.parse(match ? match[0] : raw);
       // Only require at least one core field
-      if (!('sentimentScore' in parsed) && !('summary' in parsed)) {
+      if (!('sentimentScore' in parsed) && !('sentimentSummary' in parsed)) {
         logger.error({ raw }, '[LLM] Missing core fields in LLM output');
         return null;
       }
@@ -613,12 +798,16 @@ export const analyzeText = async (
 
   // --- Fallback prompt: much simpler, only core fields ---
   const buildFallbackPrompt = (chunk: string) =>
-    `You are an expert at extracting sentiment and key points from video game review transcripts. Return a JSON object with these fields only:\n{\n  "sentimentScore": number (0-10),\n  "summary": string,\n  "pros": string[],\n  "cons": string[]\n}\nTranscript:\n"""${chunk}"""`;
+    `You are an expert at extracting sentiment and key points from video game review transcripts. Return a JSON object with these fields only:\n{\n  "sentimentScore": number (0-10),\n  "sentimentSummary": string,\n  "pros": string[],\n  "cons": string[]\n}\nTranscript:\n"""${chunk}"""`;
 
   const processChunk = async (chunk: string, prompt: string, isFallback = false): Promise<any> => {
     const contextInfo = [
       gameTitle ? `Game Title: ${gameTitle}` : '',
       creatorName ? `Creator: ${creatorName}` : '',
+      // Add context for well-known games to help with satirical detection
+      gameTitle && isWellKnownClassicGame(gameTitle)
+        ? `Note: This is a widely acclaimed classic game`
+        : '',
     ]
       .filter(Boolean)
       .join('\n');
@@ -672,7 +861,7 @@ export const analyzeText = async (
   const results: Partial<SentimentResult>[] = [];
   for (const chunk of transcriptChunks) {
     let result = await processChunk(chunk, promptToUse);
-    if (!result || (!result.summary && !result.sentimentScore)) {
+    if (!result || (!result.sentimentScore && !result.sentimentSummary)) {
       logger.warn(
         '[LLM] Primary prompt failed or missing core fields — retrying with fallback prompt.',
       );
@@ -682,7 +871,7 @@ export const analyzeText = async (
     // If fallback also fails, salvage what we can from the primary attempt
     if (!result) {
       logger.warn('[LLM] Both primary and fallback prompt failed — returning minimal defaults.');
-      result = { summary: 'No clear summary detected.', sentimentScore: 5 };
+      result = { sentimentScore: 5 };
     }
     // Fill in missing fields with defaults
     for (const field of REQUIRED_FIELDS) {
@@ -708,6 +897,24 @@ export const analyzeText = async (
     }
   };
 
+  // Extract noBiasExplanation from LLM response if available
+  const extractNoBiasExplanation = (): string | null => {
+    for (const result of results) {
+      if (result && typeof result === 'object') {
+        // Check if biasDetection.noBiasExplanation exists
+        const llmResult = result as LLMRawResponse;
+        if (llmResult.biasDetection?.noBiasExplanation) {
+          return llmResult.biasDetection.noBiasExplanation;
+        }
+        // Also check at root level in case LLM returns it there
+        if (llmResult.noBiasExplanation) {
+          return llmResult.noBiasExplanation;
+        }
+      }
+    }
+    return null;
+  };
+
   const sentimentScore =
     results.find((r) => typeof r.sentimentScore === 'number')?.sentimentScore ?? 5;
   const verdict = aggregate('verdict') as string | null;
@@ -722,22 +929,21 @@ export const analyzeText = async (
   const alsoRecommends = dedupe((aggregate('alsoRecommends', true) as string[]) || []);
   const pros = dedupe((aggregate('pros', true) as string[]) || []);
   const cons = dedupe((aggregate('cons', true) as string[]) || []);
-  const summary = aggregate('summary') as string | null;
   const reviewSummary = aggregate('reviewSummary') as string | null;
-  // --- Type guard for culturalContext ---
-  const culturalContext =
+  const noBiasExplanationFromLLM = extractNoBiasExplanation();
+
+  // --- Type guard for legacyAndInfluence ---
+  const legacyAndInfluence =
     results.find(
-      (r): r is { culturalContext: CulturalContextExplanation } =>
+      (r): r is { legacyAndInfluence: legacyAndInfluenceExplanation } =>
         typeof r === 'object' &&
         r !== null &&
-        'culturalContext' in r &&
-        r.culturalContext !== undefined,
-    )?.culturalContext || null;
+        'legacyAndInfluence' in r &&
+        r.legacyAndInfluence !== undefined,
+    )?.legacyAndInfluence || null;
 
   // Always provide safe defaults if LLM output is empty/null
   const result: SentimentResult = {
-    summary:
-      toStringOrNull(summary) || toStringOrNull(sentimentSummary) || 'No clear summary detected.',
     sentimentScore:
       typeof sentimentScore === 'number' && sentimentScore >= 0 && sentimentScore <= 10
         ? sentimentScore
@@ -750,9 +956,11 @@ export const analyzeText = async (
     pros,
     cons,
     reviewSummary: toStringOrNull(reviewSummary) || 'No review summary available.',
-    culturalContext,
+    legacyAndInfluence,
+    noBiasExplanationFromLLM: noBiasExplanationFromLLM || undefined,
+    satirical: checkIfFullySatirical(results, biasIndicators),
   };
-  if (!result.summary || result.summary === 'No clear summary detected.') {
+  if (!result.sentimentSummary || result.sentimentSummary === 'No clear summary detected.') {
     logger.warn('[LLM] Warning: summary is missing, using fallback (sentimentSummary or default).');
   }
 
@@ -831,14 +1039,30 @@ export const analyzeTextWithBiasAdjustmentFull = async (
           b.evidence.length > 0,
       );
       if (biasesDetected.length === 0) {
-        // No valid biases remain
-        noBiasExplanation = 'No clear biases detected in this segment.';
+        // Use LLM's explanation if available, otherwise fallback
+        noBiasExplanation =
+          sentiment.noBiasExplanationFromLLM || 'No clear biases detected in this segment.';
       }
+    } else {
+      // No bias indicators at all - use LLM's explanation if available
+      noBiasExplanation =
+        sentiment.noBiasExplanationFromLLM || 'No clear biases detected in this segment.';
     }
     // --- Score normalization and logging ---
+
+    // Calculate evidenceCount from biasesDetected
+    const calculatedEvidenceCount = biasesDetected.reduce(
+      (total, bias) => total + (bias.evidence?.length || 0),
+      0,
+    );
+
+    // Try to extract evidenceCount from LLM response if available in sentiment
+    const evidenceCount = (sentiment as any).evidenceCount || calculatedEvidenceCount;
+
     const biasDetection: BiasDetectionPhaseOutput = {
       originalScore: sentiment.sentimentScore ?? 5,
       biasesDetected,
+      evidenceCount,
       ...(noBiasExplanation ? { noBiasExplanation } : {}),
     };
     const totalScoreAdjustmentRaw = biasesDetected.reduce(
@@ -887,9 +1111,9 @@ export const analyzeTextWithBiasAdjustmentFull = async (
       confidenceLevel,
       recommendationStrength,
     };
-    // If LLM did not provide culturalContext, synthesize and set it inside sentiment
-    if (!sentiment.culturalContext) {
-      sentiment.culturalContext = generateCulturalContext(biasesDetected);
+    // If LLM did not provide legacyAndInfluence, synthesize and set it inside sentiment
+    if (!sentiment.legacyAndInfluence) {
+      sentiment.legacyAndInfluence = generatelegacyAndInfluence(biasesDetected);
     }
     logger.info(
       { sentiment, biasDetection, biasAdjustment, sentimentSnapshot },
@@ -920,8 +1144,6 @@ export const analyzeTextWithBiasAdjustmentFull = async (
 // --- Mock output example ---
 export const MOCK_FULL_BIAS_SCORING_OUTPUT: FullBiasScoringOutput = {
   sentiment: {
-    summary:
-      "Dragon Age: The Veilguard revitalizes BioWare's RPG legacy with its stunning visuals, engaging storytelling, and rich character development, though some combat aspects may disappoint tactical purists.",
     sentimentScore: 9.2,
     verdict: 'positive',
     sentimentSummary: 'Highly positive',
@@ -956,27 +1178,30 @@ export const MOCK_FULL_BIAS_SCORING_OUTPUT: FullBiasScoringOutput = {
     ],
     reviewSummary:
       "Dragon Age: The Veilguard revitalizes BioWare's RPG legacy with its stunning visuals, engaging storytelling, and rich character development, though some combat aspects may disappoint tactical purists.",
-    culturalContext: {
+    legacyAndInfluence: {
       justification:
         'Based on the review transcript, certain ideological themes and narrative framings may influence audience perception.',
       ideologicalThemes: ['representation', 'studio reputation'],
-      audienceReactions: {
+      playerFit: {
         aligned:
           'Likely to resonate strongly with fans of inclusive narratives and franchise loyalists.',
         neutral: 'May appreciate the technical and narrative strengths, but not be deeply moved.',
         opposed: 'Could be critical of perceived ideological or franchise-driven elements.',
       },
     },
+    satirical: false,
   },
   biasDetection: {
     originalScore: 9.2,
+    evidenceCount: 3,
     biasesDetected: [
       {
         name: 'nostalgia bias',
         severity: 'moderate',
         impactOnExperience:
           'Nostalgia may cause the reviewer to overlook flaws or overrate positive aspects.',
-        scoreInfluence: 0.4,
+        baseScoreInfluence: 0.5,
+        maxScoreInfluence: 0.75,
         explanation:
           'Nostalgia bias detected; reviewer may rate higher due to fondness for the franchise.',
         confidenceScore: 0.8,
@@ -984,20 +1209,36 @@ export const MOCK_FULL_BIAS_SCORING_OUTPUT: FullBiasScoringOutput = {
         detectedIn: ['tone', 'phrasing'],
         reviewerIntent: 'implied',
         evidence: ['feels like classic BioWare', 'never let me down'],
+        biasInteractionsApplied: [
+          {
+            biases: ['nostalgia bias', 'franchise bias'],
+            multiplier: 1.4,
+            influenceAdded: 0.08,
+          },
+        ],
       },
       {
         name: 'studio reputation bias',
         severity: 'moderate',
         impactOnExperience: 'Studio reputation may inflate expectations and perceived quality.',
-        scoreInfluence: 0.4,
+        baseScoreInfluence: 0.3,
+        maxScoreInfluence: 0.39,
         explanation: 'Studio reputation bias detected.',
         confidenceScore: 0.7,
         adjustedInfluence: 0.28,
         detectedIn: ['tone'],
         reviewerIntent: 'implied',
         evidence: ['never let me down'],
+        biasInteractionsApplied: [
+          {
+            biases: ['nostalgia bias', 'franchise bias'],
+            multiplier: 1.4,
+            influenceAdded: 0.08,
+          },
+        ],
       },
     ],
+    noBiasExplanation: 'No clear biases detected in this segment.',
   },
   biasAdjustment: {
     biasAdjustedScore: 8.3,
@@ -1056,4 +1297,113 @@ export const analyzeGeneralSummary = async (
     );
     throw err;
   }
+};
+
+// Helper function to determine if review is fully satirical vs just containing sarcasm
+const checkIfFullySatirical = (
+  results: Partial<SentimentResult>[],
+  biasIndicators: string[],
+): boolean => {
+  // Check for sarcasm in bias indicators (optional)
+  const hasSarcasm = biasIndicators.some((bias) => bias.toLowerCase().includes('sarcasm'));
+
+  // Check for indicators of full satirical review from LLM responses
+  for (const result of results) {
+    if (result && typeof result === 'object') {
+      const llmResult = result as LLMRawResponse;
+
+      // Look for LLM explicitly identifying satirical nature
+      const reviewSummary = llmResult.reviewSummary?.toLowerCase() || '';
+      const sentimentSummary = llmResult.sentimentSummary?.toLowerCase() || '';
+      const verdict = llmResult.verdict?.toLowerCase() || '';
+      const noBiasExplanation = llmResult.noBiasExplanationFromLLM?.toLowerCase() || '';
+
+      const satiricalIndicators = [
+        'satirical',
+        'satirical review',
+        'satirical critique',
+        'satirical take',
+        'comedic intent',
+        'not meant to be taken literally',
+        'exaggerated and comedic',
+        'hyperbolic',
+        'performance',
+        'entirely satirical',
+        'hyperbolic language',
+        'absurd claims',
+        'humorously critique',
+        'comedic rather than genuine',
+      ];
+
+      const hasStrongSatiricalIndicators = satiricalIndicators.some(
+        (indicator) =>
+          reviewSummary.includes(indicator) ||
+          sentimentSummary.includes(indicator) ||
+          verdict.includes(indicator) ||
+          noBiasExplanation.includes(indicator),
+      );
+
+      // Flag as satirical if either:
+      // 1. Sarcasm detected AND satirical indicators, OR
+      // 2. Strong satirical indicators alone (LLM explicitly identified it)
+      if (hasStrongSatiricalIndicators) return true;
+    }
+  }
+
+  return false;
+};
+
+// Helper function to identify well-known classic games
+const isWellKnownClassicGame = (title: string): boolean => {
+  const classicGames = [
+    'zelda',
+    'ocarina of time',
+    'majora',
+    'breath of the wild',
+    'tears of the kingdom',
+    'mario',
+    'super mario',
+    'mario 64',
+    'mario kart',
+    'mario odyssey',
+    'metroid',
+    'final fantasy',
+    'chrono trigger',
+    'secret of mana',
+    'half-life',
+    'portal',
+    'team fortress',
+    'counter-strike',
+    'doom',
+    'quake',
+    'wolfenstein',
+    'sonic',
+    'mega man',
+    'castlevania',
+    'contra',
+    'street fighter',
+    'mortal kombat',
+    'tekken',
+    'pokemon',
+    'red',
+    'blue',
+    'gold',
+    'silver',
+    'dark souls',
+    'bloodborne',
+    'elden ring',
+    'witcher',
+    'skyrim',
+    'oblivion',
+    'morrowind',
+    'gta',
+    'grand theft auto',
+    'red dead',
+    'minecraft',
+    'tetris',
+    'pac-man',
+  ];
+
+  const lowerTitle = title.toLowerCase();
+  return classicGames.some((classic) => lowerTitle.includes(classic));
 };

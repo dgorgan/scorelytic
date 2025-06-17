@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { ReviewSummary, BiasDetail, CulturalContext, FullBiasReport } from '@scorelytic/shared';
+import { ReviewSummary, BiasDetail, legacyAndInfluence, FullBiasReport } from '@scorelytic/shared';
 
 type BiasReport = {
   summary: ReviewSummary;
   details: BiasDetail[];
-  culturalContext: CulturalContext;
+  legacyAndInfluence: legacyAndInfluence;
   fullReport: FullBiasReport;
 };
 
@@ -63,27 +63,27 @@ const BiasReportViewer = ({ report }: Props) => {
           <ul className="list-disc ml-6">
             {report.details.map((b, i) => (
               <li key={i} className="mb-2">
-                <b>{b.name}</b> ({b.severity}) — Impact: {b.scoreImpact} <br />
+                <b>{b.name}</b> ({b.severity}) — Impact: {b.baseScoreInfluence} <br />
                 <span className="text-gray-600">{b.impactOnExperience}</span>
-                {b.description && <div className="text-xs text-gray-500">{b.description}</div>}
+                {b.explanation && <div className="text-xs text-gray-500">{b.explanation}</div>}
               </li>
             ))}
           </ul>
         )}
       </Section>
       <Section
-        title="Cultural Context"
+        title="Legacy & Influence"
         open={open.context}
         onClick={() => setOpen((o) => ({ ...o, context: !o.context }))}
       >
-        <div>Original Score: {report.culturalContext.originalScore}</div>
-        <div>Bias-Adjusted Score: {report.culturalContext.biasAdjustedScore}</div>
-        <div>Justification: {report.culturalContext.justification}</div>
-        <div>Audience Reaction:</div>
+        <div>Original Score: {report.legacyAndInfluence.originalScore}</div>
+        <div>Bias-Adjusted Score: {report.legacyAndInfluence.biasAdjustedScore}</div>
+        <div>Justification: {report.legacyAndInfluence.justification}</div>
+        <div>Player Fit:</div>
         <ul className="ml-6">
-          <li>Aligned: {report.culturalContext.audienceReaction.aligned}</li>
-          <li>Neutral: {report.culturalContext.audienceReaction.neutral}</li>
-          <li>Opposed: {report.culturalContext.audienceReaction.opposed}</li>
+          <li>Aligned: {report.legacyAndInfluence.playerFit.aligned}</li>
+          <li>Neutral: {report.legacyAndInfluence.playerFit.neutral}</li>
+          <li>Opposed: {report.legacyAndInfluence.playerFit.opposed}</li>
         </ul>
       </Section>
       <Section

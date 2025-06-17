@@ -1,7 +1,6 @@
 export interface SentimentAnalysisResponse {
   sentiment: {
     score: number;
-    summary: string;
     verdict: string;
     pros: string[];
     cons: string[];

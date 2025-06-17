@@ -153,122 +153,6 @@ export default async function GameDemoDetailPage({ params }: Props) {
           reviewer&apos;s verdict.
         </div>
         <GameDemoScores sentiment={sentiment} />
-        {/* {sentiment.pros && sentiment.pros.length > 0 && (
-          <div className="mb-5">
-            <div className="text-lg sm:text-xl font-bold text-green-400 mb-1 font-orbitron uppercase tracking-wide">
-              Pros
-            </div>
-            <ul className="space-y-2">
-              {sentiment.pros.map((pro: string) => (
-                <li
-                  key={pro}
-                  className="flex items-start gap-2 bg-green-900/10 border-l-4 border-green-400 rounded px-3 py-2 shadow-sm"
-                >
-                  <span className="mt-0.5 text-green-400">
-                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-                      <path
-                        d="M5 13l4 4L19 7"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                  </span>
-                  <span className="text-green-100">{pro}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-        {sentiment.cons && sentiment.cons.length > 0 && (
-          <div className="mb-5">
-            <div className="text-lg sm:text-xl font-bold text-red-400 mb-1 font-orbitron uppercase tracking-wide">
-              Cons
-            </div>
-            <ul className="space-y-2">
-              {sentiment.cons.map((con: string) => (
-                <li
-                  key={con}
-                  className="flex items-start gap-2 bg-red-900/10 border-l-4 border-red-400 rounded px-3 py-2 shadow-sm"
-                >
-                  <span className="mt-0.5 text-red-400">
-                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
-                      <path
-                        d="M12 8v4"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                      />
-                      <circle cx="12" cy="16" r="1" fill="currentColor" />
-                    </svg>
-                  </span>
-                  <span className="text-red-100">{con}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )} */}
-        {sentiment.biasDetection?.biasesDetected &&
-          (sentiment.biasDetection?.biasesDetected ?? []).length > 0 &&
-          false && (
-            <div className="mb-4">
-              <div className="text-lg sm:text-xl font-bold text-yellow-400 mb-1 font-orbitron uppercase tracking-wide">
-                Detected Biases
-              </div>
-              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {(sentiment.biasDetection?.biasesDetected ?? []).map((b: any, i: number) => (
-                  <li
-                    key={b.name + i}
-                    className="bg-gradient-to-br from-yellow-100 to-yellow-300 px-6 py-4 rounded-xl text-base sm:text-lg text-yellow-900 font-bold shadow border border-yellow-300 flex flex-col items-start w-full"
-                  >
-                    <span className="font-bold text-yellow-900 text-lg mb-1">{b.name}</span>
-                    <span className="text-xs text-gray-700 mb-0.5">Severity: {b.severity}</span>
-                    <span className="text-xs text-gray-700 mb-0.5">
-                      Impact: {b.impactOnExperience}
-                    </span>
-                    <span className="text-xs text-gray-700 mb-0.5">
-                      Score Influence: {b.scoreInfluence}{' '}
-                      <span className="ml-2 text-blue-700">(adj: {b.adjustedInfluence})</span>
-                    </span>
-                    <span className="text-xs text-gray-700 mb-0.5">
-                      Confidence: {Math.round((b.confidenceScore || 0) * 100)}%
-                    </span>
-                    {b.detectedIn && b.detectedIn.length > 0 && (
-                      <span className="text-xs text-gray-500 mt-1">
-                        Detected in:{' '}
-                        {b.detectedIn.map((d: string) => (
-                          <span
-                            key={d}
-                            className="inline-block bg-gray-200 rounded px-2 py-0.5 mr-1"
-                          >
-                            {d}
-                          </span>
-                        ))}
-                      </span>
-                    )}
-                    <span className="text-xs text-gray-500 mt-1">
-                      Reviewer Intent: <span className="font-semibold">{b.reviewerIntent}</span>
-                    </span>
-                    {b.evidence && b.evidence.length > 0 && (
-                      <span className="text-xs text-gray-500 mt-1">
-                        Evidence:{' '}
-                        {b.evidence.map((e: string, j: number) => (
-                          <span
-                            key={j}
-                            className="inline-block bg-yellow-200 rounded px-2 py-0.5 mr-1"
-                          >
-                            {e}
-                          </span>
-                        ))}
-                      </span>
-                    )}
-                    <span className="text-xs text-yellow-900 italic mt-1">{b.explanation}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
         {sentiment.alsoRecommends && sentiment.alsoRecommends.length > 0 && (
           <div className="mb-4">
             <div className="text-lg sm:text-xl font-bold text-blue-400 mb-4 font-orbitron uppercase tracking-wide">
@@ -294,16 +178,16 @@ export default async function GameDemoDetailPage({ params }: Props) {
             Advanced Analysis
           </summary>
           <div className="mt-4 space-y-6">
-            {sentiment.culturalContext && (
+            {sentiment.legacyAndInfluence && (
               <div>
                 <div className="text-base sm:text-lg font-bold text-purple-300 mb-2 font-orbitron uppercase tracking-wide">
                   Legacy & Influence
                 </div>
                 <div className="text-base text-purple-100 mb-4 italic">
-                  {sentiment.culturalContext.justification}
+                  {sentiment.legacyAndInfluence.justification}
                 </div>
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {sentiment.culturalContext.ideologicalThemes?.map((theme: string) => (
+                  {sentiment.legacyAndInfluence.ideologicalThemes?.map((theme: string) => (
                     <span
                       key={theme}
                       className="bg-gradient-to-br from-purple-200 to-purple-400 px-3 py-1 rounded-full text-base text-purple-900 font-bold shadow border border-purple-300"
@@ -336,7 +220,7 @@ export default async function GameDemoDetailPage({ params }: Props) {
                     <span>
                       <span className="font-bold text-green-200 font-orbitron">Aligned:</span>{' '}
                       <span className="text-green-100">
-                        {sentiment.culturalContext.audienceReactions?.aligned}
+                        {sentiment.legacyAndInfluence.playerFit?.aligned}
                       </span>
                     </span>
                   </li>
@@ -364,7 +248,7 @@ export default async function GameDemoDetailPage({ params }: Props) {
                     <span>
                       <span className="font-bold text-yellow-200 font-orbitron">Neutral:</span>{' '}
                       <span className="text-yellow-100">
-                        {sentiment.culturalContext.audienceReactions?.neutral}
+                        {sentiment.legacyAndInfluence.playerFit?.neutral}
                       </span>
                     </span>
                   </li>
@@ -390,7 +274,7 @@ export default async function GameDemoDetailPage({ params }: Props) {
                     <span>
                       <span className="font-bold text-red-200 font-orbitron">Opposed:</span>{' '}
                       <span className="text-red-100">
-                        {sentiment.culturalContext.audienceReactions?.opposed}
+                        {sentiment.legacyAndInfluence.playerFit?.opposed}
                       </span>
                     </span>
                   </li>

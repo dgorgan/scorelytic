@@ -14,7 +14,6 @@ const normalizeSentiment = (obj: any) => {
   return {
     score,
     sentimentScore: score,
-    summary: obj.summary || '',
     verdict: obj.verdict || '',
     sentimentSummary: obj.sentimentSummary ?? obj.sentiment_summary ?? '',
     biasIndicators: obj.biasIndicators ?? obj.bias_indicators ?? [],
@@ -29,7 +28,7 @@ const normalizeSentiment = (obj: any) => {
       rationale: biasAdjustment.rationale ?? '',
     },
     sentimentSnapshot: obj.sentimentSnapshot ?? obj.sentiment_snapshot ?? {},
-    culturalContext: obj.culturalContext ?? obj.cultural_context ?? {},
+    legacyAndInfluence: obj.legacyAndInfluence ?? obj.cultural_context ?? {},
   };
 };
 
@@ -48,7 +47,7 @@ interface ResultEvent {
   biasDetection?: any;
   biasAdjustment?: any;
   sentimentSnapshot?: any;
-  culturalContext?: any;
+  legacyAndInfluence?: any;
 }
 
 interface ErrorEvent {

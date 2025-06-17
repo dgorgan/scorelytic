@@ -1,6 +1,14 @@
-// import type { BiasImpact } from '@scorelytic/shared/';
-
 export * from './Review';
+
+export type yes = {
+  justification: string;
+  ideologicalThemes: string[];
+  playerFit: {
+    aligned: string;
+    neutral: string;
+    opposed: string;
+  };
+};
 
 export interface DemoReview {
   id: string;
@@ -27,42 +35,37 @@ export interface DemoReview {
       sentimentSummaryFriendlyVerdict?: string;
       reviewSummary?: string;
       alsoRecommends?: string[];
-      biasDetection?: {
-        originalScore: number;
-        biasesDetected?: Array<{
-          name: string;
-          severity: string;
-          impactOnExperience: string;
-          scoreInfluence: string;
-          explanation: string;
-        }>;
-        noBiasExplanation?: string;
-        reviewSummary?: string;
-      };
-      biasAdjustment?: {
-        rationale: string;
-        biasAdjustedScore: number;
-        biasAdjustedScoreRaw?: number;
-        totalScoreAdjustment: number;
-        totalScoreAdjustmentRaw?: number;
-      };
+      sentimentScore?: number;
+      verdict?: string;
+      satirical?: boolean;
       biasIndicators?: string[];
-      culturalContext?: {
-        justification: string;
-        audienceReactions: {
-          aligned: string;
-          neutral: string;
-          opposed: string;
-        };
-        ideologicalThemes: string[];
-      };
-      sentimentSnapshot?: {
-        verdict: string;
-        inferredScore: number;
-        confidenceLevel: string;
-        recommendationStrength: string;
-      };
+      legacyAndInfluence?: yes;
+      noBiasExplanationFromLLM?: string;
+    };
+    biasDetection?: {
+      originalScore: number;
+      biasesDetected?: Array<{
+        name: string;
+        severity: string;
+        impactOnExperience: string;
+        scoreInfluence: string;
+        explanation: string;
+      }>;
       noBiasExplanation?: string;
+      evidenceCount?: number;
+    };
+    biasAdjustment?: {
+      rationale: string;
+      biasAdjustedScore: number;
+      biasAdjustedScoreRaw?: number;
+      totalScoreAdjustment: number;
+      totalScoreAdjustmentRaw?: number;
+    };
+    sentimentSnapshot?: {
+      verdict: string;
+      inferredScore: number;
+      confidenceLevel: string;
+      recommendationStrength: string;
     };
     debug?: string[];
   };

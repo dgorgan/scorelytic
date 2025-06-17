@@ -46,7 +46,7 @@ describe('evaluateBiasImpact', () => {
 
 describe('generateBiasReport', () => {
   it('produces all output layers for classic and ideological biases', () => {
-    const { summary, details, culturalContext, fullReport } = generateBiasReport(8.5, [
+    const { summary, details, legacyAndInfluence, fullReport } = generateBiasReport(8.5, [
       'nostalgia bias',
       'identity signaling bias',
       'narrative framing bias',
@@ -59,17 +59,17 @@ describe('generateBiasReport', () => {
     expect(details.length).toBe(4);
     expect(details.some((d) => d.name === 'identity signaling bias')).toBe(true);
     expect(details.some((d) => d.name === 'narrative framing bias')).toBe(true);
-    expect(culturalContext.biasAdjustedScore).toBe(summary.adjustedScore);
-    expect(culturalContext.biasDetails.length).toBe(4);
+    expect(legacyAndInfluence.biasAdjustedScore).toBe(summary.adjustedScore);
+    expect(legacyAndInfluence.biasDetails.length).toBe(4);
     expect(fullReport.score_analysis_engine.bias_adjusted_score).toBe(summary.adjustedScore);
     expect(fullReport.score_analysis_engine.ideological_biases_detected.length).toBe(4);
   });
 
   it('handles no bias', () => {
-    const { summary, details, culturalContext, fullReport } = generateBiasReport(7, []);
+    const { summary, details, legacyAndInfluence, fullReport } = generateBiasReport(7, []);
     expect(summary.adjustedScore).toBe(7);
     expect(details.length).toBe(0);
-    expect(culturalContext.justification).toMatch(/no significant/i);
+    expect(legacyAndInfluence.justification).toMatch(/no significant/i);
     expect(fullReport.score_analysis_engine.bias_adjusted_score).toBe(7);
   });
 });

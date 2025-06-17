@@ -3,7 +3,6 @@ import request from 'supertest';
 
 jest.mock('@/services/sentiment', () => ({
   analyzeText: jest.fn(async (text: string) => ({
-    summary: 'S',
     sentimentScore: 1,
     verdict: 'positive',
   })),
@@ -22,7 +21,7 @@ describe('sentimentRoutes', () => {
     expect(res.status).toBe(200);
     expect(res.body).toEqual({
       success: true,
-      data: { sentiment: { score: 1, summary: 'S', verdict: 'positive' } },
+      data: { sentiment: { score: 1, verdict: 'positive' } },
     });
   });
 

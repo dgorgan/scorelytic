@@ -6,7 +6,7 @@ const fullMockResult = {
   alsoRecommends: [],
   biasIndicators: ['story-driven bias'],
   cons: ['Too short'],
-  culturalContext: null,
+  legacyAndInfluence: null,
   pros: ['Great story'],
   reviewSummary: 'A solid review.',
   sentimentScore: 7,
@@ -69,7 +69,7 @@ describe('analyzeReviewText', () => {
       sentimentSummary: 'Mixed',
       summary: 'No clear summary detected.',
       verdict: 'mixed',
-      culturalContext: null,
+      legacyAndInfluence: null,
     });
   });
 
@@ -85,7 +85,7 @@ describe('analyzeReviewText', () => {
       sentimentSummary: 'Mixed',
       summary: 'No clear summary detected.',
       verdict: 'mixed',
-      culturalContext: null,
+      legacyAndInfluence: null,
     });
   });
 });

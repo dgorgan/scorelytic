@@ -19,12 +19,11 @@ describe('analyzeText', () => {
       alsoRecommends: ['Game Y'],
       biasIndicators: ['contrarian bias'],
       cons: ['Bugs'],
-      culturalContext: null,
+      legacyAndInfluence: null,
       pros: ['Interesting mechanics'],
       reviewSummary: 'A nuanced review.',
       sentimentScore: 5,
       sentimentSummary: 'Mixed',
-      summary: 'Mixed',
       verdict: 'mixed',
     };
     mockCreate.mockResolvedValue({
@@ -40,16 +39,16 @@ describe('analyzeText', () => {
     });
     const result = await analyzeText('bad');
     expect(result).toEqual({
-      summary: 'No clear summary detected.',
       sentimentScore: 5,
       verdict: 'mixed',
       sentimentSummary: 'Mixed',
+      sentimentSummaryFriendlyVerdict: 'Mixed',
       biasIndicators: [],
       alsoRecommends: [],
       pros: [],
       cons: [],
       reviewSummary: 'No review summary available.',
-      culturalContext: null,
+      legacyAndInfluence: null,
     });
   });
 
@@ -57,16 +56,16 @@ describe('analyzeText', () => {
     mockCreate.mockRejectedValue(new Error('API fail'));
     const result = await analyzeText('fail');
     expect(result).toEqual({
-      summary: 'No clear summary detected.',
       sentimentScore: 5,
       verdict: 'mixed',
       sentimentSummary: 'Mixed',
+      sentimentSummaryFriendlyVerdict: 'Mixed',
       biasIndicators: [],
       alsoRecommends: [],
       pros: [],
       cons: [],
       reviewSummary: 'No review summary available.',
-      culturalContext: null,
+      legacyAndInfluence: null,
     });
   });
 });

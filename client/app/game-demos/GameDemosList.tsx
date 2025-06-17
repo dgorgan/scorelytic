@@ -2,7 +2,6 @@
 import useSWR from 'swr';
 import { DemoReview } from '@scorelytic/shared/types';
 import { fetchDemoReviews } from '@/services/supabase';
-import Loader from '@/components/Loader';
 import GameCard from '@/components/GameCard';
 import { fetcher } from '@/services/supabase';
 import { slugify } from '@/lib/slugify';
@@ -55,6 +54,14 @@ export default function GameDemosList({ initialReviews }: GameDemosListProps) {
             meta.thumbnails?.default?.url ||
             '/game-case-placeholder.png';
           const slug = review.slug || (meta.title ? slugify(meta.title) : review.id);
+
+          // Get the bias-adjusted score (True Score) or fall back to raw score
+          const biasAdjustedScore = review.data?.biasAdjustment?.biasAdjustedScore;
+          const rawScore =
+            review.data?.sentimentSnapshot?.inferredScore || review.data?.sentiment?.sentimentScore;
+          const displayScore = biasAdjustedScore ?? rawScore;
+          const isBiasAdjusted = biasAdjustedScore !== undefined;
+
           return (
             <GameCard
               key={review.id}
@@ -64,7 +71,8 @@ export default function GameDemosList({ initialReviews }: GameDemosListProps) {
               title={meta.title || 'Untitled Game'}
               channelTitle={meta.channelTitle || 'Unknown Channel'}
               releaseYear={meta.publishedAt ? new Date(meta.publishedAt).getFullYear() : ''}
-              score={review.data?.sentiment?.sentimentSnapshot?.inferredScore}
+              score={displayScore}
+              isBiasAdjusted={isBiasAdjusted}
             />
           );
         })}

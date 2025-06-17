@@ -9,16 +9,23 @@ export type ReviewSummary = {
 export type BiasDetail = {
   name: string;
   severity: string;
-  scoreImpact: number;
+  baseScoreInfluence: number;
+  maxScoreInfluence: number;
   impactOnExperience: string;
-  description?: string;
+  explanation?: string;
+  confidenceScore?: number;
+  detectedIn?: string[];
+  reviewerIntent?: 'explicit' | 'implied' | 'unclear';
+  adjustedInfluence?: number;
+  evidence?: string[];
+  biasInteractionsApplied?: BiasInteractionEffect[];
 };
 
-export type CulturalContext = {
+export type legacyAndInfluence = {
   originalScore: number;
   biasAdjustedScore: number;
   justification: string;
-  audienceReaction: {
+  playerFit: {
     aligned: string;
     neutral: string;
     opposed: string;
@@ -33,4 +40,59 @@ export type FullBiasReport = {
     bias_adjusted_score: number;
     score_context_note: string;
   };
+};
+
+export type BiasImpact = {
+  name: string;
+  severity: 'low' | 'moderate' | 'high';
+  impactOnExperience: string;
+  baseScoreInfluence: number;
+  maxScoreInfluence: number;
+  explanation: string;
+  confidenceScore: number;
+  adjustedInfluence: number;
+  detectedIn: string[];
+  reviewerIntent: 'explicit' | 'implied' | 'unclear';
+  evidence: string[];
+  biasInteractionsApplied?: BiasInteractionEffect[];
+};
+
+export type RhetoricalDevice = {
+  name: 'sarcasm' | 'satirical' | 'hyperbole' | 'irony';
+  detected: boolean;
+  confidence: number; // 0-1
+  scoreImpact: 'none' | 'inversion' | 'amplification';
+  explanation: string;
+  evidence: string[];
+  handlingStrategy: 'flag_only' | 'score_inversion' | 'tone_indicator';
+};
+
+export type EnhancedBiasDetection = {
+  cognitiveBiases: BiasImpact[];
+  rhetoricalDevices: RhetoricalDevice[];
+  evidenceCount: number;
+  noBiasExplanation?: string;
+};
+
+export type BiasAdjustmentOutput = {
+  sentimentScore: number;
+  biasAdjustedScore: number;
+  totalScoreAdjustment: number;
+  biasImpact: BiasImpact[];
+  audienceFit: string;
+  adjustmentRationale: string;
+};
+
+export type BiasSummary = {
+  adjustedScore: number;
+  verdict: string;
+  confidence: 'low' | 'moderate' | 'high';
+  recommendationStrength: 'weak' | 'moderate' | 'strong';
+  biasSummary?: string;
+};
+
+export type BiasInteractionEffect = {
+  biases: [string, string];
+  multiplier: number;
+  influenceAdded: number;
 };

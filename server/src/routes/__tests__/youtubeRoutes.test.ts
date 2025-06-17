@@ -57,7 +57,7 @@ jest.mock('@/services/sentiment', () => ({
     biasDetection: {},
     biasAdjustment: {},
     sentimentSnapshot: {},
-    culturalContext: {},
+    legacyAndInfluence: {},
   })),
 }));
 

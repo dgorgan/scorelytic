@@ -44,7 +44,7 @@ jest.mock('../../services/sentiment', () => ({
     biasDetection: {},
     biasAdjustment: {},
     sentimentSnapshot: {},
-    culturalContext: {},
+    legacyAndInfluence: {},
   })),
   analyzeGeneralSummary: jest.fn(async () => ({
     summary: 'summary',
@@ -146,7 +146,7 @@ describe('youtubeController', () => {
       biasDetection: {},
       biasAdjustment: {},
       sentimentSnapshot: {},
-      culturalContext: {},
+      legacyAndInfluence: {},
     });
     require('../../services/sentiment').analyzeGeneralSummary.mockResolvedValue({
       summary: 'summary',

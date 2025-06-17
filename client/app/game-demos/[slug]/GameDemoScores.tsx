@@ -484,8 +484,13 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
   const [showScoreInfo, setShowScoreInfo] = useState(false);
   const [showBiasInfo, setShowBiasInfo] = useState(false);
 
-  const sentimentSnapshot = sentiment.sentimentSnapshot || {};
-  const verdict = sentimentSnapshot.verdict || '';
+  // Handle both nested and flat data structures
+  const sentimentData = sentiment.data?.sentiment || sentiment;
+  const biasDetectionData = sentiment.data?.biasDetection || sentiment.biasDetection;
+  const sentimentSnapshotData =
+    sentiment.data?.sentimentSnapshot || sentiment.sentimentSnapshot || {};
+
+  const verdict = sentimentSnapshotData.verdict || '';
   let verdictLabel = 'Positive';
   let verdictBg = 'bg-gradient-to-br from-green-900/40 to-green-700/30';
   let verdictText = 'text-green-300';
@@ -503,18 +508,19 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
     verdictText = 'text-blue-300';
   }
 
-  const rawScore = sentimentSnapshot.inferredScore ?? 0;
-  const biasesDetected = sentiment.biasDetection?.biasesDetected || [];
+  // Fix: Use sentimentScore as fallback if inferredScore is not available
+  const rawScore = sentimentSnapshotData.inferredScore ?? sentimentData.sentimentScore ?? 0;
+  const biasesDetected = biasDetectionData?.biasesDetected || [];
   // Subtract adjustedInfluence for each bias (removes inflation, restores deflation)
   const totalScoreAdjustment = biasesDetected.reduce(
     (sum: number, b: any) =>
       sum - (typeof b.adjustedInfluence === 'number' ? b.adjustedInfluence : 0),
     0,
   );
-  const originalScore = sentiment.biasDetection?.originalScore ?? rawScore;
+  const originalScore = biasDetectionData?.originalScore ?? rawScore;
   // const biasAdjusted =
-  //   typeof sentiment.biasAdjustment?.biasAdjustedScore === 'number'
-  //     ? sentiment.biasAdjustment.biasAdjustedScore
+  //   typeof biasAdjustmentData?.biasAdjustedScore === 'number'
+  //     ? biasAdjustmentData.biasAdjustedScore
   //     : +(originalScore + totalScoreAdjustment);
   // TODO: temporary fix till we update the server to return the biasAdjustedScore
   const biasAdjusted = +(originalScore + totalScoreAdjustment);
@@ -599,6 +605,22 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
           >
             {verdictLabel}
           </span>
+          {sentimentData?.satirical && (
+            <div className="mt-2 flex flex-col gap-1">
+              <div className="px-2 py-1 bg-orange-500/20 border border-orange-400 rounded text-orange-300 text-xs font-bold uppercase tracking-wide text-center">
+                ⚠️ Satirical Review Detected
+              </div>
+              {/* Check if this appears to be a classic game based on high true score */}
+              {biasAdjusted >= 8.5 && (
+                <div className="px-2 py-1 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border border-yellow-400 rounded text-yellow-200 text-xs font-bold uppercase tracking-wide text-center">
+                  🏆 Classic Game - Satirical Praise
+                </div>
+              )}
+              <div className="text-xs text-orange-200 text-center italic">
+                Reviewer uses exaggerated criticism as comedic performance
+              </div>
+            </div>
+          )}
         </div>
         <div className="flex flex-col items-center justify-center bg-gradient-to-br from-blue-900/40 to-blue-700/30 rounded-xl px-4 py-5 shadow w-full min-h-[120px]">
           <span className="flex items-center gap-2 text-blue-300 text-xl sm:text-2xl font-extrabold font-orbitron uppercase tracking-widest mb-2">
@@ -652,40 +674,41 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
         <span className="text-xs font-orbitron uppercase tracking-widest text-violet-300 mb-1">
           Should You Play This?
         </span>
-        {(sentiment.sentimentSummaryFriendlyVerdict || sentiment.sentimentSummary) && (
+        {(sentimentData.sentimentSummaryFriendlyVerdict || sentimentData.sentimentSummary) && (
           <div className="text-lg sm:text-xl font-orbitron font-bold italic text-violet-100 bg-gradient-to-r from-violet-800/80 to-violet-700/80 rounded-full px-6 py-3 shadow border border-violet-600 text-center">
-            {sentiment.sentimentSummaryFriendlyVerdict || sentiment.sentimentSummary}
+            {sentimentData.sentimentSummaryFriendlyVerdict || sentimentData.sentimentSummary}
           </div>
         )}
       </div>
 
       {/* Game Summary */}
-      {sentiment.reviewSummary && (
+      {sentimentData.reviewSummary && (
         <div className="my-3 mb-6">
           <span className="block text-xs font-orbitron uppercase tracking-widest text-violet-300 mb-1">
             Game Summary
           </span>
           <div className="text-base sm:text-lg font-orbitron font-semibold text-violet-100 bg-violet-900/60 rounded-lg px-4 py-3 shadow border border-violet-700 text-center">
-            {sentiment.reviewSummary}
+            {sentimentData.reviewSummary}
           </div>
         </div>
       )}
 
       {/* Reviewer Take */}
-      {sentiment.sentimentSummary && sentiment.sentimentSummary !== sentiment.reviewSummary && (
-        <div className="mb-3">
-          <span className="block text-xs font-orbitron uppercase tracking-widest text-violet-300 mb-1">
-            Reviewer Take (AI Generated)
-          </span>
-          <div className="text-sm sm:text-base font-orbitron text-violet-200 bg-violet-900/40 rounded-lg px-4 py-2 shadow border border-violet-700 text-center">
-            {sentiment.sentimentSummary}
+      {sentimentData.sentimentSummary &&
+        sentimentData.sentimentSummary !== sentimentData.reviewSummary && (
+          <div className="mb-3">
+            <span className="block text-xs font-orbitron uppercase tracking-widest text-violet-300 mb-1">
+              Reviewer Take (AI Generated)
+            </span>
+            <div className="text-sm sm:text-base font-orbitron text-violet-200 bg-violet-900/40 rounded-lg px-4 py-2 shadow border border-violet-700 text-center">
+              {sentimentData.sentimentSummary}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       {/* Badges */}
       <div className="flex flex-wrap gap-2 justify-center mt-2 mb-6">
-        {sentiment.sentimentSnapshot?.confidenceLevel && (
+        {sentimentSnapshotData?.confidenceLevel && (
           <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-violet-700 to-violet-500 text-violet-100 text-xs font-orbitron font-bold border border-violet-400 uppercase tracking-wide shadow">
             {/* Shield icon for confidence */}
             <svg className="w-4 h-4 text-violet-200 mr-1" fill="none" viewBox="0 0 20 20">
@@ -697,10 +720,10 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                 fillOpacity="0.2"
               />
             </svg>
-            {sentiment.sentimentSnapshot.confidenceLevel} Confidence
+            {sentimentSnapshotData.confidenceLevel} Confidence
           </span>
         )}
-        {sentiment.sentimentSnapshot?.recommendationStrength && (
+        {sentimentSnapshotData?.recommendationStrength && (
           <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-green-700 to-green-500 text-green-100 text-xs font-orbitron font-bold border border-green-400 uppercase tracking-wide shadow">
             {/* Check icon for recommendation */}
             <svg className="w-4 h-4 text-green-200 mr-1" fill="none" viewBox="0 0 20 20">
@@ -712,7 +735,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                 strokeLinejoin="round"
               />
             </svg>
-            {sentiment.sentimentSnapshot.recommendationStrength} Recommendation
+            {sentimentSnapshotData.recommendationStrength} Recommendation
           </span>
         )}
       </div>
@@ -729,9 +752,9 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
       </div>
 
       {/* Pros / Cons Section */}
-      {(sentiment.pros?.length > 0 || sentiment.cons?.length > 0) && (
+      {(sentimentData.pros?.length > 0 || sentimentData.cons?.length > 0) && (
         <div className="flex flex-col sm:flex-row gap-6 justify-center items-stretch w-full mx-auto mb-6">
-          {sentiment.pros?.length > 0 && (
+          {sentimentData.pros?.length > 0 && (
             <div className="flex-1 bg-green-950/60 rounded-xl p-4 shadow flex flex-col h-full">
               <div className="text-green-300 font-orbitron font-bold uppercase text-s mb-2 tracking-widest flex items-center gap-1">
                 <svg className="w-4 h-4 text-green-400" fill="none" viewBox="0 0 20 20">
@@ -746,7 +769,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                 Pros
               </div>
               <ul className="space-y-2">
-                {sentiment.pros.map((pro: string) => (
+                {sentimentData.pros.map((pro: string) => (
                   <li
                     key={pro}
                     className="flex items-start gap-2 bg-green-900/10 border-l-4 border-green-400 rounded px-3 py-2 shadow-sm"
@@ -767,7 +790,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
               </ul>
             </div>
           )}
-          {sentiment.cons?.length > 0 && (
+          {sentimentData.cons?.length > 0 && (
             <div className="flex-1 bg-red-950/60 rounded-xl p-4 shadow flex flex-col h-full">
               <div className="text-red-300 font-orbitron font-bold uppercase text-s mb-2 tracking-widest flex items-center gap-1">
                 <svg className="w-4 h-4 text-red-400" fill="none" viewBox="0 0 20 20">
@@ -782,7 +805,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                 Cons
               </div>
               <ul className="space-y-2">
-                {sentiment.cons.map((con: string) => (
+                {sentimentData.cons.map((con: string) => (
                   <li
                     key={con}
                     className="flex items-start gap-2 bg-red-900/10 border-l-4 border-red-400 rounded px-3 py-2 shadow-sm"
@@ -809,8 +832,8 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
       )}
 
       {/* Detected Biases Section */}
-      {Array.isArray(sentiment.biasDetection?.biasesDetected) &&
-      sentiment.biasDetection.biasesDetected.length > 0 ? (
+      {Array.isArray(biasDetectionData?.biasesDetected) &&
+      biasDetectionData.biasesDetected.length > 0 ? (
         <div>
           <div className="flex items-center gap-2">
             <div className="text-base sm:text-lg font-bold text-yellow-400 font-orbitron uppercase tracking-wide">
@@ -824,9 +847,8 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
             </span>
           </div>
           <div className="text-yellow-200 mb-6">
-            {sentiment.biasDetection.biasesDetected.length} bias
-            {sentiment.biasDetection.biasesDetected.length > 1 ? 'es' : ''} detected, total
-            adjustment:{' '}
+            {biasDetectionData.biasesDetected.length} bias
+            {biasDetectionData.biasesDetected.length > 1 ? 'es' : ''} detected, total adjustment:{' '}
             {totalScoreAdjustment < 0
               ? `score reduced by ${Math.abs(totalScoreAdjustment).toFixed(2)}`
               : `score increased by ${Math.abs(totalScoreAdjustment).toFixed(2)}`}{' '}
@@ -853,59 +875,92 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
           {/* Bias cards grid */}
           <div
             className={`w-full ${
-              sentiment.biasDetection.biasesDetected.length === 1 ? 'lg:flex lg:justify-center' : ''
+              biasDetectionData.biasesDetected.length === 1 ? 'lg:flex lg:justify-center' : ''
             }`}
           >
             <ul
               className={`grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-8 ${
-                sentiment.biasDetection.biasesDetected.length === 1
+                biasDetectionData.biasesDetected.length === 1
                   ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-1 lg:place-items-center'
                   : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-2'
               }`}
             >
-              {sentiment.biasDetection.biasesDetected.map((b: any, i: number) => {
+              {biasDetectionData.biasesDetected.map((b: any, i: number) => {
                 // Gamer-flavored dynamic clue string
                 let clueString = '';
                 const evidenceIsNone =
                   b.evidence?.length === 1 && b.evidence[0] === '(no explicit evidence found)';
+
+                // Show evidence count if we have real evidence
+                const evidenceCount = evidenceIsNone ? 0 : b.evidence?.length || 0;
+
                 if (evidenceIsNone && (!b.detectedIn || b.detectedIn.length === 0)) {
+                  // Use noBiasExplanation if available, otherwise fall back to a generic message
                   clueString =
-                    'No obvious phrases or clues, but our AI still picked up on this bias from the overall vibe.';
+                    biasDetectionData?.noBiasExplanation ||
+                    'Our AI detected this bias pattern from the overall review structure and tone.';
                 } else if (
                   (b.evidence?.length && !evidenceIsNone) ||
                   (b.detectedIn?.length && b.detectedIn[0])
                 ) {
                   if (b.evidence?.length && !evidenceIsNone && b.detectedIn?.length) {
-                    clueString = `Phrases like "${b.evidence.join(', ')}" and the review's ${b.detectedIn.join(', ')} tipped off our AI to possible ${b.name.toLowerCase()}.`;
+                    clueString = `${evidenceCount} evidence phrase${evidenceCount !== 1 ? 's' : ''} like "${b.evidence.join('", "')}" and the review's ${b.detectedIn.join(', ')} tipped off our AI to possible ${b.name.toLowerCase()}.`;
                   } else if (b.evidence?.length && !evidenceIsNone) {
-                    clueString = `Phrases like "${b.evidence.join(', ')}" tipped off our AI to possible ${b.name.toLowerCase()}.`;
+                    clueString = `${evidenceCount} evidence phrase${evidenceCount !== 1 ? 's' : ''} like "${b.evidence.join('", "')}" tipped off our AI to possible ${b.name.toLowerCase()}.`;
                   } else if (b.detectedIn?.length) {
                     clueString = `The review's ${b.detectedIn.join(', ')} tipped off our AI to possible ${b.name.toLowerCase()}.`;
                   }
                 } else {
                   clueString =
-                    'No obvious phrases or clues, but our AI still picked up on this bias from the overall vibe.';
+                    biasDetectionData?.noBiasExplanation ||
+                    'Our AI detected this bias pattern from the overall review structure and tone.';
                 }
+
+                // Check if this bias has interaction effects
+                const interactionEffects =
+                  b.biasInteractionsApplied?.filter((interaction: any) =>
+                    interaction.biases.includes(b.name),
+                  ) || [];
+
                 // Only show summary if it's not redundant with why it matters
                 const showSummary = b.explanation && b.explanation !== b.impactOnExperience;
+
+                // Special handling for sarcasm with 0 influence
+                const isSarcasmWithNoInfluence =
+                  b.name?.toLowerCase().includes('sarcasm') &&
+                  Math.abs(b.adjustedInfluence || 0) < 0.01;
+
                 return (
                   <li
                     key={`${b.name || 'bias'}-${b.severity || 'unknown'}-${b.scoreInfluence ?? '0'}-${i}`}
-                    className={`relative border border-yellow-200 bg-yellow-50 p-4 md:p-6 lg:p-8 shadow-lg flex flex-col gap-4 w-full flex-1 mb-4 rounded-2xl min-w-[320px] mx-auto ${
-                      sentiment.biasDetection.biasesDetected.length === 1
+                    className={`relative border p-4 md:p-6 lg:p-8 shadow-lg flex flex-col gap-4 w-full flex-1 mb-4 rounded-2xl min-w-[320px] mx-auto ${
+                      biasDetectionData.biasesDetected.length === 1
                         ? 'max-w-[480px] lg:max-w-[600px]'
                         : 'max-w-[480px]'
+                    } ${
+                      isSarcasmWithNoInfluence
+                        ? 'border-blue-200 bg-blue-50'
+                        : 'border-yellow-200 bg-yellow-50'
                     }`}
                     style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.08)' }}
                   >
                     <div className="flex items-start justify-between mb-2 gap-2">
                       <div className="flex-1 min-w-0">
-                        <div className="font-orbitron text-lg sm:text-xl font-extrabold uppercase tracking-widest text-yellow-900 mb-1 break-words">
-                          {b.name}
+                        <div
+                          className={`font-orbitron text-lg sm:text-xl font-extrabold uppercase tracking-widest mb-1 break-words ${
+                            isSarcasmWithNoInfluence ? 'text-blue-900' : 'text-yellow-900'
+                          }`}
+                        >
+                          {isSarcasmWithNoInfluence ? 'Sarcastic Tone Detected' : b.name}
                         </div>
+                        {isSarcasmWithNoInfluence && (
+                          <div className="text-sm text-blue-700 font-semibold">
+                            Tone Indicator (No Score Impact)
+                          </div>
+                        )}
                       </div>
                       {/* Bias effect, bold number, right-aligned in a box */}
-                      {typeof b.adjustedInfluence === 'number' && (
+                      {typeof b.adjustedInfluence === 'number' && !isSarcasmWithNoInfluence && (
                         <div className="px-2 sm:px-3 py-1 rounded-lg bg-gray-100 border border-gray-200 flex flex-col items-center shadow-sm flex-shrink-0">
                           <span className="text-[10px] sm:text-[11px] text-gray-500 font-semibold tracking-wide uppercase whitespace-nowrap">
                             Bias Effect
@@ -918,46 +973,128 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                           </span>
                         </div>
                       )}
+                      {isSarcasmWithNoInfluence && (
+                        <div className="px-2 sm:px-3 py-1 rounded-lg bg-blue-100 border border-blue-200 flex flex-col items-center shadow-sm flex-shrink-0">
+                          <span className="text-[10px] sm:text-[11px] text-blue-600 font-semibold tracking-wide uppercase whitespace-nowrap">
+                            Tone Only
+                          </span>
+                          <span className="text-lg sm:text-xl font-mono font-extrabold text-blue-700">
+                            0.00
+                          </span>
+                        </div>
+                      )}
                     </div>
                     {/* Status bar: severity + confidence */}
                     <div className="flex flex-col gap-2 mb-3">
-                      <span className="uppercase font-bold text-xs px-3 py-1 rounded-full bg-violet-200 text-violet-800 tracking-wider shadow-sm w-fit">
+                      <span
+                        className={`uppercase font-bold text-xs px-3 py-1 rounded-full tracking-wider shadow-sm w-fit ${
+                          isSarcasmWithNoInfluence
+                            ? 'bg-blue-200 text-blue-800'
+                            : 'bg-violet-200 text-violet-800'
+                        }`}
+                      >
                         {b.severity}
                       </span>
                       <div className="flex items-center gap-1 flex-1">
-                        <span className="uppercase font-bold text-xs text-violet-800 tracking-wider whitespace-nowrap">
+                        <span
+                          className={`uppercase font-bold text-xs tracking-wider whitespace-nowrap ${
+                            isSarcasmWithNoInfluence ? 'text-blue-800' : 'text-violet-800'
+                          }`}
+                        >
                           Confidence:
                         </span>
                         <div className="flex items-center gap-1 flex-1 min-w-0">
-                          <div className="flex-1 h-3 bg-violet-100 rounded-full overflow-hidden min-w-[40px]">
+                          <div
+                            className={`flex-1 h-3 rounded-full overflow-hidden min-w-[40px] ${
+                              isSarcasmWithNoInfluence ? 'bg-blue-100' : 'bg-violet-100'
+                            }`}
+                          >
                             <div
-                              className="h-3 rounded-full bg-gradient-to-r from-violet-400 to-blue-400 transition-all duration-700"
+                              className={`h-3 rounded-full transition-all duration-700 ${
+                                isSarcasmWithNoInfluence
+                                  ? 'bg-gradient-to-r from-blue-400 to-cyan-400'
+                                  : 'bg-gradient-to-r from-violet-400 to-blue-400'
+                              }`}
                               style={{ width: `${Math.round((b.confidenceScore || 0) * 100)}%` }}
                             />
                           </div>
-                          <span className="text-xs font-mono text-violet-900 whitespace-nowrap flex-shrink-0 ml-1">
+                          <span
+                            className={`text-xs font-mono whitespace-nowrap flex-shrink-0 ml-1 ${
+                              isSarcasmWithNoInfluence ? 'text-blue-900' : 'text-violet-900'
+                            }`}
+                          >
                             {Math.round((b.confidenceScore || 0) * 100)}%
                           </span>
                         </div>
                       </div>
                     </div>
-                    {/* Why this matters - highlight box, blue/violet gradient border for contrast */}
-                    <div className="mb-2 p-3 rounded-xl border-2 border-violet-300 bg-violet-50/80 flex flex-col">
-                      <span className="font-bold text-violet-700 text-base mb-1 uppercase tracking-wide">
-                        Why it matters for gamers
+                    {/* Why this matters - highlight box */}
+                    <div
+                      className={`mb-2 p-3 rounded-xl border-2 flex flex-col ${
+                        isSarcasmWithNoInfluence
+                          ? 'border-blue-300 bg-blue-50/80'
+                          : 'border-violet-300 bg-violet-50/80'
+                      }`}
+                    >
+                      <span
+                        className={`font-bold text-base mb-1 uppercase tracking-wide ${
+                          isSarcasmWithNoInfluence ? 'text-blue-700' : 'text-violet-700'
+                        }`}
+                      >
+                        {isSarcasmWithNoInfluence ? 'What this means' : 'Why it matters for gamers'}
                       </span>
-                      <span className="text-violet-900 text-lg font-bold leading-snug">
-                        {b.impactOnExperience ||
-                          b.explanation ||
-                          'This bias may affect how the review is scored.'}
+                      <span
+                        className={`text-lg font-bold leading-snug ${
+                          isSarcasmWithNoInfluence ? 'text-blue-900' : 'text-violet-900'
+                        }`}
+                      >
+                        {isSarcasmWithNoInfluence
+                          ? "The reviewer uses sarcastic language, but this doesn't affect the score since the sarcasm appears to be occasional rather than the entire review being satirical."
+                          : b.impactOnExperience ||
+                            b.explanation ||
+                            'This bias may affect how the review is scored.'}
                       </span>
                     </div>
-                    {/* What we noticed - gamer flavor */}
-                    <div className="italic text-sm text-blue-900 mb-2">
+                    {/* What we noticed - gamer flavor with evidence count */}
+                    <div
+                      className={`italic text-sm mb-2 ${
+                        isSarcasmWithNoInfluence ? 'text-blue-900' : 'text-blue-900'
+                      }`}
+                    >
                       <span className="font-bold">What tipped off the AI:</span> {clueString}
+                      {evidenceCount > 0 && (
+                        <div
+                          className={`mt-1 text-xs ${
+                            isSarcasmWithNoInfluence ? 'text-blue-800' : 'text-blue-800'
+                          }`}
+                        >
+                          <span className="font-semibold">Evidence found:</span> {evidenceCount}{' '}
+                          phrase{evidenceCount !== 1 ? 's' : ''}
+                        </div>
+                      )}
                     </div>
+
+                    {/* Interaction Effects - only show for actual biases, not sarcasm tone indicators */}
+                    {interactionEffects.length > 0 && !isSarcasmWithNoInfluence && (
+                      <div className="mb-2 p-2 rounded-lg bg-orange-50 border border-orange-200">
+                        <span className="font-bold text-orange-700 text-sm mb-1 block">
+                          Bias Amplification Effects:
+                        </span>
+                        {interactionEffects.map((effect: any, idx: number) => (
+                          <div key={idx} className="text-xs text-orange-800 mb-1">
+                            <span className="font-semibold">
+                              {effect.biases.filter((bias: string) => bias !== b.name).join(', ')}
+                            </span>{' '}
+                            interaction: {effect.multiplier}x multiplier (
+                            {effect.influenceAdded > 0 ? '+' : ''}
+                            {effect.influenceAdded.toFixed(2)} additional influence)
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
                     {/* Summary at the bottom, only if not redundant */}
-                    {showSummary && (
+                    {showSummary && !isSarcasmWithNoInfluence && (
                       <div className="text-base text-yellow-900 italic">{b.explanation}</div>
                     )}
                   </li>
@@ -986,11 +1123,14 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
               />
             </svg>
             <div className="text-xl sm:text-2xl font-bold font-orbitron text-yellow-900 mb-2 text-center">
-              No Noticeable Bias Detected
+              {sentimentData?.satirical
+                ? 'Satirical Review - No Bias Adjustment'
+                : 'No Noticeable Bias Detected'}
             </div>
             <div className="text-base sm:text-lg text-yellow-800 text-center max-w-md">
-              The AI detected no noticeable bias in this review. This review appears balanced and
-              objective, with no significant emotional or contextual influences affecting the score.
+              {biasDetectionData?.noBiasExplanation ||
+                sentimentData?.noBiasExplanationFromLLM ||
+                'The AI detected no noticeable bias in this review. This review appears balanced and objective, with no significant emotional or contextual influences affecting the score.'}
             </div>
           </div>
         </div>

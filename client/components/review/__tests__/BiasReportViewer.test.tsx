@@ -4,14 +4,14 @@ import BiasReportViewer from '../BiasReportViewer';
 import type {
   ReviewSummary,
   BiasDetail,
-  CulturalContext,
+  legacyAndInfluence,
   FullBiasReport,
 } from '@scorelytic/shared';
 
 type BiasReport = {
   summary: ReviewSummary;
   details: BiasDetail[];
-  culturalContext: CulturalContext;
+  legacyAndInfluence: legacyAndInfluence;
   fullReport: FullBiasReport;
 };
 
@@ -27,27 +27,39 @@ const sampleReport: BiasReport = {
     {
       name: 'identity signaling bias',
       severity: 'moderate',
-      scoreImpact: -0.4,
+      adjustedInfluence: -0.4,
+      baseScoreInfluence: -0.4,
+      maxScoreInfluence: -0.4,
       impactOnExperience:
         'Positive for players valuing identity expression; less immersive for others.',
-      description:
+      explanation:
         'Identity themes are foregrounded, which may enhance or detract from immersion depending on player alignment.',
+      confidenceScore: 0.8,
+      detectedIn: ['tone'],
+      reviewerIntent: 'implied' as const,
+      evidence: ['identity themes'],
     },
     {
       name: 'narrative framing bias',
       severity: 'high',
-      scoreImpact: -0.3,
+      adjustedInfluence: -0.3,
+      baseScoreInfluence: -0.3,
+      maxScoreInfluence: -0.3,
       impactOnExperience: 'Story heavily tied to contemporary sociopolitical themes.',
-      description:
+      explanation:
         'Narrative framing aligns with current ideological trends, which may polarize audiences.',
+      confidenceScore: 0.9,
+      detectedIn: ['phrasing'],
+      reviewerIntent: 'explicit' as const,
+      evidence: ['sociopolitical themes'],
     },
   ],
-  culturalContext: {
+  legacyAndInfluence: {
     originalScore: 8.5,
     biasAdjustedScore: 7.1,
     justification:
       'Score adjusted to reflect detected ideological, narrative, or identity-related influences.',
-    audienceReaction: {
+    playerFit: {
       aligned: 'positive',
       neutral: 'mixed',
       opposed: 'negative',
@@ -71,10 +83,10 @@ describe('BiasReportViewer', () => {
     // Toggle details section
     fireEvent.click(screen.getByText('Bias Details'));
     expect(screen.getByText(/identity signaling bias/)).toBeInTheDocument();
-    expect(screen.getByText(/Cultural Context/)).toBeInTheDocument();
+    expect(screen.getByText(/Legacy & Influence/)).toBeInTheDocument();
     expect(screen.getByText(/Full Report/)).toBeInTheDocument();
     // Toggle context section
-    fireEvent.click(screen.getByText('Cultural Context'));
+    fireEvent.click(screen.getByText('Legacy & Influence'));
     expect(screen.getByText(/Original Score/)).toBeInTheDocument();
     // Toggle full report
     fireEvent.click(screen.getByText('Full Report'));

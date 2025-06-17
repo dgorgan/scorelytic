@@ -118,6 +118,7 @@ export const runYouTubePipeline = async (videoId: string, opts: PipelineOptions 
         {
           transcript: transcriptResult.transcript,
           title: context.metadata.title,
+          creatorName: context.metadata.channelTitle,
           model: opts.llmModel,
         },
         context,
@@ -132,15 +133,10 @@ export const runYouTubePipeline = async (videoId: string, opts: PipelineOptions 
     }
     // 6. Flatten result to canonical shape (use context fields)
     const fullBiasScoringOutput = {
-      sentiment: {
-        ...(context.llmResult?.sentiment ?? context.llmResult ?? {}),
-        biasDetection: context.llmResult?.biasDetection ?? {},
-        biasAdjustment: context.llmResult?.biasAdjustment ?? {},
-        sentimentSnapshot: context.llmResult?.sentimentSnapshot ?? {},
-        ...(context.llmResult?.biasDetection?.noBiasExplanation
-          ? { noBiasExplanation: context.llmResult.biasDetection.noBiasExplanation }
-          : {}),
-      },
+      sentiment: context.llmResult?.sentiment ?? {},
+      biasDetection: context.llmResult?.biasDetection ?? {},
+      biasAdjustment: context.llmResult?.biasAdjustment ?? {},
+      sentimentSnapshot: context.llmResult?.sentimentSnapshot ?? {},
     };
     // Upsert: only LLM output in data
     try {
@@ -225,12 +221,10 @@ export const runLLMOnlyPipeline = async (videoId: string, opts: PipelineOptions 
     throw err;
   }
   const fullBiasScoringOutput = {
-    sentiment: {
-      ...(llmResult?.sentiment ?? llmResult ?? {}),
-      biasDetection: llmResult?.biasDetection ?? {},
-      biasAdjustment: llmResult?.biasAdjustment ?? {},
-      sentimentSnapshot: llmResult?.sentimentSnapshot ?? {},
-    },
+    sentiment: llmResult?.sentiment ?? {},
+    biasDetection: llmResult?.biasDetection ?? {},
+    biasAdjustment: llmResult?.biasAdjustment ?? {},
+    sentimentSnapshot: llmResult?.sentimentSnapshot ?? {},
   };
   try {
     await upsertDemoReview(
