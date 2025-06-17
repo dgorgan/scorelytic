@@ -24,13 +24,27 @@ describe('analyzeText', () => {
       reviewSummary: 'A nuanced review.',
       sentimentScore: 5,
       sentimentSummary: 'Mixed',
+      sentimentSummaryFriendlyVerdict: 'Mixed',
       verdict: 'mixed',
     };
     mockCreate.mockResolvedValue({
       choices: [{ message: { content: JSON.stringify(fullMockResult) } }],
     });
     const result = await analyzeText('This is a test.');
-    expect(result).toEqual(fullMockResult);
+    expect(result).toEqual({
+      sentimentScore: 5,
+      verdict: 'mixed',
+      sentimentSummary: 'Mixed',
+      sentimentSummaryFriendlyVerdict: 'Mixed',
+      biasIndicators: ['contrarian bias'],
+      alsoRecommends: ['Game Y'],
+      pros: ['Interesting mechanics'],
+      cons: ['Bugs'],
+      reviewSummary: 'A nuanced review.',
+      legacyAndInfluence: null,
+      noBiasExplanationFromLLM: undefined,
+      satirical: false,
+    });
   });
 
   it('returns fallback result on malformed LLM response', async () => {
@@ -49,6 +63,8 @@ describe('analyzeText', () => {
       cons: [],
       reviewSummary: 'No review summary available.',
       legacyAndInfluence: null,
+      noBiasExplanationFromLLM: undefined,
+      satirical: false,
     });
   });
 
@@ -66,6 +82,8 @@ describe('analyzeText', () => {
       cons: [],
       reviewSummary: 'No review summary available.',
       legacyAndInfluence: null,
+      noBiasExplanationFromLLM: undefined,
+      satirical: false,
     });
   });
 });

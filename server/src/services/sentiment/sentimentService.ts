@@ -788,6 +788,10 @@ export const analyzeText = async (
       for (const field of REQUIRED_FIELDS) {
         if (!(field in parsed)) parsed[field] = getDefaultForField(field);
       }
+      // Remove satirical field if LLM included it - we determine this ourselves
+      if ('satirical' in parsed) {
+        delete parsed.satirical;
+      }
       return parsed;
     } catch (err) {
       const errorObj = err as any;
@@ -986,7 +990,6 @@ export type BiasObject = {
   severity: 'low' | 'moderate' | 'high';
   impactOnExperience: string;
   scoreInfluence: number; // positive or negative
-  explanation: string;
 };
 
 export type BiasAdjustmentResult = {
@@ -1304,7 +1307,7 @@ const checkIfFullySatirical = (
   results: Partial<SentimentResult>[],
   biasIndicators: string[],
 ): boolean => {
-  // Check for sarcasm in bias indicators (optional)
+  // Check for sarcasm in bias indicators
   const hasSarcasm = biasIndicators.some((bias) => bias.toLowerCase().includes('sarcasm'));
 
   // Check for indicators of full satirical review from LLM responses
@@ -1318,35 +1321,35 @@ const checkIfFullySatirical = (
       const verdict = llmResult.verdict?.toLowerCase() || '';
       const noBiasExplanation = llmResult.noBiasExplanationFromLLM?.toLowerCase() || '';
 
-      const satiricalIndicators = [
+      // Combine all text fields for easier searching
+      const allText = `${reviewSummary} ${sentimentSummary} ${verdict} ${noBiasExplanation}`;
+
+      // Look for key satirical patterns
+      const satiricalPatterns = [
         'satirical',
         'satirical review',
-        'satirical critique',
-        'satirical take',
+        'satirical performance',
+        'satirical approach',
+        'satirical and comedic',
+        'comedic performance',
         'comedic intent',
-        'not meant to be taken literally',
-        'exaggerated and comedic',
-        'hyperbolic',
-        'performance',
+        'satirical critique',
+        'employs satirical',
         'entirely satirical',
-        'hyperbolic language',
-        'absurd claims',
-        'humorously critique',
-        'comedic rather than genuine',
+        'satirical criticism',
       ];
 
-      const hasStrongSatiricalIndicators = satiricalIndicators.some(
-        (indicator) =>
-          reviewSummary.includes(indicator) ||
-          sentimentSummary.includes(indicator) ||
-          verdict.includes(indicator) ||
-          noBiasExplanation.includes(indicator),
-      );
+      const foundPatterns = satiricalPatterns.filter((pattern) => allText.includes(pattern));
 
-      // Flag as satirical if either:
-      // 1. Sarcasm detected AND satirical indicators, OR
-      // 2. Strong satirical indicators alone (LLM explicitly identified it)
-      if (hasStrongSatiricalIndicators) return true;
+      // Flag as satirical if:
+      // 1. Has sarcasm bias AND at least one satirical pattern, OR
+      // 2. Has multiple satirical patterns (strong evidence)
+      const shouldBeSatirical =
+        (hasSarcasm && foundPatterns.length > 0) || foundPatterns.length >= 2;
+
+      if (shouldBeSatirical) {
+        return true;
+      }
     }
   }
 

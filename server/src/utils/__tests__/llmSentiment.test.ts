@@ -11,7 +11,7 @@ const fullMockResult = {
   reviewSummary: 'A solid review.',
   sentimentScore: 7,
   sentimentSummary: 'Mixed',
-  summary: 'Mixed',
+  sentimentSummaryFriendlyVerdict: 'Mixed',
   verdict: 'mixed',
 };
 const mockCreate = jest.fn().mockResolvedValue({
@@ -28,7 +28,7 @@ jest.mock('openai', () => ({
   })),
 }));
 
-import { analyzeReviewText } from '@/utils/llmSentiment';
+import { analyzeReviewText } from '../llmSentiment';
 
 jest.mock('@/config/database', () => ({
   supabase: { from: fromMock },
@@ -49,7 +49,20 @@ describe('analyzeReviewText', () => {
     const transcript = 'This is a test transcript.';
     const reviewId = 'test-review-id';
     const result = await analyzeReviewText(transcript, reviewId);
-    expect(result).toEqual(fullMockResult);
+    expect(result).toEqual({
+      alsoRecommends: [],
+      biasIndicators: ['story-driven bias'],
+      cons: ['Too short'],
+      legacyAndInfluence: null,
+      pros: ['Great story'],
+      reviewSummary: 'A solid review.',
+      sentimentScore: 7,
+      sentimentSummary: 'Mixed',
+      sentimentSummaryFriendlyVerdict: 'Mixed',
+      verdict: 'mixed',
+      noBiasExplanationFromLLM: undefined,
+      satirical: false,
+    });
     expect(fromMock).toHaveBeenCalledWith('reviews');
     expect(updateMock).toHaveBeenCalledWith({
       sentimentSummary: JSON.stringify(result),
@@ -67,9 +80,11 @@ describe('analyzeReviewText', () => {
       reviewSummary: 'No review summary available.',
       sentimentScore: 5,
       sentimentSummary: 'Mixed',
-      summary: 'No clear summary detected.',
+      sentimentSummaryFriendlyVerdict: 'Mixed',
       verdict: 'mixed',
       legacyAndInfluence: null,
+      noBiasExplanationFromLLM: undefined,
+      satirical: false,
     });
   });
 
@@ -83,9 +98,11 @@ describe('analyzeReviewText', () => {
       reviewSummary: 'No review summary available.',
       sentimentScore: 5,
       sentimentSummary: 'Mixed',
-      summary: 'No clear summary detected.',
+      sentimentSummaryFriendlyVerdict: 'Mixed',
       verdict: 'mixed',
       legacyAndInfluence: null,
+      noBiasExplanationFromLLM: undefined,
+      satirical: false,
     });
   });
 });
