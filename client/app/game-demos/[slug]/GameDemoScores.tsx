@@ -2,6 +2,8 @@
 import { useState, useMemo } from 'react';
 import * as Tooltip from '@radix-ui/react-tooltip';
 
+// Force rebuild - cache buster v1
+
 // --- BiasMeter component ---
 const clamp = (val: number, min: number, max: number) => Math.max(min, Math.min(max, val));
 
@@ -519,6 +521,14 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
   const satiricalBiases = biasDetectionData?.satiricalBiases || [];
   const hasSatiricalBiases = satiricalBiases.length > 0;
 
+  // Separate biases with actual score impact from tone-only biases
+  const biasesWithImpact = biasesDetected.filter(
+    (b: any) => Math.abs(b.adjustedInfluence || 0) >= 0.01,
+  );
+  const toneOnlyBiases = biasesDetected.filter(
+    (b: any) => Math.abs(b.adjustedInfluence || 0) < 0.01,
+  );
+
   // Subtract adjustedInfluence for each bias (removes inflation, restores deflation)
   const totalScoreAdjustment = biasesDetected.reduce(
     (sum: number, b: any) =>
@@ -839,9 +849,8 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
         </div>
       )}
 
-      {/* Detected Biases Section */}
-      {Array.isArray(biasDetectionData?.biasesDetected) &&
-      biasDetectionData.biasesDetected.length > 0 ? (
+      {/* Detected Biases Section - Only show if there are biases with actual score impact */}
+      {Array.isArray(biasDetectionData?.biasesDetected) && biasesWithImpact.length > 0 ? (
         <div>
           <div className="flex items-center gap-2">
             <div className="text-base sm:text-lg font-bold text-yellow-400 font-orbitron uppercase tracking-wide">
@@ -855,8 +864,8 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
             </span>
           </div>
           <div className="text-yellow-200 mb-6">
-            {biasDetectionData.biasesDetected.length} bias
-            {biasDetectionData.biasesDetected.length > 1 ? 'es' : ''} detected, total adjustment:{' '}
+            {biasesWithImpact.length} bias
+            {biasesWithImpact.length > 1 ? 'es' : ''} detected, total adjustment:{' '}
             {totalScoreAdjustment < 0
               ? `score reduced by ${Math.abs(totalScoreAdjustment).toFixed(2)}`
               : `score increased by ${Math.abs(totalScoreAdjustment).toFixed(2)}`}{' '}
@@ -882,18 +891,16 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
           )}
           {/* Bias cards grid */}
           <div
-            className={`w-full ${
-              biasDetectionData.biasesDetected.length === 1 ? 'lg:flex lg:justify-center' : ''
-            }`}
+            className={`w-full ${biasesWithImpact.length === 1 ? 'lg:flex lg:justify-center' : ''}`}
           >
             <ul
               className={`grid gap-6 md:gap-8 mb-8 ${
-                biasDetectionData.biasesDetected.length === 1
+                biasesWithImpact.length === 1
                   ? 'grid-cols-1 lg:place-items-center'
                   : 'grid-cols-1 lg:grid-cols-2'
               }`}
             >
-              {biasDetectionData.biasesDetected.map((b: any, i: number) => {
+              {biasesWithImpact.map((b: any, i: number) => {
                 // Gamer-flavored dynamic clue string
                 let clueString = '';
                 const evidenceIsNone =
@@ -938,13 +945,16 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                   b.name?.toLowerCase().includes('sarcasm') &&
                   Math.abs(b.adjustedInfluence || 0) < 0.01;
 
+                // Check if this sarcasm also appears in satirical biases for enhanced data
+                const matchingSatirical = satiricalBiases.find((sb: any) =>
+                  sb.name?.toLowerCase().includes('sarcasm'),
+                );
+
                 return (
                   <li
                     key={`${b.name || 'bias'}-${b.severity || 'unknown'}-${b.scoreInfluence ?? '0'}-${i}`}
                     className={`relative border p-4 md:p-6 lg:p-8 shadow-lg flex flex-col gap-4 w-full flex-1 mb-4 rounded-2xl mx-auto ${
-                      biasDetectionData.biasesDetected.length === 1
-                        ? 'md:max-w-[700px]'
-                        : 'max-w-[480px]'
+                      biasesWithImpact.length === 1 ? 'md:max-w-[700px]' : 'max-w-[480px]'
                     } ${
                       isSarcasmWithNoInfluence
                         ? 'border-blue-200 bg-blue-50'
@@ -958,8 +968,9 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                           className={`font-orbitron text-lg sm:text-xl font-extrabold uppercase tracking-widest mb-1 break-words ${
                             isSarcasmWithNoInfluence ? 'text-blue-900' : 'text-yellow-900'
                           }`}
+                          style={{ wordBreak: 'break-word', hyphens: 'auto' }}
                         >
-                          {isSarcasmWithNoInfluence ? 'Sarcastic Tone Detected' : b.name}
+                          {isSarcasmWithNoInfluence ? 'Sarcasm Detected' : b.name}
                         </div>
                         {isSarcasmWithNoInfluence && (
                           <div className="text-sm text-blue-700 font-semibold">
@@ -992,34 +1003,69 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                         </div>
                       )}
                     </div>
-                    {/* Status bar: severity + confidence */}
+                    {/* Status bar: severity + confidence - enhanced for sarcasm */}
                     <div className="flex flex-col gap-2 mb-3">
                       <div className="flex items-center gap-2">
-                        <span className="uppercase font-bold text-xs tracking-wider text-blue-800">
+                        <span
+                          className={`uppercase font-bold text-xs tracking-wider ${
+                            isSarcasmWithNoInfluence ? 'text-blue-800' : 'text-violet-800'
+                          }`}
+                        >
                           Intensity:
                         </span>
-                        <span className="uppercase font-bold text-xs px-3 py-1 rounded-full tracking-wider shadow-sm bg-blue-200 text-blue-800">
-                          {b.severity || 'moderate'}
+                        <span
+                          className={`uppercase font-bold text-xs px-3 py-1 rounded-full tracking-wider shadow-sm ${
+                            isSarcasmWithNoInfluence
+                              ? 'bg-blue-200 text-blue-800'
+                              : 'bg-violet-200 text-violet-800'
+                          }`}
+                        >
+                          {isSarcasmWithNoInfluence
+                            ? matchingSatirical?.severity || b.severity || 'moderate'
+                            : b.severity}
                         </span>
                       </div>
                       <div className="flex items-center gap-1 flex-1">
-                        <span className="uppercase font-bold text-xs tracking-wider whitespace-nowrap text-blue-800">
+                        <span
+                          className={`uppercase font-bold text-xs tracking-wider whitespace-nowrap ${
+                            isSarcasmWithNoInfluence ? 'text-blue-800' : 'text-violet-800'
+                          }`}
+                        >
                           Confidence:
                         </span>
                         <div className="flex items-center gap-1 flex-1 min-w-0">
-                          <div className="flex-1 h-3 rounded-full overflow-hidden min-w-[40px] bg-blue-100">
+                          <div
+                            className={`flex-1 h-3 rounded-full overflow-hidden min-w-[40px] ${
+                              isSarcasmWithNoInfluence ? 'bg-blue-100' : 'bg-violet-100'
+                            }`}
+                          >
                             <div
-                              className="h-3 rounded-full transition-all duration-700 bg-gradient-to-r from-blue-400 to-cyan-400"
-                              style={{ width: `${Math.round((b.confidenceScore || 0.8) * 100)}%` }}
+                              className={`h-3 rounded-full transition-all duration-700 ${
+                                isSarcasmWithNoInfluence
+                                  ? 'bg-gradient-to-r from-blue-400 to-cyan-400'
+                                  : 'bg-gradient-to-r from-violet-400 to-blue-400'
+                              }`}
+                              style={{
+                                width: `${Math.round(((isSarcasmWithNoInfluence ? matchingSatirical?.confidenceScore : b.confidenceScore) || 0) * 100)}%`,
+                              }}
                             />
                           </div>
-                          <span className="text-xs font-mono whitespace-nowrap flex-shrink-0 ml-1 text-blue-900">
-                            {Math.round((b.confidenceScore || 0.8) * 100)}%
+                          <span
+                            className={`text-xs font-mono whitespace-nowrap flex-shrink-0 ml-1 ${
+                              isSarcasmWithNoInfluence ? 'text-blue-900' : 'text-violet-900'
+                            }`}
+                          >
+                            {Math.round(
+                              ((isSarcasmWithNoInfluence
+                                ? matchingSatirical?.confidenceScore
+                                : b.confidenceScore) || 0) * 100,
+                            )}
+                            %
                           </span>
                         </div>
                       </div>
                     </div>
-                    {/* Why this matters - highlight box */}
+                    {/* Why this matters - enhanced for sarcasm */}
                     <div
                       className={`mb-2 p-3 rounded-xl border-2 flex flex-col ${
                         isSarcasmWithNoInfluence
@@ -1040,20 +1086,68 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                         }`}
                       >
                         {isSarcasmWithNoInfluence
-                          ? "The reviewer uses sarcastic language, but this doesn't affect the score since the sarcasm appears to be occasional rather than the entire review being satirical."
-                          : b.impactOnExperience ||
-                            b.explanation ||
-                            'This bias may affect how the review is scored.'}
+                          ? (() => {
+                              // Prefer the longer, more detailed explanation
+                              const biasExplanation =
+                                b.impactOnExperience ||
+                                b.explanation ||
+                                'This bias may affect how the review is scored.';
+                              const satiricalExplanation =
+                                matchingSatirical?.impactOnExperience ||
+                                matchingSatirical?.explanation ||
+                                'Satirical tone provides entertainment value but may obscure genuine critique';
+
+                              // Use the longer one, fallback to satirical if bias explanation is generic
+                              return biasExplanation.length > satiricalExplanation.length
+                                ? biasExplanation
+                                : satiricalExplanation;
+                            })()
+                          : (() => {
+                              // Prefer the longer, more detailed explanation
+                              const biasExplanation =
+                                b.impactOnExperience ||
+                                b.explanation ||
+                                'This bias may affect how the review is scored.';
+                              const satiricalExplanation =
+                                matchingSatirical?.impactOnExperience ||
+                                matchingSatirical?.explanation ||
+                                'Satirical tone provides entertainment value but may obscure genuine critique';
+
+                              // Use the longer one, fallback to satirical if bias explanation is generic
+                              return biasExplanation.length > satiricalExplanation.length
+                                ? biasExplanation
+                                : satiricalExplanation;
+                            })()}
                       </span>
                     </div>
-                    {/* What we noticed - gamer flavor with evidence count */}
+                    {/* Enhanced evidence section for sarcasm */}
+                    {isSarcasmWithNoInfluence &&
+                      matchingSatirical?.evidence &&
+                      matchingSatirical.evidence.length > 0 && (
+                        <div className="mb-2">
+                          <div className="text-sm font-semibold text-blue-800 mb-2">
+                            Evidence Found:
+                          </div>
+                          <ul className="list-disc list-inside text-sm text-blue-700 space-y-1">
+                            {matchingSatirical.evidence.map((evidence: string, idx: number) => (
+                              <li key={idx} className="capitalize">
+                                {evidence}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    {/* What we noticed - enhanced for sarcasm */}
                     <div
                       className={`italic text-sm mb-2 ${
                         isSarcasmWithNoInfluence ? 'text-blue-900' : 'text-blue-900'
                       }`}
                     >
-                      <span className="font-bold">What tipped off the AI:</span> {clueString}
-                      {evidenceCount > 0 && (
+                      <span className="font-bold">What tipped off the AI:</span>{' '}
+                      {isSarcasmWithNoInfluence
+                        ? `${evidenceCount} evidence phrase${evidenceCount !== 1 ? 's' : ''} like "${b.evidence && b.evidence.length > 0 && b.evidence[0] !== '(no explicit evidence found)' ? b.evidence.join('", "') : 'innovative'}" and the review's ${(b.detectedIn || ['phrasing', 'tone']).join(', ')} tipped off our AI to possible ${b.name.toLowerCase()}.`
+                        : clueString}
+                      {evidenceCount > 0 && !isSarcasmWithNoInfluence && (
                         <div
                           className={`mt-1 text-xs ${
                             isSarcasmWithNoInfluence ? 'text-blue-800' : 'text-blue-800'
@@ -1084,7 +1178,15 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                       </div>
                     )}
 
-                    {/* Summary at the bottom, only if not redundant */}
+                    {/* Enhanced explanation for sarcasm */}
+                    {isSarcasmWithNoInfluence && (
+                      <div className="text-base text-blue-900 italic border-t border-blue-200 pt-3">
+                        {matchingSatirical?.explanation ||
+                          "Sarcastic/satirical elements detected in review - these add entertainment value but don't affect score assessment"}
+                      </div>
+                    )}
+
+                    {/* Summary at the bottom, only if not redundant and not sarcasm */}
                     {showSummary && !isSarcasmWithNoInfluence && (
                       <div className="text-base text-yellow-900 italic">{b.explanation}</div>
                     )}
@@ -1147,8 +1249,10 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
         </div>
       )}
 
-      {/* Satirical Bias Section - Show even if no regular biases detected */}
-      {hasSatiricalBiases && (
+      {/* Satirical Bias Section - Show if there are satirical elements OR tone-only biases */}
+      {(satiricalBiases.filter((sb: any) => !sb.name?.toLowerCase().includes('sarcasm')).length >
+        0 ||
+        toneOnlyBiases.length > 0) && (
         <div className="mt-8">
           <div className="flex items-center gap-2">
             <div className="text-base sm:text-lg font-bold text-blue-400 font-orbitron uppercase tracking-wide">
@@ -1162,97 +1266,290 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
             </span>
           </div>
           <div className="text-blue-200 mb-6">
-            {satiricalBiases.length} satirical element{satiricalBiases.length > 1 ? 's' : ''}{' '}
+            {satiricalBiases.filter((sb: any) => !sb.name?.toLowerCase().includes('sarcasm'))
+              .length + toneOnlyBiases.length}{' '}
+            satirical element
+            {satiricalBiases.filter((sb: any) => !sb.name?.toLowerCase().includes('sarcasm'))
+              .length +
+              toneOnlyBiases.length !==
+            1
+              ? 's'
+              : ''}{' '}
             detected - these are shown for entertainment value and do <strong>not</strong> affect
             the score
           </div>
 
           {/* Satirical bias cards grid */}
           <div
-            className={`w-full ${satiricalBiases.length === 1 ? 'lg:flex lg:justify-center' : ''}`}
+            className={`w-full ${satiricalBiases.filter((sb: any) => !sb.name?.toLowerCase().includes('sarcasm')).length + toneOnlyBiases.length === 1 ? 'lg:flex lg:justify-center' : ''}`}
           >
             <ul
               className={`grid gap-6 md:gap-8 mb-8 ${
-                satiricalBiases.length === 1
+                satiricalBiases.filter((sb: any) => !sb.name?.toLowerCase().includes('sarcasm'))
+                  .length +
+                  toneOnlyBiases.length ===
+                1
                   ? 'grid-cols-1 lg:place-items-center'
                   : 'grid-cols-1 lg:grid-cols-2'
               }`}
             >
-              {satiricalBiases.map((b: any, i: number) => (
-                <li
-                  key={`satirical-${b.name || 'bias'}-${i}`}
-                  className={`relative border-2 border-blue-300 bg-blue-50/90 p-4 md:p-6 lg:p-8 shadow-lg flex flex-col gap-4 w-full rounded-2xl mx-auto ${
-                    satiricalBiases.length === 1 ? 'md:max-w-[700px]' : 'max-w-[480px]'
-                  }`}
-                  style={{ boxShadow: '0 4px 24px 0 rgba(59, 130, 246, 0.15)' }}
-                >
-                  {/* Header with name and "No Score Impact" badge */}
-                  <div className="flex items-center justify-between">
-                    <div className="text-xl sm:text-2xl font-bold text-blue-900 font-orbitron capitalize">
-                      {b.name?.replace(/bias$/, '').trim() || 'Satirical Element'}
-                    </div>
-                    <div className="px-3 py-1 bg-blue-200 text-blue-800 text-xs font-bold rounded-full border border-blue-300">
-                      NO SCORE IMPACT
-                    </div>
-                  </div>
+              {/* Tone-only biases from regular detection (like sarcasm with 0 influence) */}
+              {toneOnlyBiases.map((b: any, i: number) => {
+                // For sarcasm, check if we have enhanced data from satirical detection
+                const isSarcasm = b.name?.toLowerCase().includes('sarcasm');
+                const matchingSatirical = isSarcasm
+                  ? satiricalBiases.find((sb: any) => sb.name?.toLowerCase().includes('sarcasm'))
+                  : null;
 
-                  {/* Confidence and severity */}
-                  <div className="flex flex-col gap-2 mb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="uppercase font-bold text-xs tracking-wider text-blue-800">
-                        Intensity:
-                      </span>
-                      <span className="uppercase font-bold text-xs px-3 py-1 rounded-full tracking-wider shadow-sm bg-blue-200 text-blue-800">
-                        {b.severity || 'moderate'}
-                      </span>
+                return (
+                  <li
+                    key={`tone-only-${b.name || 'bias'}-${i}`}
+                    className={`relative border-2 border-blue-300 bg-blue-50/90 p-4 md:p-6 lg:p-8 shadow-lg flex flex-col gap-4 w-full rounded-2xl mx-auto ${
+                      satiricalBiases.filter(
+                        (sb: any) => !sb.name?.toLowerCase().includes('sarcasm'),
+                      ).length +
+                        toneOnlyBiases.length ===
+                      1
+                        ? 'md:max-w-[700px]'
+                        : 'max-w-[480px]'
+                    }`}
+                    style={{ boxShadow: '0 4px 24px 0 rgba(59, 130, 246, 0.15)' }}
+                  >
+                    {/* Header with name and "No Score Impact" badge */}
+                    <div className="flex items-center justify-between">
+                      <div className="text-xl sm:text-2xl font-bold text-blue-900 font-orbitron capitalize">
+                        {isSarcasm ? 'Sarcasm Detected' : b.name}
+                      </div>
+                      <div className="px-3 py-1 bg-blue-200 text-blue-800 text-xs font-bold rounded-full border border-blue-300">
+                        NO SCORE IMPACT
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1 flex-1">
-                      <span className="uppercase font-bold text-xs tracking-wider whitespace-nowrap text-blue-800">
-                        Confidence:
-                      </span>
-                      <div className="flex items-center gap-1 flex-1 min-w-0">
-                        <div className="flex-1 h-3 rounded-full overflow-hidden min-w-[40px] bg-blue-100">
-                          <div
-                            className="h-3 rounded-full transition-all duration-700 bg-gradient-to-r from-blue-400 to-cyan-400"
-                            style={{ width: `${Math.round((b.confidenceScore || 0.8) * 100)}%` }}
-                          />
-                        </div>
-                        <span className="text-xs font-mono whitespace-nowrap flex-shrink-0 ml-1 text-blue-900">
-                          {Math.round((b.confidenceScore || 0.8) * 100)}%
+
+                    {/* Confidence and severity - enhanced for sarcasm */}
+                    <div className="flex flex-col gap-2 mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="uppercase font-bold text-xs tracking-wider text-blue-800">
+                          Intensity:
+                        </span>
+                        <span className="uppercase font-bold text-xs px-3 py-1 rounded-full tracking-wider shadow-sm bg-blue-200 text-blue-800">
+                          {isSarcasm
+                            ? matchingSatirical?.severity || b.severity || 'moderate'
+                            : b.severity || 'moderate'}
                         </span>
                       </div>
-                    </div>
-                  </div>
-
-                  {/* Impact description */}
-                  <div className="text-base text-blue-800 bg-blue-100 rounded-lg p-3 italic">
-                    {b.impactOnExperience ||
-                      'Satirical elements add entertainment value to the review'}
-                  </div>
-
-                  {/* Evidence */}
-                  {b.evidence && b.evidence.length > 0 && (
-                    <div>
-                      <div className="text-sm font-semibold text-blue-800 mb-2">
-                        Evidence Found:
+                      <div className="flex items-center gap-1 flex-1">
+                        <span className="uppercase font-bold text-xs tracking-wider whitespace-nowrap text-blue-800">
+                          Confidence:
+                        </span>
+                        <div className="flex items-center gap-1 flex-1 min-w-0">
+                          <div className="flex-1 h-3 rounded-full overflow-hidden min-w-[40px] bg-blue-100">
+                            <div
+                              className="h-3 rounded-full transition-all duration-700 bg-gradient-to-r from-blue-400 to-cyan-400"
+                              style={{
+                                width: `${Math.round((isSarcasm ? matchingSatirical?.confidenceScore || b.confidenceScore || 0.7 : b.confidenceScore || 0.7) * 100)}%`,
+                              }}
+                            />
+                          </div>
+                          <span className="text-xs font-mono whitespace-nowrap flex-shrink-0 ml-1 text-blue-900">
+                            {Math.round(
+                              (isSarcasm
+                                ? matchingSatirical?.confidenceScore || b.confidenceScore || 0.7
+                                : b.confidenceScore || 0.7) * 100,
+                            )}
+                            %
+                          </span>
+                        </div>
                       </div>
-                      <ul className="list-disc list-inside text-sm text-blue-700 space-y-1">
-                        {b.evidence.map((evidence: string, idx: number) => (
-                          <li key={idx} className="capitalize">
-                            {evidence}
-                          </li>
-                        ))}
-                      </ul>
                     </div>
-                  )}
 
-                  {/* Explanation */}
-                  <div className="text-base text-blue-900 italic border-t border-blue-200 pt-3">
-                    {b.explanation ||
-                      'This satirical element was detected but does not affect the final score calculation.'}
-                  </div>
-                </li>
-              ))}
+                    {/* What this means - enhanced for sarcasm */}
+                    <div className="mb-2 p-3 rounded-xl border-2 border-blue-300 bg-blue-50/80 flex flex-col">
+                      <span className="font-bold text-base mb-1 uppercase tracking-wide text-blue-700">
+                        What this means
+                      </span>
+                      <span className="text-lg font-bold leading-snug text-blue-900">
+                        {isSarcasm
+                          ? (() => {
+                              // Prefer the longer, more detailed explanation
+                              const biasExplanation =
+                                b.impactOnExperience ||
+                                b.explanation ||
+                                'This bias may affect how the review is scored.';
+                              const satiricalExplanation =
+                                matchingSatirical?.impactOnExperience ||
+                                matchingSatirical?.explanation ||
+                                'Satirical tone provides entertainment value but may obscure genuine critique';
+
+                              // Use the longer one, fallback to satirical if bias explanation is generic
+                              return biasExplanation.length > satiricalExplanation.length
+                                ? biasExplanation
+                                : satiricalExplanation;
+                            })()
+                          : b.impactOnExperience ||
+                            b.explanation ||
+                            'Tone indicator adds context but does not affect the score'}
+                      </span>
+                    </div>
+
+                    {/* Enhanced evidence section for sarcasm */}
+                    {isSarcasm &&
+                      matchingSatirical?.evidence &&
+                      matchingSatirical.evidence.length > 0 && (
+                        <div className="mb-2">
+                          <div className="text-sm font-semibold text-blue-800 mb-2">
+                            Evidence Found:
+                          </div>
+                          <ul className="list-disc list-inside text-sm text-blue-700 space-y-1">
+                            {matchingSatirical.evidence.map((evidence: string, idx: number) => (
+                              <li key={idx} className="capitalize">
+                                {evidence}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                    {/* Regular evidence for non-sarcasm */}
+                    {!isSarcasm &&
+                      b.evidence &&
+                      b.evidence.length > 0 &&
+                      b.evidence[0] !== '(no explicit evidence found)' && (
+                        <div className="mb-2">
+                          <div className="text-sm font-semibold text-blue-800 mb-2">
+                            Evidence Found:
+                          </div>
+                          <ul className="list-disc list-inside text-sm text-blue-700 space-y-1">
+                            {b.evidence.map((evidence: string, idx: number) => (
+                              <li key={idx} className="capitalize">
+                                {evidence}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                    {/* What tipped off AI - enhanced for sarcasm */}
+                    <div className="italic text-sm text-blue-900">
+                      <span className="font-bold">What tipped off the AI:</span>{' '}
+                      {isSarcasm
+                        ? (() => {
+                            const evidenceCount =
+                              b.evidence &&
+                              b.evidence.length > 0 &&
+                              b.evidence[0] !== '(no explicit evidence found)'
+                                ? b.evidence.length
+                                : 0;
+                            if (evidenceCount > 0) {
+                              return `${evidenceCount} evidence phrase${evidenceCount !== 1 ? 's' : ''} like "${b.evidence.join('", "')}" and the review's ${(b.detectedIn || ['phrasing', 'tone']).join(', ')} tipped off our AI to possible ${b.name.toLowerCase()}.`;
+                            } else {
+                              return `The review's ${(b.detectedIn || ['tone', 'phrasing']).join(', ')} tipped off our AI to possible ${b.name.toLowerCase()}.`;
+                            }
+                          })()
+                        : b.evidence &&
+                            b.evidence.length > 0 &&
+                            b.evidence[0] !== '(no explicit evidence found)'
+                          ? `Evidence phrases like "${b.evidence.join('", "')}" and the review's ${(b.detectedIn || ['tone']).join(', ')} tipped off our AI to possible ${b.name.toLowerCase()}.`
+                          : `The review's ${(b.detectedIn || ['tone', 'phrasing']).join(', ')} tipped off our AI to possible ${b.name.toLowerCase()}.`}
+                    </div>
+
+                    {/* Enhanced explanation for sarcasm */}
+                    {isSarcasm && (
+                      <div className="text-base text-blue-900 italic border-t border-blue-200 pt-3">
+                        {matchingSatirical?.explanation ||
+                          b.explanation ||
+                          "Sarcastic/satirical elements detected in review - these add entertainment value but don't affect score assessment"}
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+
+              {/* Regular satirical biases (excluding sarcasm duplicates) */}
+              {satiricalBiases
+                .filter((sb: any) => !sb.name?.toLowerCase().includes('sarcasm'))
+                .map((b: any, i: number) => (
+                  <li
+                    key={`satirical-${b.name || 'bias'}-${i}`}
+                    className={`relative border-2 border-blue-300 bg-blue-50/90 p-4 md:p-6 lg:p-8 shadow-lg flex flex-col gap-4 w-full rounded-2xl mx-auto ${
+                      satiricalBiases.filter(
+                        (sb: any) => !sb.name?.toLowerCase().includes('sarcasm'),
+                      ).length +
+                        toneOnlyBiases.length ===
+                      1
+                        ? 'md:max-w-[700px]'
+                        : 'max-w-[480px]'
+                    }`}
+                    style={{ boxShadow: '0 4px 24px 0 rgba(59, 130, 246, 0.15)' }}
+                  >
+                    {/* Header with name and "No Score Impact" badge */}
+                    <div className="flex items-center justify-between">
+                      <div className="text-xl sm:text-2xl font-bold text-blue-900 font-orbitron capitalize">
+                        {b.name?.replace(/bias$/, '').trim() || 'Satirical Element'}
+                      </div>
+                      <div className="px-3 py-1 bg-blue-200 text-blue-800 text-xs font-bold rounded-full border border-blue-300">
+                        NO SCORE IMPACT
+                      </div>
+                    </div>
+
+                    {/* Confidence and severity */}
+                    <div className="flex flex-col gap-2 mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="uppercase font-bold text-xs tracking-wider text-blue-800">
+                          Intensity:
+                        </span>
+                        <span className="uppercase font-bold text-xs px-3 py-1 rounded-full tracking-wider shadow-sm bg-blue-200 text-blue-800">
+                          {b.severity || 'moderate'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 flex-1">
+                        <span className="uppercase font-bold text-xs tracking-wider whitespace-nowrap text-blue-800">
+                          Confidence:
+                        </span>
+                        <div className="flex items-center gap-1 flex-1 min-w-0">
+                          <div className="flex-1 h-3 rounded-full overflow-hidden min-w-[40px] bg-blue-100">
+                            <div
+                              className="h-3 rounded-full transition-all duration-700 bg-gradient-to-r from-blue-400 to-cyan-400"
+                              style={{
+                                width: `${Math.round((b.confidenceScore || 0.8) * 100)}%`,
+                              }}
+                            />
+                          </div>
+                          <span className="text-xs font-mono whitespace-nowrap flex-shrink-0 ml-1 text-blue-900">
+                            {Math.round((b.confidenceScore || 0.8) * 100)}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Impact description */}
+                    <div className="text-base text-blue-800 bg-blue-100 rounded-lg p-3 italic">
+                      {b.impactOnExperience ||
+                        'Satirical elements add entertainment value to the review'}
+                    </div>
+
+                    {/* Evidence */}
+                    {b.evidence && b.evidence.length > 0 && (
+                      <div>
+                        <div className="text-sm font-semibold text-blue-800 mb-2">
+                          Evidence Found:
+                        </div>
+                        <ul className="list-disc list-inside text-sm text-blue-700 space-y-1">
+                          {b.evidence.map((evidence: string, idx: number) => (
+                            <li key={idx} className="capitalize">
+                              {evidence}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Explanation */}
+                    <div className="text-base text-blue-900 italic border-t border-blue-200 pt-3">
+                      {b.explanation ||
+                        'This satirical element was detected but does not affect the final score calculation.'}
+                    </div>
+                  </li>
+                ))}
             </ul>
           </div>
         </div>

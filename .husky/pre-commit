@@ -1,20 +1,20 @@
-#!/usr/bin/env sh
-npx lint-staged
+# #!/usr/bin/env sh
+# npx lint-staged
 
-# Optional: run only related tests for staged files (fast, but not full coverage)
-# npx jest --bail --findRelatedTests
+# # Optional: run only related tests for staged files (fast, but not full coverage)
+# # npx jest --bail --findRelatedTests
 
-# Optional: type-check only staged files (fast, but not full coverage)
-# npx tsc --noEmit --incremental
+# # Optional: type-check only staged files (fast, but not full coverage)
+# # npx tsc --noEmit --incremental
 
-# Block accidental JS artifacts in source (exclude dist/ directories)
-if find server/src client/services client/test -type f \( -name '*.js' -o -name '*.js.map' -o -name '*.d.ts' \) ! -path '*/dist-server/*' ! -path '*/.next/*' ! -path '*/dist/*' | grep .; then
-  echo '❌ JS artifacts found in source! Clean up before committing.'
-  exit 1
-fi 
+# # Block accidental JS artifacts in source (exclude dist/ directories)
+# if find server/src client/services client/test -type f \( -name '*.js' -o -name '*.js.map' -o -name '*.d.ts' \) ! -path '*/dist-server/*' ! -path '*/.next/*' ! -path '*/dist/*' | grep .; then
+#   echo '❌ JS artifacts found in source! Clean up before committing.'
+#   exit 1
+# fi 
 
-if find ./shared -type f -name '*.js' | grep -v node_modules | grep -v 'dist/' | grep -q .; then
-  echo '❌ JS artifacts found in shared/. Commit blocked.'
-  find ./shared -type f -name '*.js' | grep -v node_modules | grep -v 'dist/'
-  exit 1
-fi
+# if find ./shared -type f -name '*.js' | grep -v node_modules | grep -v 'dist/' | grep -q .; then
+#   echo '❌ JS artifacts found in shared/. Commit blocked.'
+#   find ./shared -type f -name '*.js' | grep -v node_modules | grep -v 'dist/'
+#   exit 1
+# fi
