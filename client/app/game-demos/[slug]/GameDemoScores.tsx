@@ -830,7 +830,14 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                   >
                     <span className="mt-0.5 text-red-400">
                       <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
+                        <circle
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          fill="none"
+                        />
                         <path
                           d="M12 8v4"
                           stroke="currentColor"
@@ -853,17 +860,17 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
       {Array.isArray(biasDetectionData?.biasesDetected) && biasesWithImpact.length > 0 ? (
         <div>
           <div className="flex items-center gap-2">
-            <div className="text-base sm:text-lg font-bold text-yellow-400 font-orbitron uppercase tracking-wide">
+            <div className="text-base sm:text-lg font-bold text-amber-400 font-orbitron uppercase tracking-wide">
               Detected Biases
             </div>
             <span
-              className="cursor-pointer underline text-yellow-300"
+              className="cursor-pointer underline text-amber-300"
               onClick={() => setShowBiasInfo(true)}
             >
               What is this?
             </span>
           </div>
-          <div className="text-yellow-200 mb-6">
+          <div className="text-amber-200 mb-6">
             {biasesWithImpact.length} bias
             {biasesWithImpact.length > 1 ? 'es' : ''} detected, total adjustment:{' '}
             {totalScoreAdjustment < 0
@@ -957,25 +964,29 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                       biasesWithImpact.length === 1 ? 'md:max-w-[700px]' : 'max-w-[480px]'
                     } ${
                       isSarcasmWithNoInfluence
-                        ? 'border-blue-200 bg-blue-50'
-                        : 'border-yellow-200 bg-yellow-50'
+                        ? 'border-blue-300 bg-blue-50/90'
+                        : 'border-amber-300 bg-gradient-to-br from-amber-50/90 to-orange-50/80'
                     }`}
-                    style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.08)' }}
+                    style={{
+                      boxShadow: isSarcasmWithNoInfluence
+                        ? '0 4px 24px 0 rgba(59, 130, 246, 0.15)'
+                        : '0 4px 24px 0 rgba(245, 158, 11, 0.15)',
+                    }}
                   >
                     <div className="flex items-start justify-between mb-2 gap-2">
                       <div className="flex-1 min-w-0">
                         <div
                           className={`font-orbitron font-extrabold uppercase tracking-wide mb-1 leading-tight ${
-                            isSarcasmWithNoInfluence ? 'text-blue-900' : 'text-yellow-900'
+                            isSarcasmWithNoInfluence ? 'text-blue-900' : 'text-amber-900'
                           } ${
                             // Dynamic font sizing based on text length
                             (isSarcasmWithNoInfluence ? 'Sarcasm Detected' : b.name || '').length >
                             15
-                              ? 'text-sm sm:text-base md:text-lg tracking-normal'
+                              ? 'text-lg sm:text-2xl tracking-normal'
                               : (isSarcasmWithNoInfluence ? 'Sarcasm Detected' : b.name || '')
                                     .length > 10
-                                ? 'text-base sm:text-lg md:text-xl tracking-wide'
-                                : 'text-lg sm:text-xl md:text-2xl tracking-widest'
+                                ? 'text-lg sm:text-xl tracking-wide'
+                                : 'text-lg sm:text-xl tracking-widest'
                           }`}
                           style={{
                             wordBreak: 'normal',
@@ -986,19 +997,19 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                           {isSarcasmWithNoInfluence ? 'Sarcasm Detected' : b.name}
                         </div>
                         {isSarcasmWithNoInfluence && (
-                          <div className="text-sm text-blue-700 font-semibold">
+                          <div className="text-blue-700 font-semibold">
                             Tone Indicator (No Score Impact)
                           </div>
                         )}
                       </div>
-                      {/* Bias effect, bold number, right-aligned in a box */}
+                      {/* Bias effect, bold number, right-aligned in a box - made more compact */}
                       {typeof b.adjustedInfluence === 'number' && !isSarcasmWithNoInfluence && (
-                        <div className="px-2 sm:px-3 py-1 rounded-lg bg-gray-100 border border-gray-200 flex flex-col items-center shadow-sm flex-shrink-0">
-                          <span className="text-[10px] sm:text-[11px] text-gray-500 font-semibold tracking-wide uppercase whitespace-nowrap">
+                        <div className="px-2 py-1 rounded-lg bg-gradient-to-br from-amber-100 to-orange-100 border border-amber-300 flex flex-col items-center shadow-sm flex-shrink-0">
+                          <span className="text-[9px] sm:text-[10px] text-amber-700 font-bold tracking-wide uppercase whitespace-nowrap leading-tight">
                             Bias Effect
                           </span>
                           <span
-                            className={`text-lg sm:text-xl font-mono font-extrabold ${b.adjustedInfluence > 0 ? 'text-green-700' : b.adjustedInfluence < 0 ? 'text-red-700' : 'text-gray-700'}`}
+                            className={`text-base sm:text-lg font-mono font-extrabold leading-tight ${b.adjustedInfluence > 0 ? 'text-emerald-700' : b.adjustedInfluence < 0 ? 'text-red-700' : 'text-amber-800'}`}
                           >
                             {b.adjustedInfluence > 0 ? '+' : ''}
                             {b.adjustedInfluence?.toFixed(2)}
@@ -1006,7 +1017,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                         </div>
                       )}
                       {isSarcasmWithNoInfluence && (
-                        <div className="px-2 sm:px-3 py-1 rounded-lg bg-blue-100 border border-blue-200 flex flex-col items-center shadow-sm flex-shrink-0">
+                        <div className="px-3 py-1 rounded-lg bg-blue-100 border border-blue-200 flex flex-col items-center shadow-sm flex-shrink-0">
                           <span className="text-[10px] sm:text-[11px] text-blue-600 font-semibold tracking-wide uppercase whitespace-nowrap">
                             Tone Only
                           </span>
@@ -1021,7 +1032,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                       <div className="flex items-center gap-2">
                         <span
                           className={`uppercase font-bold text-xs tracking-wider ${
-                            isSarcasmWithNoInfluence ? 'text-blue-800' : 'text-violet-800'
+                            isSarcasmWithNoInfluence ? 'text-blue-800' : 'text-amber-800'
                           }`}
                         >
                           Intensity:
@@ -1030,7 +1041,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                           className={`uppercase font-bold text-xs px-3 py-1 rounded-full tracking-wider shadow-sm ${
                             isSarcasmWithNoInfluence
                               ? 'bg-blue-200 text-blue-800'
-                              : 'bg-violet-200 text-violet-800'
+                              : 'bg-gradient-to-r from-amber-200 to-orange-200 text-amber-800 border border-amber-300'
                           }`}
                         >
                           {isSarcasmWithNoInfluence
@@ -1041,7 +1052,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                       <div className="flex items-center gap-1 flex-1">
                         <span
                           className={`uppercase font-bold text-xs tracking-wider whitespace-nowrap ${
-                            isSarcasmWithNoInfluence ? 'text-blue-800' : 'text-violet-800'
+                            isSarcasmWithNoInfluence ? 'text-blue-800' : 'text-amber-800'
                           }`}
                         >
                           Confidence:
@@ -1049,14 +1060,14 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                         <div className="flex items-center gap-1 flex-1 min-w-0">
                           <div
                             className={`flex-1 h-3 rounded-full overflow-hidden min-w-[40px] ${
-                              isSarcasmWithNoInfluence ? 'bg-blue-100' : 'bg-violet-100'
+                              isSarcasmWithNoInfluence ? 'bg-blue-100' : 'bg-amber-100'
                             }`}
                           >
                             <div
                               className={`h-3 rounded-full transition-all duration-700 ${
                                 isSarcasmWithNoInfluence
                                   ? 'bg-gradient-to-r from-blue-400 to-cyan-400'
-                                  : 'bg-gradient-to-r from-violet-400 to-blue-400'
+                                  : 'bg-gradient-to-r from-amber-400 to-orange-400'
                               }`}
                               style={{
                                 width: `${Math.round(((isSarcasmWithNoInfluence ? matchingSatirical?.confidenceScore : b.confidenceScore) || 0) * 100)}%`,
@@ -1065,7 +1076,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                           </div>
                           <span
                             className={`text-xs font-mono whitespace-nowrap flex-shrink-0 ml-1 ${
-                              isSarcasmWithNoInfluence ? 'text-blue-900' : 'text-violet-900'
+                              isSarcasmWithNoInfluence ? 'text-blue-900' : 'text-amber-900'
                             }`}
                           >
                             {Math.round(
@@ -1083,19 +1094,19 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                       className={`mb-2 p-3 rounded-xl border-2 flex flex-col ${
                         isSarcasmWithNoInfluence
                           ? 'border-blue-300 bg-blue-50/80'
-                          : 'border-violet-300 bg-violet-50/80'
+                          : 'border-amber-300 bg-gradient-to-br from-amber-50/80 to-orange-50/60'
                       }`}
                     >
                       <span
                         className={`font-bold text-base mb-1 uppercase tracking-wide ${
-                          isSarcasmWithNoInfluence ? 'text-blue-700' : 'text-violet-700'
+                          isSarcasmWithNoInfluence ? 'text-blue-700' : 'text-amber-700'
                         }`}
                       >
                         {isSarcasmWithNoInfluence ? 'What this means' : 'Why it matters for gamers'}
                       </span>
                       <span
                         className={`text-lg font-bold leading-snug ${
-                          isSarcasmWithNoInfluence ? 'text-blue-900' : 'text-violet-900'
+                          isSarcasmWithNoInfluence ? 'text-blue-900' : 'text-amber-900'
                         }`}
                       >
                         {isSarcasmWithNoInfluence
@@ -1153,7 +1164,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                     {/* What we noticed - enhanced for sarcasm */}
                     <div
                       className={`italic text-sm mb-2 ${
-                        isSarcasmWithNoInfluence ? 'text-blue-900' : 'text-blue-900'
+                        isSarcasmWithNoInfluence ? 'text-blue-900' : 'text-amber-900'
                       }`}
                     >
                       <span className="font-bold">What tipped off the AI:</span>{' '}
@@ -1163,7 +1174,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                       {evidenceCount > 0 && !isSarcasmWithNoInfluence && (
                         <div
                           className={`mt-1 text-xs ${
-                            isSarcasmWithNoInfluence ? 'text-blue-800' : 'text-blue-800'
+                            isSarcasmWithNoInfluence ? 'text-blue-800' : 'text-amber-800'
                           }`}
                         >
                           <span className="font-semibold">Evidence found:</span> {evidenceCount}{' '}
@@ -1201,7 +1212,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
 
                     {/* Summary at the bottom, only if not redundant and not sarcasm */}
                     {showSummary && !isSarcasmWithNoInfluence && (
-                      <div className="text-base text-yellow-900 italic">{b.explanation}</div>
+                      <div className="text-base text-amber-900 italic">{b.explanation}</div>
                     )}
                   </li>
                 );
@@ -1212,22 +1223,22 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
       ) : (
         <div>
           <div className="flex items-center gap-2">
-            <div className="text-base sm:text-lg font-bold text-yellow-400 font-orbitron uppercase tracking-wide">
+            <div className="text-base sm:text-lg font-bold text-amber-400 font-orbitron uppercase tracking-wide">
               No Significant Emotional Biases Detected
             </div>
             <span
-              className="cursor-pointer underline text-yellow-300"
+              className="cursor-pointer underline text-amber-300"
               onClick={() => setShowNoBiasInfo(true)}
             >
               What do these scores mean?
             </span>
           </div>
-          <div className="text-yellow-200 mb-6">
+          <div className="text-amber-200 mb-6">
             The AI detected no noticeable bias in this review - it appears balanced and objective
           </div>
           <div className="w-full flex justify-center my-8">
-            <div className="border-2 border-yellow-400 bg-yellow-50/80 rounded-2xl px-8 py-10 shadow-lg w-full max-w-[700px] flex flex-col items-center">
-              <svg className="w-12 h-12 text-yellow-400 mb-4" fill="none" viewBox="0 0 24 24">
+            <div className="border-2 border-amber-400 bg-gradient-to-br from-amber-50/80 to-orange-50/60 rounded-2xl px-8 py-10 shadow-lg w-full max-w-[700px] flex flex-col items-center">
+              <svg className="w-12 h-12 text-amber-400 mb-4" fill="none" viewBox="0 0 24 24">
                 <circle
                   cx="12"
                   cy="12"
@@ -1243,14 +1254,14 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                   strokeLinecap="round"
                 />
               </svg>
-              <div className="text-xl sm:text-2xl font-bold font-orbitron text-yellow-900 mb-2 text-center">
+              <div className="text-xl sm:text-2xl font-bold font-orbitron text-amber-900 mb-2 text-center">
                 {sentimentData?.satirical
                   ? hasSatiricalBiases
                     ? 'Satirical Review - Only Entertainment Elements Detected'
                     : 'Satirical Review - No Bias Adjustment'
                   : 'No Noticeable Bias Detected'}
               </div>
-              <div className="text-base sm:text-lg text-yellow-800 text-center max-w-md">
+              <div className="text-base sm:text-lg text-amber-800 text-center max-w-md">
                 {sentimentData?.satirical && hasSatiricalBiases
                   ? 'This satirical review contains comedic elements shown below, but no biases that affect the score.'
                   : biasDetectionData?.noBiasExplanation ||
@@ -1334,10 +1345,10 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                         className={`font-bold text-blue-900 font-orbitron capitalize leading-tight ${
                           // Dynamic font sizing based on text length
                           (isSarcasm ? 'Sarcasm Detected' : b.name || '').length > 15
-                            ? 'text-base sm:text-lg md:text-xl tracking-normal'
+                            ? 'text-lg sm:text-2xl tracking-normal'
                             : (isSarcasm ? 'Sarcasm Detected' : b.name || '').length > 10
-                              ? 'text-lg sm:text-xl md:text-2xl tracking-wide'
-                              : 'text-xl sm:text-2xl md:text-3xl tracking-widest'
+                              ? 'text-lg sm:text-xl tracking-wide'
+                              : 'text-lg sm:text-xl tracking-widest'
                         }`}
                         style={{
                           wordBreak: 'normal',
