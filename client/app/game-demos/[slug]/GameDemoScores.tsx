@@ -592,19 +592,19 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
 
   return (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8 justify-center mb-6 w-full">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 justify-center mb-6 w-full">
         <div
-          className={`flex flex-col items-center justify-center rounded-xl px-4 py-5 shadow w-full min-h-[120px] font-orbitron ${verdictBg}`}
+          className={`flex flex-col items-center justify-center rounded-xl px-3 md:px-4 py-4 md:py-5 shadow w-full min-h-[100px] md:min-h-[120px] font-orbitron ${verdictBg}`}
         >
           <span
-            className={`flex items-center gap-2 ${verdictText} text-xl sm:text-2xl font-extrabold font-orbitron uppercase tracking-widest mb-2`}
+            className={`flex items-center gap-1 md:gap-2 ${verdictText} text-lg md:text-xl lg:text-2xl font-extrabold font-orbitron uppercase tracking-wide md:tracking-widest mb-1 md:mb-2 text-center`}
           >
             <svg
-              width="28"
-              height="28"
+              width="24"
+              height="24"
               fill="none"
               viewBox="0 0 24 24"
-              className={`inline-block align-middle ${verdictText} text-2xl sm:text-3xl`}
+              className={`inline-block align-middle ${verdictText} text-xl md:text-2xl lg:text-3xl flex-shrink-0`}
               style={{ marginTop: '2px' }}
             >
               <path
@@ -619,7 +619,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
             VERDICT
           </span>
           <span
-            className={`text-2xl sm:text-3xl font-extrabold font-orbitron normal-case tracking-wide drop-shadow mt-1 ${verdictText}`}
+            className={`text-xl md:text-2xl lg:text-3xl font-extrabold font-orbitron normal-case tracking-wide drop-shadow mt-1 ${verdictText} text-center`}
           >
             {verdictLabel}
           </span>
@@ -640,14 +640,14 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
             </div>
           )}
         </div>
-        <div className="flex flex-col items-center justify-center bg-gradient-to-br from-blue-900/40 to-blue-700/30 rounded-xl px-4 py-5 shadow w-full min-h-[120px]">
-          <span className="flex items-center gap-2 text-blue-300 text-xl sm:text-2xl font-extrabold font-orbitron uppercase tracking-widest mb-2">
+        <div className="flex flex-col items-center justify-center bg-gradient-to-br from-blue-900/40 to-blue-700/30 rounded-xl px-3 md:px-4 py-4 md:py-5 shadow w-full min-h-[100px] md:min-h-[120px]">
+          <span className="flex items-center gap-1 md:gap-2 text-blue-300 text-lg md:text-xl lg:text-2xl font-extrabold font-orbitron uppercase tracking-wide md:tracking-widest mb-1 md:mb-2 text-center">
             <svg
-              width="28"
-              height="28"
+              width="24"
+              height="24"
               fill="none"
               viewBox="0 0 24 24"
-              className="inline-block align-middle text-blue-400 text-2xl sm:text-3xl -mt-1"
+              className="inline-block align-middle text-blue-400 text-xl md:text-2xl lg:text-3xl -mt-1 flex-shrink-0"
               style={{ marginTop: '1px' }}
             >
               <path
@@ -657,18 +657,18 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
             </svg>
             RAW SCORE
           </span>
-          <span className="text-2xl sm:text-3xl font-extrabold font-orbitron tracking-wide drop-shadow mt-1 text-blue-100">
+          <span className="text-xl md:text-2xl lg:text-3xl font-extrabold font-orbitron tracking-wide drop-shadow mt-1 text-blue-100">
             {Math.round(rawScore * 10) / 10}
           </span>
         </div>
-        <div className="flex flex-col items-center justify-center bg-gradient-to-br from-violet-900/40 to-violet-700/30 rounded-xl px-4 py-5 shadow w-full min-h-[120px]">
-          <span className="flex items-center gap-2 text-violet-300 text-xl sm:text-2xl font-extrabold font-orbitron uppercase tracking-widest mb-2">
+        <div className="flex flex-col items-center justify-center bg-gradient-to-br from-violet-900/40 to-violet-700/30 rounded-xl px-3 md:px-4 py-4 md:py-5 shadow w-full min-h-[100px] md:min-h-[120px]">
+          <span className="flex items-center gap-1 md:gap-2 text-violet-300 text-lg md:text-xl lg:text-2xl font-extrabold font-orbitron uppercase tracking-wide md:tracking-widest mb-1 md:mb-2 text-center">
             <svg
-              width="28"
-              height="28"
+              width="24"
+              height="24"
               fill="none"
               viewBox="0 0 24 24"
-              className="inline-block align-middle text-violet-400 text-2xl sm:text-3xl -mt-1"
+              className="inline-block align-middle text-violet-400 text-xl md:text-2xl lg:text-3xl -mt-1 flex-shrink-0"
               style={{ marginTop: '1px' }}
             >
               <path
@@ -680,7 +680,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
             </svg>
             TRUE SCORE
           </span>
-          <span className="text-2xl sm:text-3xl font-extrabold font-orbitron tracking-wide drop-shadow mt-1 text-violet-100">
+          <span className="text-xl md:text-2xl lg:text-3xl font-extrabold font-orbitron tracking-wide drop-shadow mt-1 text-violet-100">
             {Math.round(biasAdjusted * 10) / 10}
           </span>
         </div>
@@ -965,10 +965,23 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                     <div className="flex items-start justify-between mb-2 gap-2">
                       <div className="flex-1 min-w-0">
                         <div
-                          className={`font-orbitron text-lg sm:text-xl font-extrabold uppercase tracking-widest mb-1 break-words ${
+                          className={`font-orbitron font-extrabold uppercase tracking-wide mb-1 leading-tight ${
                             isSarcasmWithNoInfluence ? 'text-blue-900' : 'text-yellow-900'
+                          } ${
+                            // Dynamic font sizing based on text length
+                            (isSarcasmWithNoInfluence ? 'Sarcasm Detected' : b.name || '').length >
+                            15
+                              ? 'text-sm sm:text-base md:text-lg tracking-normal'
+                              : (isSarcasmWithNoInfluence ? 'Sarcasm Detected' : b.name || '')
+                                    .length > 10
+                                ? 'text-base sm:text-lg md:text-xl tracking-wide'
+                                : 'text-lg sm:text-xl md:text-2xl tracking-widest'
                           }`}
-                          style={{ wordBreak: 'break-word', hyphens: 'auto' }}
+                          style={{
+                            wordBreak: 'normal',
+                            overflowWrap: 'break-word',
+                            hyphens: 'none',
+                          }}
                         >
                           {isSarcasmWithNoInfluence ? 'Sarcasm Detected' : b.name}
                         </div>
@@ -1317,10 +1330,24 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                   >
                     {/* Header with name and "No Score Impact" badge */}
                     <div className="flex items-center justify-between">
-                      <div className="text-xl sm:text-2xl font-bold text-blue-900 font-orbitron capitalize">
+                      <div
+                        className={`font-bold text-blue-900 font-orbitron capitalize leading-tight ${
+                          // Dynamic font sizing based on text length
+                          (isSarcasm ? 'Sarcasm Detected' : b.name || '').length > 15
+                            ? 'text-base sm:text-lg md:text-xl tracking-normal'
+                            : (isSarcasm ? 'Sarcasm Detected' : b.name || '').length > 10
+                              ? 'text-lg sm:text-xl md:text-2xl tracking-wide'
+                              : 'text-xl sm:text-2xl md:text-3xl tracking-widest'
+                        }`}
+                        style={{
+                          wordBreak: 'normal',
+                          overflowWrap: 'break-word',
+                          hyphens: 'none',
+                        }}
+                      >
                         {isSarcasm ? 'Sarcasm Detected' : b.name}
                       </div>
-                      <div className="px-3 py-1 bg-blue-200 text-blue-800 text-xs font-bold rounded-full border border-blue-300">
+                      <div className="px-3 py-1 bg-blue-200 text-blue-800 text-xs font-bold rounded-full border border-blue-300 flex-shrink-0">
                         NO SCORE IMPACT
                       </div>
                     </div>
@@ -1483,10 +1510,24 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                   >
                     {/* Header with name and "No Score Impact" badge */}
                     <div className="flex items-center justify-between">
-                      <div className="text-xl sm:text-2xl font-bold text-blue-900 font-orbitron capitalize">
+                      <div
+                        className={`font-bold text-blue-900 font-orbitron capitalize leading-tight ${
+                          // Dynamic font sizing based on text length
+                          (b.name || '').length > 15
+                            ? 'text-base sm:text-lg md:text-xl tracking-normal'
+                            : (b.name || '').length > 10
+                              ? 'text-lg sm:text-xl md:text-2xl tracking-wide'
+                              : 'text-xl sm:text-2xl md:text-3xl tracking-widest'
+                        }`}
+                        style={{
+                          wordBreak: 'normal',
+                          overflowWrap: 'break-word',
+                          hyphens: 'none',
+                        }}
+                      >
                         {b.name?.replace(/bias$/, '').trim() || 'Satirical Element'}
                       </div>
-                      <div className="px-3 py-1 bg-blue-200 text-blue-800 text-xs font-bold rounded-full border border-blue-300">
+                      <div className="px-3 py-1 bg-blue-200 text-blue-800 text-xs font-bold rounded-full border border-blue-300 flex-shrink-0">
                         NO SCORE IMPACT
                       </div>
                     </div>
