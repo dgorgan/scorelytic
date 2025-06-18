@@ -960,7 +960,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                 return (
                   <li
                     key={`${b.name || 'bias'}-${b.severity || 'unknown'}-${b.scoreInfluence ?? '0'}-${i}`}
-                    className={`relative border p-4 md:p-6 lg:p-8 shadow-lg flex flex-col gap-4 w-full flex-1 mb-4 rounded-2xl mx-auto ${
+                    className={`relative border p-4 md:p-6 lg:p-8 shadow-lg flex flex-col gap-2 w-full flex-1 mb-4 rounded-2xl mx-auto ${
                       biasesWithImpact.length === 1 ? 'md:max-w-[700px]' : 'max-w-[480px]'
                     } ${
                       isSarcasmWithNoInfluence
@@ -973,7 +973,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                         : '0 4px 24px 0 rgba(245, 158, 11, 0.15)',
                     }}
                   >
-                    <div className="flex items-start justify-between mb-2 gap-2">
+                    <div className="flex items-start justify-between mb-1 gap-2">
                       <div className="flex-1 min-w-0">
                         <div
                           className={`font-orbitron font-extrabold uppercase tracking-wide mb-1 leading-tight ${
@@ -1028,7 +1028,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                       )}
                     </div>
                     {/* Status bar: severity + confidence - enhanced for sarcasm */}
-                    <div className="flex flex-col gap-2 mb-3">
+                    <div className="flex flex-col gap-2 mb-2">
                       <div className="flex items-center gap-2">
                         <span
                           className={`uppercase font-bold text-xs tracking-wider ${
@@ -1091,7 +1091,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                     </div>
                     {/* Why this matters - enhanced for sarcasm */}
                     <div
-                      className={`mb-2 p-3 rounded-xl border-2 flex flex-col ${
+                      className={`mb-1 p-3 rounded-xl border-2 flex flex-col ${
                         isSarcasmWithNoInfluence
                           ? 'border-blue-300 bg-blue-50/80'
                           : 'border-amber-300 bg-gradient-to-br from-amber-50/80 to-orange-50/60'
@@ -1148,7 +1148,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                     {isSarcasmWithNoInfluence &&
                       matchingSatirical?.evidence &&
                       matchingSatirical.evidence.length > 0 && (
-                        <div className="mb-2">
+                        <div className="mb-1">
                           <div className="text-sm font-semibold text-blue-800 mb-2">
                             Evidence Found:
                           </div>
@@ -1163,7 +1163,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                       )}
                     {/* What we noticed - enhanced for sarcasm */}
                     <div
-                      className={`italic text-sm mb-2 ${
+                      className={`italic text-sm mb-1 ${
                         isSarcasmWithNoInfluence ? 'text-blue-900' : 'text-amber-900'
                       }`}
                     >
@@ -1185,7 +1185,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
 
                     {/* Interaction Effects - only show for actual biases, not sarcasm tone indicators */}
                     {interactionEffects.length > 0 && !isSarcasmWithNoInfluence && (
-                      <div className="mb-2 p-2 rounded-lg bg-orange-50 border border-orange-200">
+                      <div className="mb-1 p-2 rounded-lg bg-orange-50 border border-orange-200">
                         <span className="font-bold text-orange-700 text-sm mb-1 block">
                           Bias Amplification Effects:
                         </span>
@@ -1433,7 +1433,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                     {isSarcasm &&
                       matchingSatirical?.evidence &&
                       matchingSatirical.evidence.length > 0 && (
-                        <div className="mb-2">
+                        <div className="mb-1">
                           <div className="text-sm font-semibold text-blue-800 mb-2">
                             Evidence Found:
                           </div>
@@ -1452,7 +1452,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                       b.evidence &&
                       b.evidence.length > 0 &&
                       b.evidence[0] !== '(no explicit evidence found)' && (
-                        <div className="mb-2">
+                        <div className="mb-1">
                           <div className="text-sm font-semibold text-blue-800 mb-2">
                             Evidence Found:
                           </div>
