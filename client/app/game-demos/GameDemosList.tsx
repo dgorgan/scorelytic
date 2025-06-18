@@ -57,14 +57,14 @@ export default function GameDemosList({ initialReviews }: GameDemosListProps) {
 
           // Get scores from server data - use pre-calculated bias-adjusted score if available
           const sentimentData = review.data?.sentiment || {};
-          const biasAdjustmentData = (sentimentData as any)?.biasAdjustment;
-          const sentimentSnapshotData = (sentimentData as any)?.sentimentSnapshot || {};
+          const biasAdjustmentData = review.data?.biasAdjustment || {};
+          const sentimentSnapshotData = review.data?.sentimentSnapshot || {};
 
           const rawScore =
             (sentimentSnapshotData as any)?.inferredScore ??
             (sentimentData as any)?.sentimentScore ??
             0;
-          const biasAdjustedScore = biasAdjustmentData?.biasAdjustedScore;
+          const biasAdjustedScore = (biasAdjustmentData as any)?.biasAdjustedScore;
 
           // Use bias-adjusted score if available, otherwise use raw score
           const displayScore = biasAdjustedScore ?? rawScore;
