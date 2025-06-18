@@ -3,7 +3,7 @@ import type { ChatCompletionMessageParam } from 'openai/resources/chat/completio
 import logger from '@/logger';
 import { env } from '@/config/env';
 import { mapBiasLabelsToObjects, BIAS_KEYWORDS } from '@/services/sentiment/biasAdjustment';
-import type { BiasImpact } from '@scorelytic/shared/types/biasReport';
+import type { BiasImpact, SatiricalBiasInfo } from '@scorelytic/shared/types/biasReport';
 
 export type SentimentResult = {
   sentimentScore: number | null;
@@ -58,6 +58,7 @@ const supportsJsonResponse = (model: string) => {
 export type BiasDetectionPhaseOutput = {
   originalScore: number;
   biasesDetected: BiasImpact[];
+  satiricalBiases?: SatiricalBiasInfo[];
   evidenceCount?: number;
   noBiasExplanation?: string;
 };
@@ -134,7 +135,11 @@ Bias Definitions and Detection Triggers:
    *Definition:* Bias caused by a personal connection or long-standing relationship with the content.
    *Triggers:* "I've always loved", "my favorite", "I've followed this for years".
 
-5. **Sarcasm (Special Handling)**
+5. **Identity/Representation Bias**
+   *Definition:* Reviewer's personal identity (gender, race, sexuality, etc.) influences evaluation of representation in the game.
+   *Triggers:* "as a [identity] person myself", "seeing myself represented", "authentic representation", "finally see characters like me".
+
+6. **Sarcasm (Special Handling)**
    *Definition:* Use of irony or mocking tone that may flip the apparent sentiment.
    *Detection:* Flag if present, but handle differently based on context:
    - **Occasional Sarcasm**: Brief sarcastic remarks in otherwise genuine reviews (score effect: 0.0, flag only)
@@ -144,40 +149,41 @@ Bias Definitions and Detection Triggers:
    - Score should reflect what the reviewer truly thinks, not the literal words
    - Example: Dunkey's Zelda review is satirical praise disguised as criticism - the actual sentiment is highly positive
    - Look for context clues: reputation of game, reviewer's known style, consistency of hyperbolic language
+   *IMPORTANT: Be aggressive about detecting sarcasm and satirical tone - err on the side of flagging it*
 
-6. **Reciprocity Bias**
+7. **Reciprocity Bias**
    *Definition:* Inflated positivity due to receiving perks, gifts, or special access.
    *Triggers:* "generously gave me access", "got to preview", "gifted copy", "special treatment".
 
-7. **Availability Bias**
+8. **Availability Bias**
    *Definition:* Reviewer overweights recent or vivid gameplay experiences.
    *Triggers:* "what sticks out", "I keep thinking about", "the moment I remember most".
 
-8. **Halo Effect**
+9. **Halo Effect**
    *Definition:* A strong positive impression in one area affects the overall evaluation.
    *Triggers:* "because of the art", "due to the soundtrack", "everything feels great".
 
-9. **Horn Effect**
-   *Definition:* A strong negative impression in one area unfairly drags down the review.
-   *Triggers:* "that one issue ruined it", "hard to enjoy anything else", "overshadowed".
+10. **Horn Effect**
+    *Definition:* A strong negative impression in one area unfairly drags down the review.
+    *Triggers:* "that one issue ruined it", "hard to enjoy anything else", "overshadowed".
 
-10. **Selection Bias**
+11. **Selection Bias**
     *Definition:* The reviewer focuses on limited game aspects or modes, skewing evaluation.
     *Triggers:* "I only played", "didn't touch the campaign", "focused on one mode".
 
-11. **Confirmation Bias**
+12. **Confirmation Bias**
     *Definition:* Selectively interpreting elements to support pre-existing opinions.
     *Triggers:* "exactly what I thought", "knew it would suck", "as expected".
 
-12. **Bandwagon Bias**
+13. **Bandwagon Bias**
     *Definition:* Opinion shaped by popular consensus or online discourse.
     *Triggers:* "everyone's saying", "the internet hates it", "Reddit loves this".
 
-13. **Survivorship Bias**
+14. **Survivorship Bias**
     *Definition:* Ignoring flaws because only good parts were noticed or remembered.
     *Triggers:* "after a few patches it's fine", "you forget the bad", "just focus on what works".
 
-14. **Emotional Bias**
+15. **Emotional Bias**
     *Definition:* Judgment skewed by strong emotion (e.g., anger, euphoria).
     *Triggers:* "so frustrating", "absolutely furious", "completely hooked", "pure joy".
 
@@ -202,6 +208,8 @@ For each detected bias, provide:
 - Does the reviewer actually hate this beloved game, or are they performing satirical criticism?
 - Look for context clues: game's reputation, reviewer's style, over-the-top language consistency
 - Score should reflect the reviewer's genuine opinion, not the literal satirical words
+- **KNOWN SATIRICAL REVIEWERS**: Zero Punctuation, Yahtzee, Dunkey, VideoGameDunkey - these are (almost) ALWAYS satirical
+- **AGGRESSIVE DETECTION**: If you detect ANY satirical elements, flag sarcasm bias immediately
 
 **SARCASM SCORING GUIDANCE:**
 - Occasional sarcasm in genuine reviews: No score adjustment, flag only
@@ -962,7 +970,7 @@ export const analyzeText = async (
     reviewSummary: toStringOrNull(reviewSummary) || 'No review summary available.',
     legacyAndInfluence,
     noBiasExplanationFromLLM: noBiasExplanationFromLLM || undefined,
-    satirical: checkIfFullySatirical(results, biasIndicators),
+    satirical: checkIfFullySatirical(results, biasIndicators, gameTitle, creatorName),
   };
   if (!result.sentimentSummary || result.sentimentSummary === 'No clear summary detected.') {
     logger.warn('[LLM] Warning: summary is missing, using fallback (sentimentSummary or default).');
@@ -1001,14 +1009,9 @@ export type BiasAdjustmentResult = {
   adjustmentRationale: string;
 };
 
-// Helper: round to nearest tenth, round up if hundredths digit is 5 or greater
+// Helper: round to nearest tenth
 const roundScoreForDisplay = (score: number): number => {
-  const hundredths = Math.round((score * 100) % 10);
-  if (hundredths >= 5) {
-    return +(Math.ceil(score * 10) / 10).toFixed(1);
-  } else {
-    return +(Math.floor(score * 10) / 10).toFixed(1);
-  }
+  return Math.round(score * 10) / 10;
 };
 
 // --- Refactored analyzeTextWithBiasAdjustment ---
@@ -1026,7 +1029,9 @@ export const analyzeTextWithBiasAdjustmentFull = async (
     );
     const sentiment = await analyzeText(text, preferredModel, customPrompt, gameTitle, creatorName);
     let biasesDetected: BiasImpact[] = [];
+    let satiricalBiases: SatiricalBiasInfo[] = [];
     let noBiasExplanation: string | undefined = undefined;
+
     if (sentiment.biasIndicators && sentiment.biasIndicators.length > 0) {
       biasesDetected = mapBiasLabelsToObjects(
         sentiment.biasIndicators,
@@ -1034,13 +1039,64 @@ export const analyzeTextWithBiasAdjustmentFull = async (
         sentiment.pros,
         sentiment.cons,
       );
-      // --- Bias filtering: confidenceScore >= 0.4 and evidence.length > 0 ---
+
+      // For satirical reviews, ALWAYS create satirical bias info from sarcasm/satirical indicators
+      // Do this BEFORE filtering, so we capture them even if they don't meet regular bias criteria
+      if (sentiment.satirical) {
+        satiricalBiases = sentiment.biasIndicators
+          .filter(
+            (bias) =>
+              bias.toLowerCase().includes('sarcasm') ||
+              bias.toLowerCase().includes('satirical') ||
+              bias.toLowerCase().includes('irony') ||
+              bias.toLowerCase().includes('hyperbole') ||
+              bias.toLowerCase().includes('cynicism') ||
+              bias.toLowerCase().includes('comedic') ||
+              bias.toLowerCase().includes('humorous') ||
+              bias.toLowerCase().includes('exaggerated') ||
+              bias.toLowerCase().includes('parody') ||
+              bias.toLowerCase().includes('mock'),
+          )
+          .map((bias) => ({
+            name: bias,
+            severity: 'moderate' as const,
+            impactOnExperience:
+              'Satirical tone provides entertainment value but may obscure genuine critique',
+            explanation:
+              "Sarcastic/satirical elements detected in review - these add entertainment value but don't affect score assessment",
+            evidence: ['satirical tone', 'ironic commentary', 'exaggerated reactions'],
+            detectedIn: ['tone', 'phrasing', 'humor'],
+            confidenceScore: 0.8,
+          }));
+
+        // If no specific satirical biases found but review is marked as satirical,
+        // create a generic satirical bias entry
+        if (satiricalBiases.length === 0) {
+          satiricalBiases = [
+            {
+              name: 'satirical review',
+              severity: 'moderate' as const,
+              impactOnExperience:
+                'Entire review is satirical performance - entertaining but score reflects true opinion',
+              explanation:
+                "Review identified as satirical/comedic performance. The score reflects the reviewer's actual opinion beneath the satirical presentation.",
+              evidence: ['satirical tone', 'comedic performance', 'exaggerated language'],
+              detectedIn: ['tone', 'phrasing', 'overall style'],
+              confidenceScore: 0.9,
+            },
+          ];
+        }
+      }
+
+      // --- Bias filtering: confidenceScore >= 0.2 and evidence.length > 0 ---
+      // Lowered threshold from 0.3 to 0.2 to catch more legitimate biases
       biasesDetected = biasesDetected.filter(
         (b) =>
-          (typeof b.confidenceScore === 'number' ? b.confidenceScore >= 0.4 : true) &&
+          (typeof b.confidenceScore === 'number' ? b.confidenceScore >= 0.2 : true) &&
           Array.isArray(b.evidence) &&
           b.evidence.length > 0,
       );
+
       if (biasesDetected.length === 0) {
         // Use LLM's explanation if available, otherwise fallback
         noBiasExplanation =
@@ -1062,9 +1118,11 @@ export const analyzeTextWithBiasAdjustmentFull = async (
     // Try to extract evidenceCount from LLM response if available in sentiment
     const evidenceCount = (sentiment as any).evidenceCount || calculatedEvidenceCount;
 
+    const originalScore = sentiment.sentimentScore ?? 5;
     const biasDetection: BiasDetectionPhaseOutput = {
-      originalScore: sentiment.sentimentScore ?? 5,
+      originalScore: originalScore,
       biasesDetected,
+      satiricalBiases,
       evidenceCount,
       ...(noBiasExplanation ? { noBiasExplanation } : {}),
     };
@@ -1072,12 +1130,12 @@ export const analyzeTextWithBiasAdjustmentFull = async (
       (sum, b) => sum + (b.adjustedInfluence || 0),
       0,
     );
-    const biasAdjustedScoreRaw = +(biasDetection.originalScore + totalScoreAdjustmentRaw);
+    const biasAdjustedScoreRaw = +(originalScore - totalScoreAdjustmentRaw);
     const biasAdjustedScore = roundScoreForDisplay(biasAdjustedScoreRaw);
     const totalScoreAdjustment = roundScoreForDisplay(totalScoreAdjustmentRaw);
-    if (biasDetection.originalScore !== biasAdjustedScore) {
+    if (originalScore !== biasAdjustedScore) {
       logger.info(
-        { original: biasDetection.originalScore, adjusted: biasAdjustedScore },
+        { original: originalScore, adjusted: biasAdjustedScore },
         '[SENTIMENT] Score normalization:',
       );
     }
@@ -1197,6 +1255,7 @@ export const MOCK_FULL_BIAS_SCORING_OUTPUT: FullBiasScoringOutput = {
   biasDetection: {
     originalScore: 9.2,
     evidenceCount: 3,
+    satiricalBiases: [],
     biasesDetected: [
       {
         name: 'nostalgia bias',
@@ -1306,9 +1365,17 @@ export const analyzeGeneralSummary = async (
 const checkIfFullySatirical = (
   results: Partial<SentimentResult>[],
   biasIndicators: string[],
+  gameTitle?: string,
+  creatorName?: string,
 ): boolean => {
   // Check for sarcasm in bias indicators
   const hasSarcasm = biasIndicators.some((bias) => bias.toLowerCase().includes('sarcasm'));
+
+  // Check for known satirical reviewers
+  const satiricalReviewers = ['zero punctuation', 'yahtzee', 'dunkey', 'videogamedunkey'];
+  const isKnownSatiricalReviewer = satiricalReviewers.some((reviewer) =>
+    creatorName?.toLowerCase().includes(reviewer),
+  );
 
   // Check for indicators of full satirical review from LLM responses
   for (const result of results) {
@@ -1337,15 +1404,32 @@ const checkIfFullySatirical = (
         'employs satirical',
         'entirely satirical',
         'satirical criticism',
+        'satirical tone',
+        'uses a satirical',
+        'humor and irony',
+        'ironic',
+        'mocking',
+        'comedic',
+        'humorous',
+        'exaggerated',
+        'hyperbolic',
       ];
 
       const foundPatterns = satiricalPatterns.filter((pattern) => allText.includes(pattern));
 
-      // Flag as satirical if:
-      // 1. Has sarcasm bias AND at least one satirical pattern, OR
-      // 2. Has multiple satirical patterns (strong evidence)
+      // More aggressive satirical detection:
+      // 1. Known satirical reviewer (automatic detection)
+      // 2. Has sarcasm bias AND at least one satirical pattern
+      // 3. Has multiple satirical patterns (strong evidence)
+      // 4. Classic game with low score (likely satirical criticism)
+      const isClassicGame = gameTitle && isWellKnownClassicGame(gameTitle);
+      const hasLowScoreForClassic = isClassicGame && (llmResult.sentimentScore || 0) < 7;
+
       const shouldBeSatirical =
-        (hasSarcasm && foundPatterns.length > 0) || foundPatterns.length >= 2;
+        isKnownSatiricalReviewer ||
+        (hasSarcasm && foundPatterns.length > 0) ||
+        foundPatterns.length >= 2 ||
+        (hasLowScoreForClassic && foundPatterns.length > 0);
 
       if (shouldBeSatirical) {
         return true;
@@ -1392,9 +1476,12 @@ const isWellKnownClassicGame = (title: string): boolean => {
     'blue',
     'gold',
     'silver',
+    'demons souls',
+    "demon's souls",
     'dark souls',
     'bloodborne',
     'elden ring',
+    'sekiro',
     'witcher',
     'skyrim',
     'oblivion',

@@ -55,10 +55,18 @@ export default function GameDemosList({ initialReviews }: GameDemosListProps) {
             '/game-case-placeholder.png';
           const slug = review.slug || (meta.title ? slugify(meta.title) : review.id);
 
-          // Get the bias-adjusted score (True Score) or fall back to raw score
-          const biasAdjustedScore = review.data?.biasAdjustment?.biasAdjustedScore;
+          // Get scores from server data - use pre-calculated bias-adjusted score if available
+          const sentimentData = review.data?.sentiment || {};
+          const biasAdjustmentData = (sentimentData as any)?.biasAdjustment;
+          const sentimentSnapshotData = (sentimentData as any)?.sentimentSnapshot || {};
+
           const rawScore =
-            review.data?.sentimentSnapshot?.inferredScore || review.data?.sentiment?.sentimentScore;
+            (sentimentSnapshotData as any)?.inferredScore ??
+            (sentimentData as any)?.sentimentScore ??
+            0;
+          const biasAdjustedScore = biasAdjustmentData?.biasAdjustedScore;
+
+          // Use bias-adjusted score if available, otherwise use raw score
           const displayScore = biasAdjustedScore ?? rawScore;
           const isBiasAdjusted = biasAdjustedScore !== undefined;
 

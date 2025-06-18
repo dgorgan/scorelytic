@@ -61,7 +61,7 @@ const GameCard: React.FC<GameCardProps> = ({
           {score !== undefined && (
             <div className="flex items-center gap-1">
               <span className="bg-violet-600 px-4 py-1 rounded-full text-lg font-extrabold shadow">
-                {score}
+                {Math.round(score * 10) / 10}
               </span>
             </div>
           )}

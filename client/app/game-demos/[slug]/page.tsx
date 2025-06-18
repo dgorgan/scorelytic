@@ -28,7 +28,7 @@ export default async function GameDemoDetailPage({ params }: Props) {
     return <SkeletonDetail />;
   }
   const meta = data.metadata || {};
-  const sentiment = data.data?.sentiment || {};
+  const sentiment = data.data || {};
   const videoId = extractVideoId(data.video_url);
   const thumb =
     meta.thumbnails?.maxres?.url ||
@@ -153,13 +153,13 @@ export default async function GameDemoDetailPage({ params }: Props) {
           reviewer&apos;s verdict.
         </div>
         <GameDemoScores sentiment={sentiment} />
-        {sentiment.alsoRecommends && sentiment.alsoRecommends.length > 0 && (
+        {sentiment.sentiment?.alsoRecommends && sentiment.sentiment.alsoRecommends.length > 0 && (
           <div className="mb-4">
             <div className="text-lg sm:text-xl font-bold text-blue-400 mb-4 font-orbitron uppercase tracking-wide">
               Also Recommends
             </div>
             <ul className="flex flex-wrap gap-2 sm:gap-3">
-              {sentiment.alsoRecommends.map((rec: string) => (
+              {sentiment.sentiment.alsoRecommends.map((rec: string) => (
                 <li
                   key={rec}
                   className="bg-gradient-to-br from-blue-200 to-blue-400 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full text-base sm:text-lg text-blue-900 font-bold shadow border border-blue-300"
@@ -178,23 +178,25 @@ export default async function GameDemoDetailPage({ params }: Props) {
             Advanced Analysis
           </summary>
           <div className="mt-4 space-y-6">
-            {sentiment.legacyAndInfluence && (
+            {sentiment.sentiment?.legacyAndInfluence && (
               <div>
                 <div className="text-base sm:text-lg font-bold text-purple-300 mb-2 font-orbitron uppercase tracking-wide">
                   Legacy & Influence
                 </div>
                 <div className="text-base text-purple-100 mb-4 italic">
-                  {sentiment.legacyAndInfluence.justification}
+                  {sentiment.sentiment.legacyAndInfluence.justification}
                 </div>
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {sentiment.legacyAndInfluence.ideologicalThemes?.map((theme: string) => (
-                    <span
-                      key={theme}
-                      className="bg-gradient-to-br from-purple-200 to-purple-400 px-3 py-1 rounded-full text-base text-purple-900 font-bold shadow border border-purple-300"
-                    >
-                      {theme}
-                    </span>
-                  ))}
+                  {sentiment.sentiment.legacyAndInfluence.ideologicalThemes?.map(
+                    (theme: string) => (
+                      <span
+                        key={theme}
+                        className="bg-gradient-to-br from-purple-200 to-purple-400 px-3 py-1 rounded-full text-base text-purple-900 font-bold shadow border border-purple-300"
+                      >
+                        {theme}
+                      </span>
+                    ),
+                  )}
                 </div>
                 <div className="text-base text-purple-200 font-semibold mb-1 mt-4 font-orbitron">
                   Player Fit:
@@ -220,7 +222,7 @@ export default async function GameDemoDetailPage({ params }: Props) {
                     <span>
                       <span className="font-bold text-green-200 font-orbitron">Aligned:</span>{' '}
                       <span className="text-green-100">
-                        {sentiment.legacyAndInfluence.playerFit?.aligned}
+                        {sentiment.sentiment.legacyAndInfluence.playerFit?.aligned}
                       </span>
                     </span>
                   </li>
@@ -248,7 +250,7 @@ export default async function GameDemoDetailPage({ params }: Props) {
                     <span>
                       <span className="font-bold text-yellow-200 font-orbitron">Neutral:</span>{' '}
                       <span className="text-yellow-100">
-                        {sentiment.legacyAndInfluence.playerFit?.neutral}
+                        {sentiment.sentiment.legacyAndInfluence.playerFit?.neutral}
                       </span>
                     </span>
                   </li>
@@ -274,7 +276,7 @@ export default async function GameDemoDetailPage({ params }: Props) {
                     <span>
                       <span className="font-bold text-red-200 font-orbitron">Opposed:</span>{' '}
                       <span className="text-red-100">
-                        {sentiment.legacyAndInfluence.playerFit?.opposed}
+                        {sentiment.sentiment.legacyAndInfluence.playerFit?.opposed}
                       </span>
                     </span>
                   </li>

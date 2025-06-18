@@ -176,6 +176,16 @@ const BIAS_HEURISTICS: Record<
       'Strong emphasis on diversity and inclusion may affect perception of quality, even if unrelated to gameplay.',
     explanation: 'Representation bias detected; inclusivity focus may skew score upward.',
   },
+  'identity bias': {
+    severity: 'high',
+    scoreInfluence: 0.4,
+    baseScoreInfluence: 0.4,
+    maxScoreInfluence: 0.6,
+    impactOnExperience:
+      'Reviewer shares identity characteristics with game representation, which may inflate score due to personal connection.',
+    explanation:
+      "Identity bias detected; reviewer's personal identity strongly aligns with game content, potentially affecting objectivity.",
+  },
   'narrative framing bias': {
     severity: 'high',
     scoreInfluence: 0.4,
@@ -593,17 +603,6 @@ export const BIAS_KEYWORDS: Record<string, string[]> = {
     'political message',
     'social justice',
   ],
-  'representation bias': [
-    'diversity',
-    'inclusive',
-    'representation',
-    'minorities',
-    'gender balance',
-    'multicultural',
-    'inclusion',
-    'equity',
-    'representation matters',
-  ],
   'narrative framing bias': [
     'current events',
     'political',
@@ -772,6 +771,74 @@ export const BIAS_KEYWORDS: Record<string, string[]> = {
     'surely',
     'of course',
     'naturally',
+    'satirical',
+    'ironic',
+    'mocking',
+    'humorous',
+    'comedic',
+    'exaggerated',
+    'hyperbolic',
+    'zero punctuation',
+    'yahtzee',
+    'dunkey',
+    'satirical tone',
+    'humor and irony',
+    'satirical review',
+    'satirical criticism',
+    'comedic performance',
+  ],
+  'representation bias': [
+    'diversity',
+    'inclusive',
+    'representation',
+    'minorities',
+    'gender balance',
+    'multicultural',
+    'inclusion',
+    'equity',
+    'representation matters',
+  ],
+  'identity bias': [
+    'as a [identity] person myself',
+    'as a non-binary person myself',
+    'as a gay person myself',
+    'as a trans person myself',
+    'as a lesbian myself',
+    'as a black person myself',
+    'as a woman myself',
+    'as someone who is',
+    'seeing myself represented',
+    'authentic representation',
+    'finally see characters like me',
+    'characters that look like me',
+    'people like me',
+    'my community',
+    'authentic to my experience',
+    'resonates with my identity',
+    'speaks to my experience',
+    'reflects my identity',
+    'represents people like me',
+    'as a member of',
+    'non-binary person myself',
+    'trans person myself',
+    'gay person myself',
+    'lesbian myself',
+    'queer person myself',
+    'person of color myself',
+    'woman myself',
+    'disabled person myself',
+    'neurodivergent person myself',
+    'myself as a',
+    'being a non-binary',
+    'being trans',
+    'being gay',
+    'being lesbian',
+    'being queer',
+    'my identity',
+    'my lived experience',
+    'as someone in the community',
+    'representation of my community',
+    'authentic to who I am',
   ],
 };
 
@@ -1051,6 +1118,7 @@ export const mapBiasLabelsToObjects = (
       nlpConfidence,
       keywordFrequency,
       sentimentProximityScore,
+      label,
     );
 
     // Score influence scaling by frequency modifier (normalize hits count)
@@ -1311,19 +1379,32 @@ export const calculateBiasConfidenceScore = (
   nlpConfidence: number = 0,
   keywordFrequency: number = 0,
   sentimentProximityScore: number = 0,
+  biasName?: string, // Add bias name to give higher confidence for important biases
 ): number => {
   logger.info(
     `[BIAS] calculateBiasConfidenceScore called with keywordHits: ${keywordHits}, detectedIn: ${JSON.stringify(
       detectedIn,
     )}, reviewerIntent: ${reviewerIntent}, nlpConfidence: ${nlpConfidence.toFixed(
       2,
-    )}, keywordFrequency: ${keywordFrequency}, sentimentProximityScore: ${sentimentProximityScore.toFixed(2)}`,
+    )}, keywordFrequency: ${keywordFrequency}, sentimentProximityScore: ${sentimentProximityScore.toFixed(2)}, biasName: ${biasName}`,
   );
   let score = 0;
 
+  // Base score from keyword hits
   if (keywordHits >= 3) score += 0.3;
   else if (keywordHits === 2) score += 0.2;
   else if (keywordHits === 1) score += 0.1;
+
+  // Bonus for high-impact biases that are often clear when present
+  const highImpactBiases = [
+    'identity bias',
+    'representation bias',
+    'sponsored bias',
+    'influencer bias',
+  ];
+  if (biasName && highImpactBiases.includes(biasName) && keywordHits >= 1) {
+    score += 0.15; // Boost confidence for important biases
+  }
 
   score += Math.min(0.3, keywordFrequency * 0.05);
   score += Math.min(0.2, sentimentProximityScore);

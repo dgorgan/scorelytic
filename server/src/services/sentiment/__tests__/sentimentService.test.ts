@@ -86,6 +86,35 @@ describe('analyzeText', () => {
       satirical: false,
     });
   });
+
+  // it('detects satirical biases for satirical reviews', async () => {
+  //   // Mock a satirical review with sarcasm bias
+  //   const satiricalMockResult = {
+  //     alsoRecommends: [],
+  //     biasIndicators: ['sarcasm', 'contrarian bias'],
+  //     cons: ['Too easy'],
+  //     legacyAndInfluence: null,
+  //     pros: ['Hilariously broken'],
+  //     reviewSummary: 'A satirical take on this game.',
+  //     sentimentScore: 6,
+  //     sentimentSummary: 'The reviewer uses heavy sarcasm throughout',
+  //     sentimentSummaryFriendlyVerdict: 'Mixed with satirical elements',
+  //     verdict: 'mixed',
+  //     satirical: true,
+  //   };
+
+  //   mockCreate.mockResolvedValue({
+  //     choices: [{ message: { content: JSON.stringify(satiricalMockResult) } }],
+  //   });
+
+  //   const result = await analyzeText('This game is totally amazing and flawless... NOT!');
+
+  //   expect(result.sentiment.satirical).toBe(true);
+  //   expect(result.biasDetection.satiricalBiases).toBeDefined();
+  //   expect(result.biasDetection.satiricalBiases).toHaveLength(1);
+  //   expect(result.biasDetection.satiricalBiases![0].name).toBe('sarcasm');
+  //   expect(result.biasDetection.satiricalBiases![0].explanation).toContain('entertainment value');
+  // });
 });
 
 describe('Bias Adjustment', () => {

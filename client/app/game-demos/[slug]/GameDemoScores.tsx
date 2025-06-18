@@ -483,12 +483,17 @@ const MiniBiasMeter = () => {
 export default function GameDemoScores({ sentiment }: { sentiment: any }) {
   const [showScoreInfo, setShowScoreInfo] = useState(false);
   const [showBiasInfo, setShowBiasInfo] = useState(false);
+  const [showSatiricalInfo, setShowSatiricalInfo] = useState(false);
+  const [showNoBiasInfo, setShowNoBiasInfo] = useState(false);
 
   // Handle both nested and flat data structures
-  const sentimentData = sentiment.data?.sentiment || sentiment;
-  const biasDetectionData = sentiment.data?.biasDetection || sentiment.biasDetection;
+  const sentimentData = sentiment.sentiment || sentiment.data?.sentiment || sentiment;
+  const biasDetectionData = sentiment.biasDetection || sentiment.data?.biasDetection || {};
   const sentimentSnapshotData =
-    sentiment.data?.sentimentSnapshot || sentiment.sentimentSnapshot || {};
+    sentiment.sentimentSnapshot ||
+    sentiment.data?.sentimentSnapshot ||
+    sentiment.sentimentSnapshot ||
+    {};
 
   const verdict = sentimentSnapshotData.verdict || '';
   let verdictLabel = 'Positive';
@@ -511,10 +516,13 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
   // Fix: Use sentimentScore as fallback if inferredScore is not available
   const rawScore = sentimentSnapshotData.inferredScore ?? sentimentData.sentimentScore ?? 0;
   const biasesDetected = biasDetectionData?.biasesDetected || [];
+  const satiricalBiases = biasDetectionData?.satiricalBiases || [];
+  const hasSatiricalBiases = satiricalBiases.length > 0;
+
   // Subtract adjustedInfluence for each bias (removes inflation, restores deflation)
   const totalScoreAdjustment = biasesDetected.reduce(
     (sum: number, b: any) =>
-      sum - (typeof b.adjustedInfluence === 'number' ? b.adjustedInfluence : 0),
+      sum + (typeof b.adjustedInfluence === 'number' ? b.adjustedInfluence : 0),
     0,
   );
   const originalScore = biasDetectionData?.originalScore ?? rawScore;
@@ -523,7 +531,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
   //     ? biasAdjustmentData.biasAdjustedScore
   //     : +(originalScore + totalScoreAdjustment);
   // TODO: temporary fix till we update the server to return the biasAdjustedScore
-  const biasAdjusted = +(originalScore + totalScoreAdjustment);
+  const biasAdjusted = +(originalScore - totalScoreAdjustment);
   const adjustment = biasAdjusted - rawScore;
 
   // Bias meter logic
@@ -640,7 +648,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
             RAW SCORE
           </span>
           <span className="text-2xl sm:text-3xl font-extrabold font-orbitron tracking-wide drop-shadow mt-1 text-blue-100">
-            {rawScore}
+            {Math.round(rawScore * 10) / 10}
           </span>
         </div>
         <div className="flex flex-col items-center justify-center bg-gradient-to-br from-violet-900/40 to-violet-700/30 rounded-xl px-4 py-5 shadow w-full min-h-[120px]">
@@ -663,7 +671,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
             TRUE SCORE
           </span>
           <span className="text-2xl sm:text-3xl font-extrabold font-orbitron tracking-wide drop-shadow mt-1 text-violet-100">
-            {biasAdjusted}
+            {Math.round(biasAdjusted * 10) / 10}
           </span>
         </div>
       </div>
@@ -746,7 +754,7 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
           : adjustment < 0
             ? `Score reduced by ${Math.abs(adjustment).toFixed(2)} after removing bias.`
             : `Score increased by ${Math.abs(adjustment).toFixed(2)} after removing bias.`}
-        <span className="ml-2 cursor-pointer underline" onClick={() => setShowScoreInfo(true)}>
+        <span className="ml-2 cursor-pointer underline" onClick={() => setShowNoBiasInfo(true)}>
           What do these scores mean?
         </span>
       </div>
@@ -879,10 +887,10 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
             }`}
           >
             <ul
-              className={`grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-8 ${
+              className={`grid gap-6 md:gap-8 mb-8 ${
                 biasDetectionData.biasesDetected.length === 1
-                  ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-1 lg:place-items-center'
-                  : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-2'
+                  ? 'grid-cols-1 lg:place-items-center'
+                  : 'grid-cols-1 lg:grid-cols-2'
               }`}
             >
               {biasDetectionData.biasesDetected.map((b: any, i: number) => {
@@ -933,9 +941,9 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                 return (
                   <li
                     key={`${b.name || 'bias'}-${b.severity || 'unknown'}-${b.scoreInfluence ?? '0'}-${i}`}
-                    className={`relative border p-4 md:p-6 lg:p-8 shadow-lg flex flex-col gap-4 w-full flex-1 mb-4 rounded-2xl min-w-[320px] mx-auto ${
+                    className={`relative border p-4 md:p-6 lg:p-8 shadow-lg flex flex-col gap-4 w-full flex-1 mb-4 rounded-2xl mx-auto ${
                       biasDetectionData.biasesDetected.length === 1
-                        ? 'max-w-[480px] lg:max-w-[600px]'
+                        ? 'md:max-w-[700px]'
                         : 'max-w-[480px]'
                     } ${
                       isSarcasmWithNoInfluence
@@ -986,44 +994,27 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
                     </div>
                     {/* Status bar: severity + confidence */}
                     <div className="flex flex-col gap-2 mb-3">
-                      <span
-                        className={`uppercase font-bold text-xs px-3 py-1 rounded-full tracking-wider shadow-sm w-fit ${
-                          isSarcasmWithNoInfluence
-                            ? 'bg-blue-200 text-blue-800'
-                            : 'bg-violet-200 text-violet-800'
-                        }`}
-                      >
-                        {b.severity}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="uppercase font-bold text-xs tracking-wider text-blue-800">
+                          Intensity:
+                        </span>
+                        <span className="uppercase font-bold text-xs px-3 py-1 rounded-full tracking-wider shadow-sm bg-blue-200 text-blue-800">
+                          {b.severity || 'moderate'}
+                        </span>
+                      </div>
                       <div className="flex items-center gap-1 flex-1">
-                        <span
-                          className={`uppercase font-bold text-xs tracking-wider whitespace-nowrap ${
-                            isSarcasmWithNoInfluence ? 'text-blue-800' : 'text-violet-800'
-                          }`}
-                        >
+                        <span className="uppercase font-bold text-xs tracking-wider whitespace-nowrap text-blue-800">
                           Confidence:
                         </span>
                         <div className="flex items-center gap-1 flex-1 min-w-0">
-                          <div
-                            className={`flex-1 h-3 rounded-full overflow-hidden min-w-[40px] ${
-                              isSarcasmWithNoInfluence ? 'bg-blue-100' : 'bg-violet-100'
-                            }`}
-                          >
+                          <div className="flex-1 h-3 rounded-full overflow-hidden min-w-[40px] bg-blue-100">
                             <div
-                              className={`h-3 rounded-full transition-all duration-700 ${
-                                isSarcasmWithNoInfluence
-                                  ? 'bg-gradient-to-r from-blue-400 to-cyan-400'
-                                  : 'bg-gradient-to-r from-violet-400 to-blue-400'
-                              }`}
-                              style={{ width: `${Math.round((b.confidenceScore || 0) * 100)}%` }}
+                              className="h-3 rounded-full transition-all duration-700 bg-gradient-to-r from-blue-400 to-cyan-400"
+                              style={{ width: `${Math.round((b.confidenceScore || 0.8) * 100)}%` }}
                             />
                           </div>
-                          <span
-                            className={`text-xs font-mono whitespace-nowrap flex-shrink-0 ml-1 ${
-                              isSarcasmWithNoInfluence ? 'text-blue-900' : 'text-violet-900'
-                            }`}
-                          >
-                            {Math.round((b.confidenceScore || 0) * 100)}%
+                          <span className="text-xs font-mono whitespace-nowrap flex-shrink-0 ml-1 text-blue-900">
+                            {Math.round((b.confidenceScore || 0.8) * 100)}%
                           </span>
                         </div>
                       </div>
@@ -1104,34 +1095,165 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
           </div>
         </div>
       ) : (
-        <div className="w-full flex justify-center my-8">
-          <div className="border-2 border-yellow-400 bg-yellow-50/80 rounded-2xl px-8 py-10 shadow-lg  w-full flex flex-col items-center">
-            <svg className="w-12 h-12 text-yellow-400 mb-4" fill="none" viewBox="0 0 24 24">
-              <circle
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                fill="#FEF9C3"
-              />
-              <path
-                d="M8 12h8M12 8v8"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              />
-            </svg>
-            <div className="text-xl sm:text-2xl font-bold font-orbitron text-yellow-900 mb-2 text-center">
-              {sentimentData?.satirical
-                ? 'Satirical Review - No Bias Adjustment'
-                : 'No Noticeable Bias Detected'}
+        <div>
+          <div className="flex items-center gap-2">
+            <div className="text-base sm:text-lg font-bold text-yellow-400 font-orbitron uppercase tracking-wide">
+              No Significant Emotional Biases Detected
             </div>
-            <div className="text-base sm:text-lg text-yellow-800 text-center max-w-md">
-              {biasDetectionData?.noBiasExplanation ||
-                sentimentData?.noBiasExplanationFromLLM ||
-                'The AI detected no noticeable bias in this review. This review appears balanced and objective, with no significant emotional or contextual influences affecting the score.'}
+            <span
+              className="cursor-pointer underline text-yellow-300"
+              onClick={() => setShowNoBiasInfo(true)}
+            >
+              What do these scores mean?
+            </span>
+          </div>
+          <div className="text-yellow-200 mb-6">
+            The AI detected no noticeable bias in this review - it appears balanced and objective
+          </div>
+          <div className="w-full flex justify-center my-8">
+            <div className="border-2 border-yellow-400 bg-yellow-50/80 rounded-2xl px-8 py-10 shadow-lg w-full max-w-[700px] flex flex-col items-center">
+              <svg className="w-12 h-12 text-yellow-400 mb-4" fill="none" viewBox="0 0 24 24">
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  fill="#FEF9C3"
+                />
+                <path
+                  d="M8 12h8M12 8v8"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                />
+              </svg>
+              <div className="text-xl sm:text-2xl font-bold font-orbitron text-yellow-900 mb-2 text-center">
+                {sentimentData?.satirical
+                  ? hasSatiricalBiases
+                    ? 'Satirical Review - Only Entertainment Elements Detected'
+                    : 'Satirical Review - No Bias Adjustment'
+                  : 'No Noticeable Bias Detected'}
+              </div>
+              <div className="text-base sm:text-lg text-yellow-800 text-center max-w-md">
+                {sentimentData?.satirical && hasSatiricalBiases
+                  ? 'This satirical review contains comedic elements shown below, but no biases that affect the score.'
+                  : biasDetectionData?.noBiasExplanation ||
+                    sentimentData?.noBiasExplanationFromLLM ||
+                    'The AI detected no noticeable bias in this review. This review appears balanced and objective, with no significant emotional or contextual influences affecting the score.'}
+              </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Satirical Bias Section - Show even if no regular biases detected */}
+      {hasSatiricalBiases && (
+        <div className="mt-8">
+          <div className="flex items-center gap-2">
+            <div className="text-base sm:text-lg font-bold text-blue-400 font-orbitron uppercase tracking-wide">
+              Satirical Elements Detected
+            </div>
+            <span
+              className="cursor-pointer underline text-blue-300 text-sm"
+              onClick={() => setShowSatiricalInfo(true)}
+            >
+              (No Score Impact)
+            </span>
+          </div>
+          <div className="text-blue-200 mb-6">
+            {satiricalBiases.length} satirical element{satiricalBiases.length > 1 ? 's' : ''}{' '}
+            detected - these are shown for entertainment value and do <strong>not</strong> affect
+            the score
+          </div>
+
+          {/* Satirical bias cards grid */}
+          <div
+            className={`w-full ${satiricalBiases.length === 1 ? 'lg:flex lg:justify-center' : ''}`}
+          >
+            <ul
+              className={`grid gap-6 md:gap-8 mb-8 ${
+                satiricalBiases.length === 1
+                  ? 'grid-cols-1 lg:place-items-center'
+                  : 'grid-cols-1 lg:grid-cols-2'
+              }`}
+            >
+              {satiricalBiases.map((b: any, i: number) => (
+                <li
+                  key={`satirical-${b.name || 'bias'}-${i}`}
+                  className={`relative border-2 border-blue-300 bg-blue-50/90 p-4 md:p-6 lg:p-8 shadow-lg flex flex-col gap-4 w-full rounded-2xl mx-auto ${
+                    satiricalBiases.length === 1 ? 'md:max-w-[700px]' : 'max-w-[480px]'
+                  }`}
+                  style={{ boxShadow: '0 4px 24px 0 rgba(59, 130, 246, 0.15)' }}
+                >
+                  {/* Header with name and "No Score Impact" badge */}
+                  <div className="flex items-center justify-between">
+                    <div className="text-xl sm:text-2xl font-bold text-blue-900 font-orbitron capitalize">
+                      {b.name?.replace(/bias$/, '').trim() || 'Satirical Element'}
+                    </div>
+                    <div className="px-3 py-1 bg-blue-200 text-blue-800 text-xs font-bold rounded-full border border-blue-300">
+                      NO SCORE IMPACT
+                    </div>
+                  </div>
+
+                  {/* Confidence and severity */}
+                  <div className="flex flex-col gap-2 mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="uppercase font-bold text-xs tracking-wider text-blue-800">
+                        Intensity:
+                      </span>
+                      <span className="uppercase font-bold text-xs px-3 py-1 rounded-full tracking-wider shadow-sm bg-blue-200 text-blue-800">
+                        {b.severity || 'moderate'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 flex-1">
+                      <span className="uppercase font-bold text-xs tracking-wider whitespace-nowrap text-blue-800">
+                        Confidence:
+                      </span>
+                      <div className="flex items-center gap-1 flex-1 min-w-0">
+                        <div className="flex-1 h-3 rounded-full overflow-hidden min-w-[40px] bg-blue-100">
+                          <div
+                            className="h-3 rounded-full transition-all duration-700 bg-gradient-to-r from-blue-400 to-cyan-400"
+                            style={{ width: `${Math.round((b.confidenceScore || 0.8) * 100)}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-mono whitespace-nowrap flex-shrink-0 ml-1 text-blue-900">
+                          {Math.round((b.confidenceScore || 0.8) * 100)}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Impact description */}
+                  <div className="text-base text-blue-800 bg-blue-100 rounded-lg p-3 italic">
+                    {b.impactOnExperience ||
+                      'Satirical elements add entertainment value to the review'}
+                  </div>
+
+                  {/* Evidence */}
+                  {b.evidence && b.evidence.length > 0 && (
+                    <div>
+                      <div className="text-sm font-semibold text-blue-800 mb-2">
+                        Evidence Found:
+                      </div>
+                      <ul className="list-disc list-inside text-sm text-blue-700 space-y-1">
+                        {b.evidence.map((evidence: string, idx: number) => (
+                          <li key={idx} className="capitalize">
+                            {evidence}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Explanation */}
+                  <div className="text-base text-blue-900 italic border-t border-blue-200 pt-3">
+                    {b.explanation ||
+                      'This satirical element was detected but does not affect the final score calculation.'}
+                  </div>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       )}
@@ -1175,6 +1297,68 @@ export default function GameDemoScores({ sentiment }: { sentiment: any }) {
               If the True Score is lower, the reviewer was likely too generous (e.g. nostalgia). If
               it&apos;s higher, they were likely too harsh (e.g. nitpicking). If it&apos;s the same,
               no strong biases were detected.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Satirical Info Modal */}
+      {showSatiricalInfo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+          <div className="bg-gray-900 rounded-lg p-6 max-w-md w-full text-white shadow-xl relative">
+            <button
+              className="absolute top-2 right-3 text-xl"
+              onClick={() => setShowSatiricalInfo(false)}
+            >
+              &times;
+            </button>
+            <div className="text-lg font-bold mb-4">Why No Score Impact?</div>
+            <div className="mb-3">
+              <div className="font-semibold text-blue-300 mb-1">Satirical Elements:</div>
+              <div className="text-sm mb-3">
+                These are comedic or sarcastic elements detected in the review that add
+                entertainment value but don't represent the reviewer's true opinion about the game.
+              </div>
+            </div>
+            <div className="mb-3">
+              <div className="font-semibold text-blue-300 mb-1">Score Protection:</div>
+              <div className="text-sm mb-3">
+                Unlike full satirical reviews (where the entire review is sarcastic), these elements
+                are just occasional humor mixed into an otherwise genuine review.
+              </div>
+            </div>
+            <div className="text-sm">
+              We show them for transparency and entertainment, but they don't affect the final score
+              calculation since they don't represent bias that would inflate or deflate the
+              reviewer's actual opinion.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* No Bias Info Modal */}
+      {showNoBiasInfo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+          <div className="bg-gray-900 rounded-lg p-6 max-w-md w-full text-white shadow-xl relative">
+            <button
+              className="absolute top-2 right-3 text-xl"
+              onClick={() => setShowNoBiasInfo(false)}
+            >
+              &times;
+            </button>
+            <div className="text-lg font-bold mb-4">No Significant Emotional Biases Detected</div>
+            <div className="mb-2">
+              <b>What this means:</b> The AI found no noticeable emotional or cognitive biases that
+              would artificially inflate or deflate the reviewer's score.
+            </div>
+            <div className="mb-2">
+              <b>Raw Score vs True Score:</b> Since no biases were detected, the Raw Score and True
+              Score are the same - the reviewer appears to have given an objective assessment.
+            </div>
+            <div className="text-sm">
+              This suggests the review is balanced and presents both positive and negative aspects
+              without being significantly influenced by factors like nostalgia, hype, or personal
+              attachment.
             </div>
           </div>
         </div>

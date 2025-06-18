@@ -96,3 +96,14 @@ export type BiasInteractionEffect = {
   multiplier: number;
   influenceAdded: number;
 };
+
+export type SatiricalBiasInfo = {
+  name: string;
+  severity: 'low' | 'moderate' | 'high';
+  impactOnExperience: string;
+  explanation: string;
+  evidence: string[];
+  detectedIn: string[];
+  confidenceScore: number;
+  // Note: No scoreInfluence - these don't affect scoring
+};
