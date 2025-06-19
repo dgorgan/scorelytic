@@ -149,7 +149,10 @@ Bias Definitions and Detection Triggers:
    - Score should reflect what the reviewer truly thinks, not the literal words
    - Example: Dunkey's Zelda review is satirical praise disguised as criticism - the actual sentiment is highly positive
    - Look for context clues: reputation of game, reviewer's known style, consistency of hyperbolic language
-   *IMPORTANT: Be aggressive about detecting sarcasm and satirical tone - err on the side of flagging it*
+   *NUANCED DETECTION*: Consider review structure and content depth:
+   - Long-form reviews with detailed analysis → likely genuine despite comedic elements
+   - Short reviews with only hyperbolic language → more likely fully satirical
+   - Balance of technical discussion vs. comedic elements
 
 7. **Reciprocity Bias**
    *Definition:* Inflated positivity due to receiving perks, gifts, or special access.
@@ -208,8 +211,15 @@ For each detected bias, provide:
 - Does the reviewer actually hate this beloved game, or are they performing satirical criticism?
 - Look for context clues: game's reputation, reviewer's style, over-the-top language consistency
 - Score should reflect the reviewer's genuine opinion, not the literal satirical words
-- **KNOWN SATIRICAL REVIEWERS**: Zero Punctuation, Yahtzee, Dunkey, VideoGameDunkey - these are (almost) ALWAYS satirical
-- **AGGRESSIVE DETECTION**: If you detect ANY satirical elements, flag sarcasm bias immediately
+- **KNOWN REVIEWERS WITH MIXED CONTENT**: Dunkey, VideoGameDunkey - can produce both satirical AND genuine reviews
+  - For Dunkey: Long-form reviews (800+ words) with technical analysis are often genuine
+  - For Dunkey: Short reviews with only hyperbolic language are typically satirical
+  - Look for: detailed gameplay analysis, balanced pros/cons, specific examples
+- **PRIMARILY SATIRICAL REVIEWERS**: Zero Punctuation, Yahtzee - almost always satirical
+- **SATIRICAL DETECTION GUIDANCE**: Only flag as fully satirical if:
+  - Consistent exaggerated/absurd claims throughout (not just intro humor)
+  - Lack of substantive analysis or technical discussion
+  - No balanced pros/cons assessment
 
 **SARCASM SCORING GUIDANCE:**
 - Occasional sarcasm in genuine reviews: No score adjustment, flag only
@@ -1033,69 +1043,141 @@ export const analyzeTextWithBiasAdjustmentFull = async (
     let noBiasExplanation: string | undefined = undefined;
 
     if (sentiment.biasIndicators && sentiment.biasIndicators.length > 0) {
+      // Deduplicate bias indicators to prevent duplicate processing
+      const uniqueBiasIndicators = dedupe(sentiment.biasIndicators);
+
       biasesDetected = mapBiasLabelsToObjects(
-        sentiment.biasIndicators,
+        uniqueBiasIndicators,
         sentiment.reviewSummary || '',
         sentiment.pros,
         sentiment.cons,
       );
 
-      // For satirical reviews, ALWAYS create satirical bias info from sarcasm/satirical indicators
-      // Do this BEFORE filtering, so we capture them even if they don't meet regular bias criteria
-      if (sentiment.satirical) {
-        satiricalBiases = sentiment.biasIndicators
-          .filter(
-            (bias) =>
-              bias.toLowerCase().includes('sarcasm') ||
-              bias.toLowerCase().includes('satirical') ||
-              bias.toLowerCase().includes('irony') ||
-              bias.toLowerCase().includes('hyperbole') ||
-              bias.toLowerCase().includes('cynicism') ||
-              bias.toLowerCase().includes('comedic') ||
-              bias.toLowerCase().includes('humorous') ||
-              bias.toLowerCase().includes('exaggerated') ||
-              bias.toLowerCase().includes('parody') ||
-              bias.toLowerCase().includes('mock'),
-          )
-          .map((bias) => ({
-            name: bias,
-            severity: 'moderate' as const,
-            impactOnExperience:
-              'Satirical tone provides entertainment value but may obscure genuine critique',
-            explanation:
-              "Sarcastic/satirical elements detected in review - these add entertainment value but don't affect score assessment",
-            evidence: ['satirical tone', 'ironic commentary', 'exaggerated reactions'],
-            detectedIn: ['tone', 'phrasing', 'humor'],
-            confidenceScore: 0.8,
-          }));
-
-        // If no specific satirical biases found but review is marked as satirical,
-        // create a generic satirical bias entry
-        if (satiricalBiases.length === 0) {
-          satiricalBiases = [
-            {
-              name: 'satirical review',
-              severity: 'moderate' as const,
-              impactOnExperience:
-                'Entire review is satirical performance - entertaining but score reflects true opinion',
-              explanation:
-                "Review identified as satirical/comedic performance. The score reflects the reviewer's actual opinion beneath the satirical presentation.",
-              evidence: ['satirical tone', 'comedic performance', 'exaggerated language'],
-              detectedIn: ['tone', 'phrasing', 'overall style'],
-              confidenceScore: 0.9,
-            },
+      // Enhanced satirical detection with dynamic analysis
+      satiricalBiases = uniqueBiasIndicators
+        .filter(
+          (bias) =>
+            bias.toLowerCase().includes('sarcasm') ||
+            bias.toLowerCase().includes('satirical') ||
+            bias.toLowerCase().includes('irony') ||
+            bias.toLowerCase().includes('hyperbole') ||
+            bias.toLowerCase().includes('cynicism') ||
+            bias.toLowerCase().includes('comedic') ||
+            bias.toLowerCase().includes('humorous') ||
+            bias.toLowerCase().includes('exaggerated') ||
+            bias.toLowerCase().includes('parody') ||
+            bias.toLowerCase().includes('mock'),
+        )
+        .map((bias) => {
+          // Perform dynamic sarcasm analysis
+          const allEvidence = [
+            'satirical tone',
+            'ironic commentary',
+            'exaggerated reactions',
+            'innovative',
+            'brilliant',
           ];
-        }
+          const sarcasmAnalysis = analyzeSarcasmDynamically(
+            text,
+            allEvidence,
+            sentiment.sentimentScore ?? 5,
+            gameTitle,
+          );
+
+          const dynamicCard = buildDynamicSarcasmCard(sarcasmAnalysis, allEvidence);
+
+          return {
+            name: `${sarcasmAnalysis.type.replace('_', ' ')} (${sarcasmAnalysis.intensity})`,
+            severity:
+              sarcasmAnalysis.intensity === 'heavy'
+                ? 'high'
+                : sarcasmAnalysis.intensity === 'moderate'
+                  ? 'moderate'
+                  : ('low' as const),
+            impactOnExperience: `${sarcasmAnalysis.purpose} - ${dynamicCard.scoreImpact}`,
+            explanation: dynamicCard.dynamicExplanation,
+            evidence:
+              dynamicCard.evidenceFound.length > 0 ? dynamicCard.evidenceFound : allEvidence,
+            detectedIn: ['tone', 'phrasing', 'language choice'],
+            confidenceScore: sarcasmAnalysis.confidenceLevel,
+            // Add metadata for frontend
+            sarcasmType: sarcasmAnalysis.type,
+            sarcasmPurpose: sarcasmAnalysis.purpose,
+            whatTippedOffAI: dynamicCard.whatTippedOffAI,
+          };
+        });
+
+      // If no specific satirical biases found but review is marked as satirical,
+      // create a generic satirical bias entry using dynamic analysis
+      if (satiricalBiases.length === 0 && sentiment.satirical) {
+        const genericEvidence = ['satirical tone', 'comedic performance', 'exaggerated language'];
+        const sarcasmAnalysis = analyzeSarcasmDynamically(
+          text,
+          genericEvidence,
+          sentiment.sentimentScore ?? 5,
+          gameTitle,
+        );
+
+        const dynamicCard = buildDynamicSarcasmCard(sarcasmAnalysis, genericEvidence);
+
+        satiricalBiases = [
+          {
+            name: 'Sarcasm Detected',
+            severity: 'low' as const,
+            impactOnExperience: dynamicCard.scoreImpact,
+            explanation: dynamicCard.dynamicExplanation,
+            evidence:
+              dynamicCard.evidenceFound.length > 0 ? dynamicCard.evidenceFound : genericEvidence,
+            detectedIn: ['tone', 'phrasing', 'overall style'],
+            confidenceScore: sarcasmAnalysis.confidenceLevel,
+            // Add metadata for frontend consistency
+            sarcasmType: sarcasmAnalysis.type,
+            sarcasmPurpose: sarcasmAnalysis.purpose,
+            whatTippedOffAI: dynamicCard.whatTippedOffAI,
+          },
+        ];
       }
 
-      // --- Bias filtering: confidenceScore >= 0.2 and evidence.length > 0 ---
-      // Lowered threshold from 0.3 to 0.2 to catch more legitimate biases
-      biasesDetected = biasesDetected.filter(
-        (b) =>
-          (typeof b.confidenceScore === 'number' ? b.confidenceScore >= 0.2 : true) &&
-          Array.isArray(b.evidence) &&
-          b.evidence.length > 0,
-      );
+      // --- Bias filtering: confidenceScore >= 0.15 and evidence.length > 0 ---
+      // Lowered threshold from 0.2 to 0.15 to catch more subtle biases
+      const DEBUG_BIAS_DETECTION = process.env.NODE_ENV === 'development';
+
+      if (DEBUG_BIAS_DETECTION) {
+        logger.info(`[BIAS DEBUG] Found ${biasesDetected.length} raw biases before filtering`);
+        biasesDetected.forEach((bias, index) => {
+          logger.info(
+            `[BIAS DEBUG] Bias ${index}: ${bias.name}, confidence: ${bias.confidenceScore}, evidence count: ${bias.evidence?.length || 0}`,
+          );
+        });
+      }
+
+      const filteredOut: any[] = [];
+      biasesDetected = biasesDetected.filter((b) => {
+        const meetsThreshold =
+          typeof b.confidenceScore === 'number' ? b.confidenceScore >= 0.15 : true;
+        const hasEvidence = Array.isArray(b.evidence) && b.evidence.length > 0;
+        const passes = meetsThreshold && hasEvidence;
+
+        if (DEBUG_BIAS_DETECTION && !passes) {
+          filteredOut.push({
+            name: b.name,
+            confidence: b.confidenceScore,
+            evidenceCount: b.evidence?.length || 0,
+            reason: !meetsThreshold ? 'low confidence' : 'no evidence',
+          });
+        }
+
+        return passes;
+      });
+
+      if (DEBUG_BIAS_DETECTION && filteredOut.length > 0) {
+        logger.info(`[BIAS DEBUG] Filtered out ${filteredOut.length} biases:`);
+        filteredOut.forEach((bias) => {
+          logger.info(
+            `[BIAS DEBUG] Filtered: ${bias.name} (${bias.reason}, confidence: ${bias.confidence})`,
+          );
+        });
+      }
 
       if (biasesDetected.length === 0) {
         // Use LLM's explanation if available, otherwise fallback
@@ -1371,11 +1453,35 @@ const checkIfFullySatirical = (
   // Check for sarcasm in bias indicators
   const hasSarcasm = biasIndicators.some((bias) => bias.toLowerCase().includes('sarcasm'));
 
-  // Check for known satirical reviewers
-  const satiricalReviewers = ['zero punctuation', 'yahtzee', 'dunkey', 'videogamedunkey'];
-  const isKnownSatiricalReviewer = satiricalReviewers.some((reviewer) =>
-    creatorName?.toLowerCase().includes(reviewer),
-  );
+  // Enhanced reviewer analysis - check content not just name
+  let isKnownSatiricalReviewer = false;
+  let reviewerAnalysis: ReviewerAnalysis | null = null;
+
+  if (creatorName) {
+    // Extract the full text for analysis
+    let fullText = '';
+    for (const result of results) {
+      if (result && result.reviewSummary) {
+        fullText += result.reviewSummary + ' ';
+      }
+    }
+
+    // Get sentiment score
+    const sentimentScore =
+      results.find((r) => typeof r?.sentimentScore === 'number')?.sentimentScore || 5;
+
+    // Perform content-based analysis
+    reviewerAnalysis = analyzeReviewerContentForSatire(fullText, creatorName, sentimentScore);
+    isKnownSatiricalReviewer = reviewerAnalysis.isSatirical;
+
+    // Log the analysis for debugging
+    if (process.env.NODE_ENV === 'development') {
+      logger.info(
+        `[SATIRICAL ANALYSIS] ${creatorName}: ${reviewerAnalysis.isSatirical ? 'SATIRICAL' : 'GENUINE'} (confidence: ${reviewerAnalysis.confidence.toFixed(2)})`,
+      );
+      logger.info(`[SATIRICAL ANALYSIS] Reason: ${reviewerAnalysis.reason}`);
+    }
+  }
 
   // Check for indicators of full satirical review from LLM responses
   for (const result of results) {
@@ -1425,14 +1531,31 @@ const checkIfFullySatirical = (
       const isClassicGame = gameTitle && isWellKnownClassicGame(gameTitle);
       const hasLowScoreForClassic = isClassicGame && (llmResult.sentimentScore || 0) < 7;
 
-      const shouldBeSatirical =
-        isKnownSatiricalReviewer ||
-        (hasSarcasm && foundPatterns.length > 0) ||
-        foundPatterns.length >= 2 ||
-        (hasLowScoreForClassic && foundPatterns.length > 0);
+      // If we have content-based analysis for a known reviewer, prioritize that
+      if (reviewerAnalysis) {
+        // For known reviewers, trust the content analysis over simple pattern matching
+        const shouldBeSatirical = reviewerAnalysis.isSatirical;
+        if (shouldBeSatirical) {
+          return true;
+        }
+        // If content analysis says genuine, don't override with pattern matching
+        // Only override if we have very strong evidence (multiple patterns + classic game scenario)
+        const strongEvidence =
+          foundPatterns.length >= 3 || (hasLowScoreForClassic && foundPatterns.length >= 2);
+        if (strongEvidence) {
+          return true;
+        }
+      } else {
+        // For unknown reviewers, use the original logic
+        const shouldBeSatirical =
+          isKnownSatiricalReviewer ||
+          (hasSarcasm && foundPatterns.length > 0) ||
+          foundPatterns.length >= 2 ||
+          (hasLowScoreForClassic && foundPatterns.length > 0);
 
-      if (shouldBeSatirical) {
-        return true;
+        if (shouldBeSatirical) {
+          return true;
+        }
       }
     }
   }
@@ -1440,60 +1563,599 @@ const checkIfFullySatirical = (
   return false;
 };
 
-// Helper function to identify well-known classic games
-const isWellKnownClassicGame = (title: string): boolean => {
-  const classicGames = [
-    'zelda',
-    'ocarina of time',
-    'majora',
-    'breath of the wild',
-    'tears of the kingdom',
-    'mario',
-    'super mario',
-    'mario 64',
-    'mario kart',
-    'mario odyssey',
-    'metroid',
-    'final fantasy',
-    'chrono trigger',
-    'secret of mana',
-    'half-life',
-    'portal',
-    'team fortress',
-    'counter-strike',
-    'doom',
-    'quake',
-    'wolfenstein',
-    'sonic',
-    'mega man',
-    'castlevania',
-    'contra',
-    'street fighter',
-    'mortal kombat',
-    'tekken',
-    'pokemon',
-    'red',
-    'blue',
-    'gold',
-    'silver',
-    'demons souls',
-    "demon's souls",
-    'dark souls',
-    'bloodborne',
-    'elden ring',
-    'sekiro',
-    'witcher',
-    'skyrim',
-    'oblivion',
-    'morrowind',
-    'gta',
-    'grand theft auto',
-    'red dead',
-    'minecraft',
-    'tetris',
-    'pac-man',
-  ];
+// Enhanced Classic Game Detection System
+interface ClassicGameEntry {
+  name: string;
+  minYearsSinceRelease: number;
+  culturalImpactScore: number;
+  alternateNames?: string[];
+}
 
+const CLASSIC_GAMES_DATABASE: ClassicGameEntry[] = [
+  // 1980s-1990s undisputed classics
+  { name: 'super mario bros', minYearsSinceRelease: 10, culturalImpactScore: 10 },
+  {
+    name: 'zelda',
+    minYearsSinceRelease: 10,
+    culturalImpactScore: 9,
+    alternateNames: ['legend of zelda'],
+  },
+  { name: 'ocarina of time', minYearsSinceRelease: 10, culturalImpactScore: 10 },
+  {
+    name: 'majora',
+    minYearsSinceRelease: 10,
+    culturalImpactScore: 8,
+    alternateNames: ['majoras mask'],
+  },
+  { name: 'doom', minYearsSinceRelease: 10, culturalImpactScore: 10 },
+  { name: 'quake', minYearsSinceRelease: 10, culturalImpactScore: 8 },
+  { name: 'wolfenstein', minYearsSinceRelease: 10, culturalImpactScore: 7 },
+  { name: 'half-life', minYearsSinceRelease: 10, culturalImpactScore: 9 },
+  { name: 'portal', minYearsSinceRelease: 10, culturalImpactScore: 9 },
+  { name: 'counter-strike', minYearsSinceRelease: 10, culturalImpactScore: 8 },
+  {
+    name: 'final fantasy vii',
+    minYearsSinceRelease: 10,
+    culturalImpactScore: 9,
+    alternateNames: ['final fantasy 7'],
+  },
+  { name: 'chrono trigger', minYearsSinceRelease: 10, culturalImpactScore: 9 },
+  { name: 'secret of mana', minYearsSinceRelease: 10, culturalImpactScore: 7 },
+  { name: 'metroid', minYearsSinceRelease: 10, culturalImpactScore: 8 },
+  { name: 'castlevania', minYearsSinceRelease: 10, culturalImpactScore: 8 },
+  { name: 'mega man', minYearsSinceRelease: 10, culturalImpactScore: 8 },
+  { name: 'sonic', minYearsSinceRelease: 10, culturalImpactScore: 8 },
+  { name: 'street fighter', minYearsSinceRelease: 10, culturalImpactScore: 8 },
+  { name: 'mortal kombat', minYearsSinceRelease: 10, culturalImpactScore: 7 },
+  { name: 'pac-man', minYearsSinceRelease: 10, culturalImpactScore: 10 },
+  { name: 'tetris', minYearsSinceRelease: 10, culturalImpactScore: 10 },
+
+  // 2000s era classics (now 15+ years old)
+  { name: 'halo', minYearsSinceRelease: 15, culturalImpactScore: 9 },
+  {
+    name: 'grand theft auto san andreas',
+    minYearsSinceRelease: 15,
+    culturalImpactScore: 9,
+    alternateNames: ['gta san andreas'],
+  },
+  {
+    name: 'world of warcraft',
+    minYearsSinceRelease: 15,
+    culturalImpactScore: 9,
+    alternateNames: ['wow'],
+  },
+  { name: 'bioshock', minYearsSinceRelease: 15, culturalImpactScore: 9 },
+  { name: 'mass effect', minYearsSinceRelease: 15, culturalImpactScore: 8 },
+  {
+    name: 'call of duty 4',
+    minYearsSinceRelease: 15,
+    culturalImpactScore: 8,
+    alternateNames: ['modern warfare'],
+  },
+
+  // Early 2010s (10+ years, proven legacy)
+  { name: 'skyrim', minYearsSinceRelease: 10, culturalImpactScore: 9 },
+  { name: 'dark souls', minYearsSinceRelease: 10, culturalImpactScore: 9 },
+  { name: 'minecraft', minYearsSinceRelease: 10, culturalImpactScore: 10 },
+  { name: 'portal 2', minYearsSinceRelease: 10, culturalImpactScore: 9 },
+  { name: 'the witcher 3', minYearsSinceRelease: 8, culturalImpactScore: 9 }, // Borderline but high impact
+
+  // Exclude recent games that aren't classics yet
+  // 'breath of the wild' - 2017, only 7 years old
+  // 'tears of the kingdom' - 2023, too recent
+  // 'doom eternal' - 2020, too recent
+  // 'doom the dark ages' - 2024, too recent
+];
+
+// Games that are specifically NOT classic (to avoid false positives)
+const MODERN_GAMES_EXCLUDE = [
+  'tears of the kingdom',
+  'echoes of wisdom',
+  'doom the dark ages',
+  'doom eternal',
+  'cyberpunk 2077',
+  'elden ring', // Great game but only 2-3 years old
+  'hogwarts legacy',
+  'baldurs gate 3',
+  'starfield',
+  'spider-man 2',
+  'god of war ragnarok',
+];
+
+// Helper function to identify well-known classic games with year-aware logic
+const isWellKnownClassicGame = (title: string, releaseYear?: number): boolean => {
   const lowerTitle = title.toLowerCase();
-  return classicGames.some((classic) => lowerTitle.includes(classic));
+  const currentYear = new Date().getFullYear();
+
+  // Hard cutoff: Nothing from last 5 years can be "classic"
+  if (releaseYear && currentYear - releaseYear < 5) {
+    return false;
+  }
+
+  // Check explicit exclude list first
+  if (MODERN_GAMES_EXCLUDE.some((exclude) => lowerTitle.includes(exclude.toLowerCase()))) {
+    return false;
+  }
+
+  // Check against curated classics database
+  for (const classic of CLASSIC_GAMES_DATABASE) {
+    const names = [classic.name, ...(classic.alternateNames || [])];
+    const matchesName = names.some((name) => lowerTitle.includes(name.toLowerCase()));
+
+    if (matchesName) {
+      // If we have release year, check if it meets the minimum age requirement
+      if (releaseYear) {
+        const yearsSinceRelease = currentYear - releaseYear;
+        if (yearsSinceRelease >= classic.minYearsSinceRelease) {
+          return true;
+        }
+      } else {
+        // No release year available, rely on cultural impact score
+        // Only very high impact games (9+) qualify without year check
+        return classic.culturalImpactScore >= 9;
+      }
+    }
+  }
+
+  return false;
+};
+
+// Dynamic Sarcasm Analysis Types
+interface SarcasmAnalysis {
+  type: 'occasional_sarcasm' | 'heavy_sarcasm' | 'fully_satirical';
+  intensity: 'mild' | 'moderate' | 'heavy';
+  purpose: 'humor' | 'criticism' | 'emphasis' | 'unknown';
+  affectsScore: boolean;
+  dynamicExplanation: string;
+  specificEvidence: string[];
+  confidenceLevel: number;
+}
+
+interface SarcasmCard {
+  evidenceFound: string[];
+  whatTippedOffAI: string;
+  dynamicExplanation: string;
+  scoreImpact: string;
+}
+
+// Sarcasm detection patterns
+const SARCASTIC_WORDS = [
+  'brilliant',
+  'genius',
+  'obviously',
+  'clearly',
+  'perfect',
+  'flawless',
+  'masterpiece',
+  'revolutionary',
+  'groundbreaking',
+  'innovative',
+];
+
+const HYPERBOLIC_WORDS = [
+  'amazing',
+  'incredible',
+  'spectacular',
+  'mind-blowing',
+  'absolutely',
+  'totally',
+  'completely',
+  'utterly',
+  'ridiculously',
+];
+
+const IRONIC_PATTERNS = [
+  'what could go wrong',
+  'great idea',
+  'that makes sense',
+  'perfectly balanced',
+  'working as intended',
+];
+
+// Dynamic sarcasm analysis function
+const analyzeSarcasmDynamically = (
+  text: string,
+  detectedEvidence: string[],
+  sentimentScore: number,
+  gameTitle?: string,
+): SarcasmAnalysis => {
+  const analysis: SarcasmAnalysis = {
+    type: 'occasional_sarcasm',
+    intensity: 'mild',
+    purpose: 'unknown',
+    affectsScore: false,
+    dynamicExplanation: '',
+    specificEvidence: [],
+    confidenceLevel: 0.5,
+  };
+
+  const lowerText = text.toLowerCase();
+
+  // Analyze evidence patterns
+  const sarcasticWords = detectedEvidence.filter((e) =>
+    SARCASTIC_WORDS.some((word) => e.toLowerCase().includes(word)),
+  );
+
+  const hyperbolics = detectedEvidence.filter((e) =>
+    HYPERBOLIC_WORDS.some((word) => e.toLowerCase().includes(word)),
+  );
+
+  const ironicPhrases = detectedEvidence.filter((e) =>
+    IRONIC_PATTERNS.some((pattern) => e.toLowerCase().includes(pattern)),
+  );
+
+  // Determine intensity based on evidence count
+  const totalSarcasticElements = sarcasticWords.length + hyperbolics.length + ironicPhrases.length;
+
+  if (totalSarcasticElements > 4) {
+    analysis.intensity = 'heavy';
+    analysis.type = 'fully_satirical';
+  } else if (totalSarcasticElements > 2) {
+    analysis.intensity = 'moderate';
+    analysis.type = 'heavy_sarcasm';
+  }
+
+  // Determine purpose based on sentiment score and context
+  if (sentimentScore < 5 && sarcasticWords.length > 0) {
+    analysis.purpose = 'criticism';
+    analysis.dynamicExplanation = `Reviewer uses sarcastic language (${sarcasticWords.slice(0, 3).join(', ')}) to emphasize criticism. The low sentiment score (${sentimentScore}) aligns with the sarcastic tone being used for critical effect.`;
+    analysis.affectsScore = false; // Sarcasm reinforces the actual negative opinion
+  } else if (sentimentScore > 7 && hyperbolics.length > 0) {
+    analysis.purpose = 'emphasis';
+    analysis.dynamicExplanation = `Reviewer uses exaggerated positive language (${hyperbolics.slice(0, 3).join(', ')}) for emphasis. The high sentiment score (${sentimentScore}) suggests this is genuine enthusiasm rather than ironic criticism.`;
+    analysis.affectsScore = false; // Genuine enthusiasm, not affecting score
+  } else if (sarcasticWords.length > 0 && Math.abs(sentimentScore - 5) < 2) {
+    analysis.purpose = 'humor';
+    analysis.dynamicExplanation = `Mixed sarcastic elements (${detectedEvidence.slice(0, 3).join(', ')}) suggest reviewer uses humor and irony as part of their conversational style. The moderate sentiment score indicates the sarcasm is likely for entertainment rather than to mask true feelings.`;
+    analysis.affectsScore = false;
+  } else {
+    analysis.purpose = 'unknown';
+    analysis.dynamicExplanation = `Sarcastic elements detected but purpose unclear from context. Elements found: ${detectedEvidence.slice(0, 3).join(', ')}. Sentiment appears genuine.`;
+  }
+
+  // Confidence calculation
+  analysis.confidenceLevel = Math.min(0.9, 0.3 + totalSarcasticElements * 0.15);
+  analysis.specificEvidence = [...sarcasticWords, ...hyperbolics, ...ironicPhrases].slice(0, 5);
+
+  return analysis;
+};
+
+// Build dynamic sarcasm card
+const buildDynamicSarcasmCard = (analysis: SarcasmAnalysis, allEvidence: string[]): SarcasmCard => {
+  // Match evidence categories to what was actually found
+  const evidenceCategories = {
+    'sarcastic language': allEvidence.filter((e) =>
+      SARCASTIC_WORDS.some((word) => e.toLowerCase().includes(word)),
+    ),
+    'hyperbolic expressions': allEvidence.filter((e) =>
+      HYPERBOLIC_WORDS.some((word) => e.toLowerCase().includes(word)),
+    ),
+    'ironic phrasing': allEvidence.filter((e) =>
+      IRONIC_PATTERNS.some((pattern) => e.toLowerCase().includes(pattern)),
+    ),
+    'tone indicators': allEvidence.filter((e) =>
+      ['satirical tone', 'ironic commentary', 'exaggerated reactions'].includes(e),
+    ),
+  };
+
+  const foundCategories = Object.entries(evidenceCategories)
+    .filter(([_, items]) => items.length > 0)
+    .map(([category, items]) => `${category}: ${items.slice(0, 2).join(', ')}`);
+
+  const scoreImpactText = analysis.affectsScore
+    ? 'May require careful interpretation - sarcasm could mask true opinion'
+    : 'Sarcasm appears to reinforce rather than contradict the stated opinion';
+
+  return {
+    evidenceFound: foundCategories,
+    whatTippedOffAI: allEvidence.slice(0, Math.min(4, allEvidence.length)).join(', '),
+    dynamicExplanation: analysis.dynamicExplanation,
+    scoreImpact: scoreImpactText,
+  };
+};
+
+// Enhanced Reviewer Classification System
+interface ReviewerProfile {
+  satiricalProbability: number; // Base probability of satirical content
+  genuineIndicators: string[];
+  satiricalIndicators: string[];
+  contextualFactors?: {
+    longFormThreshold?: number; // Word count threshold for serious reviews
+    technicalAnalysis?: string[]; // Terms that indicate serious analysis
+  };
+}
+
+interface ReviewerAnalysis {
+  isSatirical: boolean;
+  confidence: number;
+  reason: string;
+  factors: {
+    baseReviewerProbability: number;
+    contentAdjustment: number;
+    wordCount: number;
+    technicalAnalysisCount: number;
+    genuineIndicators: number;
+    satiricalIndicators: number;
+  };
+}
+
+const REVIEWER_PROFILES: Record<string, ReviewerProfile> = {
+  dunkey: {
+    satiricalProbability: 0.7, // 70% of content is typically satirical
+    genuineIndicators: [
+      'serious analysis',
+      'thoughtful critique',
+      'genuine recommendation',
+      'important to note',
+      'in all seriousness',
+      'honestly',
+      'truth is',
+      'actually',
+      'really',
+      'impressed',
+      'disappointed',
+      'flawed but',
+      'problem with',
+      'what works',
+      "doesn't work",
+      'better than',
+      'worse than',
+      'compared to',
+      'story is',
+      'writing',
+      'characters',
+      'gameplay',
+      'mechanics',
+      'design',
+    ],
+    satiricalIndicators: [
+      'masterpiece',
+      'game of the year',
+      'revolutionary',
+      'completely changes everything',
+      'best game ever',
+      'perfect',
+      'flawless',
+      'zero problems',
+      'GOAT',
+      'obviously',
+      'clearly',
+      'brilliant',
+    ],
+    contextualFactors: {
+      longFormThreshold: 800, // Serious reviews tend to be longer
+      technicalAnalysis: [
+        'mechanics',
+        'gameplay',
+        'design',
+        'story',
+        'writing',
+        'characters',
+        'pacing',
+        'structure',
+        'narrative',
+        'combat',
+        'controls',
+        'camera',
+        'dialogue',
+        'voice acting',
+        'music',
+        'sound design',
+        'graphics',
+        'art style',
+        'performance',
+        'optimization',
+      ],
+    },
+  },
+  videogamedunkey: {
+    // Same as dunkey
+    satiricalProbability: 0.7,
+    genuineIndicators: [
+      'serious analysis',
+      'thoughtful critique',
+      'genuine recommendation',
+      'important to note',
+      'in all seriousness',
+      'honestly',
+      'truth is',
+      'actually',
+      'really',
+      'impressed',
+      'disappointed',
+      'flawed but',
+      'problem with',
+      'what works',
+      "doesn't work",
+      'better than',
+      'worse than',
+      'compared to',
+      'story is',
+      'writing',
+      'characters',
+      'gameplay',
+      'mechanics',
+      'design',
+    ],
+    satiricalIndicators: [
+      'masterpiece',
+      'game of the year',
+      'revolutionary',
+      'completely changes everything',
+      'best game ever',
+      'perfect',
+      'flawless',
+      'zero problems',
+      'GOAT',
+      'obviously',
+      'clearly',
+      'brilliant',
+    ],
+    contextualFactors: {
+      longFormThreshold: 800,
+      technicalAnalysis: [
+        'mechanics',
+        'gameplay',
+        'design',
+        'story',
+        'writing',
+        'characters',
+        'pacing',
+        'structure',
+        'narrative',
+        'combat',
+        'controls',
+        'camera',
+        'dialogue',
+        'voice acting',
+        'music',
+        'sound design',
+        'graphics',
+        'art style',
+        'performance',
+        'optimization',
+      ],
+    },
+  },
+  yahtzee: {
+    satiricalProbability: 0.95, // Almost always satirical
+    genuineIndicators: [
+      'actually good',
+      'surprisingly decent',
+      'genuinely impressed',
+      'give credit where',
+      'fair to say',
+    ],
+    satiricalIndicators: [
+      'brilliant',
+      'revolutionary',
+      'masterpiece',
+      'perfect',
+      'flawless',
+      'amazing',
+      'incredible',
+      'spectacular',
+    ],
+  },
+  'zero punctuation': {
+    satiricalProbability: 0.95, // Almost always satirical (same as Yahtzee)
+    genuineIndicators: [
+      'actually good',
+      'surprisingly decent',
+      'genuinely impressed',
+      'give credit where',
+      'fair to say',
+    ],
+    satiricalIndicators: [
+      'brilliant',
+      'revolutionary',
+      'masterpiece',
+      'perfect',
+      'flawless',
+      'amazing',
+      'incredible',
+      'spectacular',
+    ],
+  },
+};
+
+// Analyze if this specific review is satirical based on content
+const analyzeReviewerContentForSatire = (
+  text: string,
+  reviewerName: string,
+  sentimentScore: number,
+): ReviewerAnalysis => {
+  const profile = REVIEWER_PROFILES[reviewerName.toLowerCase()];
+
+  if (!profile) {
+    return {
+      isSatirical: false,
+      confidence: 0,
+      reason: 'Unknown reviewer - no satirical patterns detected',
+      factors: {
+        baseReviewerProbability: 0,
+        contentAdjustment: 0,
+        wordCount: text.split(' ').length,
+        technicalAnalysisCount: 0,
+        genuineIndicators: 0,
+        satiricalIndicators: 0,
+      },
+    };
+  }
+
+  let satiricalScore = profile.satiricalProbability; // Base probability
+  const lowerText = text.toLowerCase();
+
+  // Count genuine vs satirical indicators
+  const genuineCount = profile.genuineIndicators.filter((indicator) =>
+    lowerText.includes(indicator.toLowerCase()),
+  ).length;
+
+  const satiricalCount = profile.satiricalIndicators.filter((indicator) =>
+    lowerText.includes(indicator.toLowerCase()),
+  ).length;
+
+  // Text length factor (for reviewers like Dunkey - longer reviews tend to be more serious)
+  const wordCount = text.split(' ').length;
+  if (
+    profile.contextualFactors?.longFormThreshold &&
+    wordCount > profile.contextualFactors.longFormThreshold
+  ) {
+    satiricalScore *= 0.6; // Significantly reduce satirical probability for long-form content
+  }
+
+  // Technical analysis factor
+  const technicalCount =
+    profile.contextualFactors?.technicalAnalysis?.filter((term) =>
+      lowerText.includes(term.toLowerCase()),
+    ).length || 0;
+
+  if (technicalCount > 5) {
+    satiricalScore *= 0.4; // Strong technical analysis suggests serious review
+  } else if (technicalCount > 2) {
+    satiricalScore *= 0.7; // Some technical analysis suggests more serious content
+  }
+
+  // Sentiment coherence factor - if sentiment is very negative and reviewer uses negative language genuinely
+  if (sentimentScore < 4 && genuineCount > satiricalCount) {
+    satiricalScore *= 0.5; // Likely genuine criticism rather than satirical
+  }
+
+  // Adjust based on evidence
+  satiricalScore += satiricalCount * 0.05; // Small boost for satirical language
+  satiricalScore -= genuineCount * 0.1; // Bigger reduction for genuine language
+
+  // Normalize to 0-1 range
+  satiricalScore = Math.max(0, Math.min(1, satiricalScore));
+
+  const contentAdjustment = satiricalScore - profile.satiricalProbability;
+
+  // Build explanation
+  let reason = `Content analysis: ${genuineCount} genuine indicators, ${satiricalCount} satirical indicators, ${technicalCount} technical terms. `;
+
+  if (wordCount > (profile.contextualFactors?.longFormThreshold || 1000)) {
+    reason += `Long-form review (${wordCount} words) suggests serious analysis. `;
+  }
+
+  if (technicalCount > 5) {
+    reason += `Extensive technical analysis indicates genuine critique. `;
+  }
+
+  if (genuineCount > satiricalCount * 2) {
+    reason += `Predominance of genuine language over satirical. `;
+  }
+
+  return {
+    isSatirical: satiricalScore > 0.6,
+    confidence: satiricalScore,
+    reason: reason.trim(),
+    factors: {
+      baseReviewerProbability: profile.satiricalProbability,
+      contentAdjustment,
+      wordCount,
+      technicalAnalysisCount: technicalCount,
+      genuineIndicators: genuineCount,
+      satiricalIndicators: satiricalCount,
+    },
+  };
 };

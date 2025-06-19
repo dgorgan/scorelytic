@@ -105,5 +105,9 @@ export type SatiricalBiasInfo = {
   evidence: string[];
   detectedIn: string[];
   confidenceScore: number;
+  // Enhanced dynamic sarcasm analysis fields
+  sarcasmType?: 'occasional_sarcasm' | 'heavy_sarcasm' | 'fully_satirical';
+  sarcasmPurpose?: 'humor' | 'criticism' | 'emphasis' | 'unknown';
+  whatTippedOffAI?: string;
   // Note: No scoreInfluence - these don't affect scoring
 };
