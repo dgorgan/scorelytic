@@ -110,4 +110,6 @@ shared/dist/types/
 
 # Ignore cookies.txt
 cookies.txt
+
+# Vercel
 .vercel
