@@ -34,3 +34,18 @@ create table if not exists reviews (
   alsoRecommends text[],
   createdAt timestamptz not null default now()
 ); 
+
+-- Reviews table
+create table public.demo_reviews (
+  id uuid not null default gen_random_uuid (),
+  video_url text not null,
+  data jsonb not null (this is our sentiment, biasIndicators, biasAdjustment, sentimentSnapshot, etc.),
+  created_at timestamp with time zone not null default now(),
+  slug text not null (from the video title, game title, game slug, etc.),
+  transcript text null,
+  metadata jsonb null (I added game title, game slug, etc. just in case),
+  constraint demo_reviews_pkey primary key (id),
+  constraint demo_reviews_video_url_key unique (video_url)
+) TABLESPACE pg_default;
+
+create unique INDEX IF not exists demo_reviews_slug_key on public.demo_reviews using btree (slug) TABLESPACE pg_default;

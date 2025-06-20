@@ -46,7 +46,7 @@ export async function seedSupabase() {
     .from('games')
     .upsert(toSnake(games), { onConflict: 'slug' });
   if (gamesError) {
-    logger.error('Games insert error:', gamesError);
+    logger.error('Games insert error:', { message: gamesError.message, stack: gamesError.stack });
   }
   logger.info('Finished upserting games');
 
@@ -57,7 +57,10 @@ export async function seedSupabase() {
     .select('id,slug')
     .in('slug', gameSlugs);
   if (fetchGamesError) {
-    logger.error('Error fetching games by slug:', fetchGamesError);
+    logger.error('Error fetching games by slug:', {
+      message: fetchGamesError.message,
+      stack: fetchGamesError.stack,
+    });
     return;
   }
   const gamesFetched = rawGamesFetched ? toCamel(rawGamesFetched) : [];
@@ -85,7 +88,10 @@ export async function seedSupabase() {
     .from('creators')
     .upsert(toSnake(creators), { onConflict: 'slug' });
   if (creatorsError) {
-    logger.error('Creators insert error:', creatorsError);
+    logger.error('Creators insert error:', {
+      message: creatorsError.message,
+      stack: creatorsError.stack,
+    });
   }
   logger.info('Finished upserting creators');
 
@@ -96,7 +102,10 @@ export async function seedSupabase() {
     .select('id,slug')
     .in('slug', creatorSlugs);
   if (fetchCreatorsError) {
-    logger.error('Error fetching creators by slug:', fetchCreatorsError);
+    logger.error('Error fetching creators by slug:', {
+      message: fetchCreatorsError.message,
+      stack: fetchCreatorsError.stack,
+    });
     return;
   }
   const creatorsFetched = rawCreatorsFetched ? toCamel(rawCreatorsFetched) : [];
@@ -284,7 +293,10 @@ export async function seedSupabase() {
     .select();
   const insertedReviews = rawReviews ? toCamel(rawReviews) : null;
   if (reviewsError) {
-    logger.error('Reviews insert error:', reviewsError);
+    logger.error('Reviews insert error:', {
+      message: reviewsError.message,
+      stack: reviewsError.stack,
+    });
   } else {
     logger.info('Inserted reviews:', insertedReviews);
   }

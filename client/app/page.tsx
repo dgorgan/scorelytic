@@ -2,6 +2,7 @@
 import Head from 'next/head';
 import { useTransition, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export default function Home() {
   const router = useRouter();
@@ -23,7 +24,7 @@ export default function Home() {
         <meta name="description" content="Scorelytic: Game review analytics and bias detection" />
       </Head>
       <div
-        className="flex flex-col items-center justify-center min-h-screen p-8"
+        className="flex flex-col items-center justify-center min-h-screen py-16 px-8"
         style={{
           background: 'linear-gradient(135deg, #f6e6fb 0%, #e0b6f9 40%, #bfaaff 100%)',
           minHeight: '100vh',
@@ -38,18 +39,30 @@ export default function Home() {
           className="flex flex-col items-center justify-center min-h-screen p-8"
           style={{ zIndex: 1 }}
         >
-          <img
-            src="/scorelytic-logo.png"
-            alt="Scorelytic Logo"
-            style={{ width: 300, marginBottom: 32 }}
+          <Image
+            src="/scorelytic-orb.png"
+            alt="Scorelytic Orb"
+            width={50}
+            height={50}
+            style={{
+              objectFit: 'contain',
+              maxWidth: '100%',
+              marginBottom: '24px',
+            }}
           />
-          <h1 className="text-5xl font-extrabold mb-4 text-white drop-shadow-lg">
-            Welcome to Scorelytic
+          <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 text-white drop-shadow-lg text-center">
+            Welcome to{' '}
+            <span className="bg-gradient-to-r from-[#7c3aed] to-[#a18aff] bg-clip-text text-transparent drop-shadow-lg">
+              Scorelytic
+            </span>
           </h1>
-          <p className="text-xl text-white/90 mb-8 max-w-xl text-center">
+          <div className="h-1 w-16 bg-gradient-to-r from-[#7c3aed] to-[#a18aff] rounded-full my-4" />
+          <p className="text-xl text-white mb-8 max-w-xl text-center">
             Game review analytics, bias detection, and more.
             <br />
-            <span style={{ color: '#ad6cd4' }}>Data-driven. Insightful. Beautiful.</span>
+            <span className="bg-gradient-to-r from-[#7c3aed] to-[#a18aff] bg-clip-text text-transparent font-semibold">
+              Data-driven. Insightful. Beautiful.
+            </span>
           </p>
           {isPending || clicked ? (
             <div className="flex flex-col items-center gap-4 mt-8">
@@ -62,7 +75,7 @@ export default function Home() {
             <a
               href="/dashboard"
               onClick={handleClick}
-              className="px-8 py-3 bg-gradient-to-r from-[#a18aff] to-[#e0b6f9] text-white rounded-xl shadow-lg hover:from-[#6d5dfc] hover:to-[#e0b6f9] transition text-lg font-semibold"
+              className="mt-6 px-8 py-3 bg-gradient-to-r from-[#7c3aed] to-[#a18aff] text-white rounded-xl shadow-lg hover:from-[#6d5dfc] hover:to-[#a18aff] transition text-lg font-semibold"
             >
               Go to Dashboard
             </a>

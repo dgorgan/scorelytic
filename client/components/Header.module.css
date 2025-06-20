@@ -7,7 +7,7 @@
   @apply flex items-center gap-4;
 }
 .navbarLogo {
-  height: 46px;
+  height: 40px;
   width: auto;
   vertical-align: middle;
 }
@@ -16,10 +16,11 @@
   align-items: center;
 }
 .navbarRight {
-  @apply flex items-center gap-6;
+  @apply items-center gap-6;
 }
 .navbarLink {
-  @apply text-white no-underline ml-6 font-medium transition-colors duration-200 text-xl;
+  @apply text-white no-underline ml-6 font-bold uppercase tracking-wide transition-colors duration-200 text-xl;
+  font-family: 'Orbitron', sans-serif !important;
 }
 .navbarLink:hover {
   @apply text-white;

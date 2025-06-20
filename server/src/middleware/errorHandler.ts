@@ -19,7 +19,7 @@ export function errorHandler(
   res: Response<ApiResponse<any>>,
   _next: NextFunction,
 ) {
-  logger.error(err);
+  logger.error('Error in errorHandler middleware', { message: err.message, stack: err.stack });
   if (Sentry && typeof Sentry.captureException === 'function') {
     Sentry.captureException(err);
   }

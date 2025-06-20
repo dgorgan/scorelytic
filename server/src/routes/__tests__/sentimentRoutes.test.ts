@@ -2,15 +2,14 @@ import express from 'express';
 import request from 'supertest';
 
 jest.mock('@/services/sentiment', () => ({
-  analyzeSentiment: jest.fn(async (text: string) => ({
-    summary: 'S',
+  analyzeText: jest.fn(async (text: string) => ({
     sentimentScore: 1,
     verdict: 'positive',
   })),
 }));
 
 import sentimentRoutes from '@/routes/sentiment';
-import { analyzeSentiment } from '@/services/sentiment';
+import { analyzeText } from '@/services/sentiment';
 
 describe('sentimentRoutes', () => {
   const app = express();
@@ -22,7 +21,7 @@ describe('sentimentRoutes', () => {
     expect(res.status).toBe(200);
     expect(res.body).toEqual({
       success: true,
-      data: { sentiment: { score: 1, summary: 'S', verdict: 'positive' } },
+      data: { sentiment: { score: 1, verdict: 'positive' } },
     });
   });
 
@@ -32,8 +31,8 @@ describe('sentimentRoutes', () => {
     expect(res.body).toEqual({ success: false, error: expect.any(String) });
   });
 
-  it('500s on analyzeSentiment error', async () => {
-    (analyzeSentiment as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+  it('500s on analyzeText error', async () => {
+    (analyzeText as jest.Mock).mockRejectedValueOnce(new Error('fail'));
     const res = await request(app).post('/api/sentiment/analyze').send({ text: 'bad' });
     expect(res.status).toBe(500);
     expect(res.body).toEqual({

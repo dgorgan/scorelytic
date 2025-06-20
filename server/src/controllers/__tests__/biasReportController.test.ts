@@ -1,6 +1,6 @@
 import request from 'supertest';
 import express from 'express';
-import biasReportRoutes from '@/routes/biasReport';
+import biasReportRoutes from '../../routes/biasReport';
 
 jest.resetModules();
 
@@ -31,13 +31,13 @@ describe('biasReportController', () => {
 
   it('should return 500 on internal error', async () => {
     jest.resetModules();
-    jest.doMock('@scorelytic/shared', () => ({
+    jest.doMock('@/services/sentiment/biasAdjustment', () => ({
       generateBiasReport: () => {
         throw new Error('fail');
       },
     }));
     // Re-require after mocking
-    const biasReportRoutesReloaded = require('@/routes/biasReport').default;
+    const biasReportRoutesReloaded = require('../../routes/biasReport').default;
     const appWithMock = express();
     appWithMock.use(express.json());
     appWithMock.use('/api/bias-report', biasReportRoutesReloaded);

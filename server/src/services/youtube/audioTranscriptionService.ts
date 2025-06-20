@@ -6,6 +6,7 @@ import { promisify } from 'util';
 import { env } from '@/config/env';
 import { execSync } from 'child_process';
 import ffmpeg from 'fluent-ffmpeg';
+// import logger from '@/logger';
 
 const unlinkAsync = promisify(fs.unlink);
 
@@ -15,16 +16,21 @@ export interface TranscriptionOptions {
   tempDir?: string; // Default: /tmp
   language?: string; // Default: 'en'
   forceEnglish?: boolean; // If true, use translation endpoint
+  useCookies?: boolean; // Optional: use cookies.txt for yt-dlp
 }
 
 export interface TranscriptionHelpers {
-  downloadAudio: (videoUrl: string, audioPath: string, options: any) => Promise<void>;
+  downloadAudio: (
+    videoUrl: string,
+    audioPath: string,
+    options: TranscriptionOptions,
+  ) => Promise<void>;
   transcribeAudioWithOpenAI: (
     audioPath: string,
     language: string,
     forceEnglish?: boolean,
   ) => Promise<string>;
-  getVideoDuration: (videoId: string) => Promise<number>;
+  getVideoDuration: (videoId: string, useCookies?: boolean) => Promise<number>;
   fileExists: (filePath: string) => boolean;
   unlinkFile: (filePath: string) => Promise<void>;
   createReadStream: (filePath: string) => fs.ReadStream;
@@ -32,67 +38,57 @@ export interface TranscriptionHelpers {
 }
 
 const defaultHelpers: TranscriptionHelpers = {
-  downloadAudio: async (videoUrl, audioPath, { maxDurationMinutes, audioQuality }) => {
-    const cookiesPath = path.join(process.cwd(), 'src/cookies.txt');
-    const cookiesExists = fs.existsSync(cookiesPath);
-    const cookiesContent = cookiesExists ? fs.readFileSync(cookiesPath, 'utf8') : '';
-    const crypto = require('crypto');
-    const cookiesHash = cookiesExists
-      ? crypto.createHash('sha256').update(cookiesContent).digest('hex')
-      : null;
-    // Debug logs
-    // eslint-disable-next-line no-console
-    console.log('[yt-dlp] cookies.txt path:', cookiesPath);
-    // eslint-disable-next-line no-console
-    console.log('[yt-dlp] cookies.txt exists:', cookiesExists);
-    // eslint-disable-next-line no-console
-    if (cookiesExists) console.log('[yt-dlp] cookies.txt sha256:', cookiesHash);
+  downloadAudio: async (
+    videoUrl,
+    audioPath,
+    { maxDurationMinutes = 30, audioQuality, useCookies },
+  ) => {
     const ytDlpWrap = new YTDlpWrap();
-    await ytDlpWrap.execPromise([
+    const args: string[] = [
       videoUrl,
       '--extract-audio',
       '--audio-format',
       'mp3',
       '--audio-quality',
-      audioQuality,
+      audioQuality ?? 'worst',
       '--match-filter',
-      `duration < ${maxDurationMinutes * 60}`,
+      `duration < ${(maxDurationMinutes ?? 30) * 60}`,
       '--output',
       audioPath.replace('.mp3', '.%(ext)s'),
       '--no-playlist',
-      '--cookies',
-      cookiesPath,
-    ]);
+    ];
+    if (useCookies) {
+      const cookiesPath = path.join(process.cwd(), 'src/cookies.txt');
+      if (fs.existsSync(cookiesPath)) {
+        args.push('--cookies');
+        args.push(cookiesPath);
+      }
+    }
+    await retryWithBackoff(() => ytDlpWrap.execPromise(args));
   },
   transcribeAudioWithOpenAI: async (audioPath, language) => {
     const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
-    const transcription = await openai.audio.transcriptions.create({
-      file: fs.createReadStream(audioPath),
-      model: 'whisper-1',
-      language,
-      response_format: 'text',
-    });
+    const transcription = await retryWithBackoff(() =>
+      openai.audio.transcriptions.create({
+        file: fs.createReadStream(audioPath),
+        model: 'whisper-1',
+        language,
+        response_format: 'text',
+      }),
+    );
     return transcription;
   },
-  getVideoDuration: async (videoId) => {
-    const cookiesPath = path.join(process.cwd(), 'src/cookies.txt');
-    console.log('cookiesPath', cookiesPath);
-    const cookiesExists = fs.existsSync(cookiesPath);
-    const cookiesContent = cookiesExists ? fs.readFileSync(cookiesPath, 'utf8') : '';
-    const crypto = require('crypto');
-    const cookiesHash = cookiesExists
-      ? crypto.createHash('sha256').update(cookiesContent).digest('hex')
-      : null;
-    // Debug logs
-    // eslint-disable-next-line no-console
-    console.log('[yt-dlp] cookies.txt path:', cookiesPath);
-    // eslint-disable-next-line no-console
-    console.log('[yt-dlp] cookies.txt exists:', cookiesExists);
-    // eslint-disable-next-line no-console
-    if (cookiesExists) console.log('[yt-dlp] cookies.txt sha256:', cookiesHash);
+  getVideoDuration: async (videoId, useCookies) => {
     const ytDlpWrap = new YTDlpWrap();
     const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-    const out = await ytDlpWrap.execPromise([videoUrl, '--dump-json', '--cookies', cookiesPath]);
+    const args = [videoUrl, '--dump-json'];
+    if (useCookies) {
+      const cookiesPath = path.join(process.cwd(), 'src/cookies.txt');
+      if (fs.existsSync(cookiesPath)) {
+        args.push('--cookies', cookiesPath);
+      }
+    }
+    const out = await retryWithBackoff(() => ytDlpWrap.execPromise(args));
     const info = JSON.parse(out);
     return Math.ceil((info.duration || 0) / 60);
   },
@@ -136,6 +132,42 @@ const splitAudioFile = async (
   return chunkPaths;
 };
 
+// --- Retry helper ---
+const retryWithBackoff = async <T>(
+  fn: () => Promise<T>,
+  maxRetries = 3,
+  baseDelay = 500,
+): Promise<T> => {
+  let lastErr;
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (err: any) {
+      lastErr = err;
+      const msg = err?.message || '';
+      if (
+        attempt < maxRetries - 1 &&
+        (msg.includes('timeout') ||
+          msg.includes('502') ||
+          msg.includes('rate limit') ||
+          msg.includes('429') ||
+          msg.includes('network') ||
+          (err.response && err.response.status >= 500))
+      ) {
+        const delay = baseDelay * Math.pow(2, attempt);
+        // eslint-disable-next-line no-console
+        console.warn(
+          `[Whisper] Retry ${attempt + 1}/${maxRetries} after error: ${msg}. Waiting ${delay}ms...`,
+        );
+        await new Promise((res) => setTimeout(res, delay));
+        continue;
+      }
+      break;
+    }
+  }
+  throw lastErr;
+};
+
 /**
  * Extracts audio from YouTube video and transcribes it using OpenAI Whisper
  */
@@ -154,6 +186,7 @@ export const transcribeYouTubeAudio = async (
     tempDir = '/tmp',
     language = 'en',
     forceEnglish = false,
+    useCookies = false,
   } = options;
 
   const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
@@ -164,6 +197,7 @@ export const transcribeYouTubeAudio = async (
     await helpers.downloadAudio(videoUrl, audioPath, {
       maxDurationMinutes,
       audioQuality,
+      useCookies,
     });
     if (!helpers.fileExists(audioPath)) {
       throw new Error(
@@ -177,12 +211,18 @@ export const transcribeYouTubeAudio = async (
     if (stat.size > 25 * 1024 * 1024) {
       // Split and transcribe each chunk
       const chunkPaths = await splitAudioFile(audioPath);
-      for (const chunkPath of chunkPaths) {
-        transcript += await helpers.transcribeAudioWithOpenAI(chunkPath, language, forceEnglish);
-        await helpers.unlinkFile(chunkPath);
-      }
+      // Parallelize chunk transcription with concurrency limit
+      const pLimit = require('p-limit');
+      const limit = pLimit(3); // Limit concurrency to 3
+      const transcribeChunk = (chunkPath: string) =>
+        helpers
+          .transcribeAudioWithOpenAI(chunkPath, language, forceEnglish)
+          .finally(() => helpers.unlinkFile(chunkPath));
+      // Maintain order by mapping to index
+      const chunkPromises = chunkPaths.map((chunkPath) => limit(() => transcribeChunk(chunkPath)));
+      const transcripts = await Promise.all(chunkPromises);
       await helpers.unlinkFile(audioPath);
-      return transcript;
+      return transcripts.join('');
     } else {
       // Transcribe whole file
       transcript = await helpers.transcribeAudioWithOpenAI(audioPath, language, forceEnglish);
@@ -196,7 +236,7 @@ export const transcribeYouTubeAudio = async (
       }
     } catch {}
     // Only check actual duration if error is about duration or file not created
-    const duration = await helpers.getVideoDuration(videoId);
+    const duration = await helpers.getVideoDuration(videoId, useCookies);
     if (duration > maxDurationMinutes) {
       throw new Error(
         `Video ${videoId} is too long (>${maxDurationMinutes} minutes) for audio transcription`,
@@ -223,26 +263,22 @@ export const estimateTranscriptionCost = (durationMinutes: number): number => {
 /**
  * Gets video duration from YouTube without downloading
  */
-export const getVideoDuration = async (videoId: string): Promise<number> => {
-  const cookiesPath = path.join(process.cwd(), 'src/cookies.txt');
-  console.log('cookiesPath', cookiesPath);
-  const cookiesExists = fs.existsSync(cookiesPath);
-  const cookiesContent = cookiesExists ? fs.readFileSync(cookiesPath, 'utf8') : '';
-  const crypto = require('crypto');
-  const cookiesHash = cookiesExists
-    ? crypto.createHash('sha256').update(cookiesContent).digest('hex')
-    : null;
-  // Debug logs
-  // eslint-disable-next-line no-console
-  console.log('[yt-dlp] cookies.txt path:', cookiesPath);
-  // eslint-disable-next-line no-console
-  console.log('[yt-dlp] cookies.txt exists:', cookiesExists);
-  // eslint-disable-next-line no-console
-  if (cookiesExists) console.log('[yt-dlp] cookies.txt sha256:', cookiesHash);
+export const getVideoDuration: (videoId: string, useCookies?: boolean) => Promise<number> = async (
+  videoId,
+  useCookies = false,
+) => {
   const ytDlpWrap = new YTDlpWrap();
   const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+  const args = [videoUrl, '--dump-json'];
+  if (useCookies) {
+    const cookiesPath = path.join(process.cwd(), 'src/cookies.txt');
+    if (fs.existsSync(cookiesPath)) {
+      args.push('--cookies');
+      args.push(cookiesPath);
+    }
+  }
   try {
-    const out = await ytDlpWrap.execPromise([videoUrl, '--dump-json', '--cookies', cookiesPath]);
+    const out = await retryWithBackoff(() => ytDlpWrap.execPromise(args));
     const info = JSON.parse(out);
     return Math.ceil((info.duration || 0) / 60); // Return duration in minutes
   } catch (error: any) {
