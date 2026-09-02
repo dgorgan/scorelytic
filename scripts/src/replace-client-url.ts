@@ -9,7 +9,7 @@ const PLACEHOLDER = '__SCORELYTIC_CLIENT_URL__';
 const CLIENT_URL =
   process.env.LOCAL_CLIENT === '1'
     ? 'http://localhost:4000/dashboard'
-    : 'https://www.scorelytic.com/dashboard';
+    : 'https://scorelytic-client.vercel.app/dashboard';
 
 const walk = (dir: string, ext: string, fileList: string[] = []) => {
   fs.readdirSync(dir).forEach((file) => {
