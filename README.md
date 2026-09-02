@@ -460,10 +460,10 @@ This is an internal tool for reviewing, validating, and overriding LLM sentiment
 
 ### Output Layers
 
-- **Summary:** User-facing, quick verdict and score, with confidence and bias summary
-- **Bias Details:** List of all detected biases, their severity, score impact, and qualitative effect
-- **Cultural Context:** Explains how cultural/ideological context may affect perception and score
-- **Full Report:** Internal, diagnostic output for transparency and audit
+- **Summary:** For gamers/casual users—quick, trustworthy verdict.
+- **Bias Details:** For users interested in why the score was adjusted.
+- **Legacy & Influence:** For analysts/creators—context on game’s cultural impact and player alignment.
+- **Full Report:** For internal QA, model debugging, or full audit trail.
 
 ### Sample Output
 
@@ -492,11 +492,11 @@ This is an internal tool for reviewing, validating, and overriding LLM sentiment
       "description": "Narrative framing aligns with current ideological trends, which may polarize audiences."
     }
   ],
-  "culturalContext": {
+  "legacyAndInfluence": {
     "originalScore": 8.5,
     "biasAdjustedScore": 7.1,
     "justification": "Score adjusted to reflect detected ideological, narrative, or identity-related influences.",
-    "audienceReaction": {
+    "playerFit": {
       "aligned": "positive",
       "neutral": "mixed",
       "opposed": "negative"

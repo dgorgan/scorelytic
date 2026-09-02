@@ -1,7 +1,7 @@
 import type {
   ReviewSummary,
   BiasDetail,
-  CulturalContext,
+  legacyAndInfluence,
   FullBiasReport,
 } from '@/types/biasReport';
 
@@ -28,12 +28,12 @@ describe('BiasReport types', () => {
     expect(detail.name).toMatch(/identity/);
   });
 
-  it('accepts valid CulturalContext', () => {
-    const context: CulturalContext = {
+  it('accepts valid legacyAndInfluence', () => {
+    const context: legacyAndInfluence = {
       originalScore: 8.5,
       biasAdjustedScore: 7.1,
       justification: 'Score adjusted for ideological influences.',
-      audienceReaction: {
+      playerFit: {
         aligned: 'positive',
         neutral: 'mixed',
         opposed: 'negative',

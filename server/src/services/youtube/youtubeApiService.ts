@@ -6,6 +6,8 @@ export interface YouTubeVideoMetadata {
   channelId: string;
   publishedAt: string;
   description: string;
+  gameSlug?: string;
+  gameTitle?: string;
   thumbnails: {
     default: { url: string };
     medium: { url: string };
@@ -71,7 +73,7 @@ export const fetchYouTubeVideoMetadata = async (videoId: string): Promise<YouTub
  * Extracts game title from video title and description using common patterns
  */
 export const extractGameFromMetadata = (metadata: YouTubeVideoMetadata): string | null => {
-  const { title, description, tags } = metadata;
+  const { title, description, tags, channelTitle } = metadata;
 
   // Common patterns for game reviews
   const patterns = [
@@ -85,21 +87,29 @@ export const extractGameFromMetadata = (metadata: YouTubeVideoMetadata): string 
   // Try title first
   for (const pattern of patterns) {
     const match = title.match(pattern);
-    if (match && match[1]) {
+    if (match && match[1] && match[1].toLowerCase() !== channelTitle.toLowerCase()) {
       return match[1].trim();
     }
   }
 
-  // Try tags
+  // Try tags, but avoid channel name and generic tags
   if (tags) {
-    // Look for game-related tags
     const gameTag = tags.find(
       (tag) =>
-        tag.toLowerCase().includes('game') ||
-        tag.toLowerCase().includes('review') ||
-        tag.length > 10, // Longer tags are often game titles
+        tag.toLowerCase() !== channelTitle.toLowerCase() &&
+        !tag.toLowerCase().includes('stream') &&
+        !tag.toLowerCase().includes('vod') &&
+        (tag.toLowerCase().includes('game') ||
+          tag.toLowerCase().includes('review') ||
+          tag.length > 10),
     );
     if (gameTag) return gameTag;
+  }
+
+  // Fallback: try to extract from description (e.g. "Review of [Game Title]")
+  const descMatch = description.match(/review of ([^\n\r]+)/i);
+  if (descMatch && descMatch[1] && descMatch[1].toLowerCase() !== channelTitle.toLowerCase()) {
+    return descMatch[1].trim();
   }
 
   return null;

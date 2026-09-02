@@ -3,7 +3,7 @@
 import { Request, Response } from 'express';
 import { ReviewAnalysisRequest, ReviewAnalysisResponse, ApiResponse } from '@scorelytic/shared';
 import { validateInput } from '@/utils/validateInput';
-import { analyzeSentiment } from '@/services/sentiment';
+import { analyzeText } from '@/services/sentiment';
 import { getReviewMetadata } from '@/services/youtube/reviewMetadataService';
 
 export const reviewController = {
@@ -40,7 +40,7 @@ export const reviewController = {
       }
 
       // Analyze sentiment of the review
-      const sentiment = await analyzeSentiment(metadata.description || '');
+      const sentiment = await analyzeText(metadata.description || '');
 
       return res.json({
         success: true,

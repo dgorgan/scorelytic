@@ -43,16 +43,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up cookies.txt from secret
-        run: echo "${{ secrets.COOKIES_TXT }}" > ./server/src/cookies.txt
-        shell: bash
-      - name: 'Debug: check cookies.txt exists'
-        run: |
-          echo '--- cookies.txt debug ---'
-          ls -l ./server/src/cookies.txt || echo 'cookies.txt missing!'
-          head -n 5 ./server/src/cookies.txt || echo 'cookies.txt empty or unreadable!'
-          echo '------------------------'
-
+      # - name: Set up cookies.txt from secret
+      #   run: echo "${{ secrets.COOKIES_TXT }}" > ./server/src/cookies.txt
+      #   shell: bash
+      # - name: 'Debug: check cookies.txt exists'
+      #   run: |
+      #     echo '--- cookies.txt debug ---'
+      #     ls -l ./server/src/cookies.txt || echo 'cookies.txt missing!'
+      #     head -n 5 ./server/src/cookies.txt || echo 'cookies.txt empty or unreadable!'
+      #     echo '------------------------'
       - name: Cache node_modules
         uses: actions/cache@v4
         with:
@@ -124,9 +123,9 @@ jobs:
       NEXT_PUBLIC_SENTRY_RELEASE: ${{ github.sha }}
     steps:
       - uses: actions/checkout@v4
-      - name: Set up cookies.txt from secret
-        run: echo "${{ secrets.COOKIES_TXT }}" > ./server/src/cookies.txt
-        shell: bash
+      # - name: Set up cookies.txt from secret
+      #   run: echo "${{ secrets.COOKIES_TXT }}" > ./server/src/cookies.txt
+      #   shell: bash
       - name: Cache node_modules
         uses: actions/cache@v4
         with:
@@ -210,9 +209,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Set up cookies.txt from secret
-        run: echo "${{ secrets.COOKIES_TXT }}" > ./server/src/cookies.txt
-        shell: bash
+      # - name: Set up cookies.txt from secret
+      #   run: echo "${{ secrets.COOKIES_TXT }}" > ./server/src/cookies.txt
+      #   shell: bash
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:

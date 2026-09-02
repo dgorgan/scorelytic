@@ -23,7 +23,7 @@ const biasAdjustment = evaluateBiasImpact(sentiment.sentimentScore, sentiment.bi
 // - biasAdjustedScore
 // - biasImpact[] (with severity, influence, explanation)
 // - adjustmentRationale
-// - audienceFit
+// - player fit
 ```
 
 ## UX & Transparency
@@ -191,7 +191,7 @@ See `shared/src/types/biasReport.ts` for:
 
 - `ReviewSummary`: User-facing, quick verdict and score, with confidence and bias summary.
 - `BiasDetail`: List of all detected biases, their severity, score impact, and qualitative effect.
-- `CulturalContext`: Explains how cultural/ideological context may affect perception and score.
+- `legacyAndInfluence`: Explains how cultural/ideological context may affect perception and score.
 - `FullBiasReport`: Internal, diagnostic output for transparency and audit.
 
 ### API Endpoint
@@ -199,7 +199,7 @@ See `shared/src/types/biasReport.ts` for:
 `POST /api/review/bias-report`
 
 - **Input:** `{ sentimentScore: number, biasIndicators: string[] }`
-- **Output:** `{ summary, details, culturalContext, fullReport }` (see types above)
+- **Output:** `{ summary, details, legacyAndInfluence, fullReport }` (see types above)
 
 ### React Component
 
@@ -235,11 +235,11 @@ See `shared/src/types/biasReport.ts` for:
       "description": "Narrative framing aligns with current ideological trends, which may polarize audiences."
     }
   ],
-  "culturalContext": {
+  "legacyAndInfluence": {
     "originalScore": 8.5,
     "biasAdjustedScore": 7.1,
     "justification": "Score adjusted to reflect detected ideological, narrative, or identity-related influences.",
-    "audienceReaction": {
+    "playerFit": {
       "aligned": "positive",
       "neutral": "mixed",
       "opposed": "negative"
@@ -265,7 +265,7 @@ See `shared/src/types/biasReport.ts` for:
 
 - **Summary:** For gamers/casual users—quick, trustworthy verdict.
 - **Bias Details:** For users interested in why the score was adjusted.
-- **Cultural Context:** For analysts/creators—deep insights into cultural framing and ideological influence.
+- **Legacy & Influence:** For analysts/creators—context on game’s cultural impact and player alignment.
 - **Full Report:** For internal QA, model debugging, or full audit trail.
 
 ## Commit Message & Code Quality Enforcement
@@ -283,7 +283,15 @@ See `shared/src/types/biasReport.ts` for:
 - Errors and exceptions are sent to Sentry with full context.
 - Example backend log (JSON):
   ```json
-  { "level": "info", "service": "backend-api", "msg": "Request completed", "method": "POST", "url": "/api/youtube/process", "status": 200, "durationMs": 12.49 }
+  {
+    "level": "info",
+    "service": "backend-api",
+    "msg": "Request completed",
+    "method": "POST",
+    "url": "/api/youtube/process",
+    "status": 200,
+    "durationMs": 12.49
+  }
   ```
 
 ## RESTful API Conventions

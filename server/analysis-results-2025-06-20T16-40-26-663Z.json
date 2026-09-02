@@ -1,0 +1,168 @@
+{
+  "timestamp": "2025-06-20T16:40:26.664Z",
+  "summary": {
+    "keywordWins": 2,
+    "semanticWins": 2,
+    "ties": 1,
+    "totalTests": 5
+  },
+  "results": [
+    {
+      "name": "Dunkey TLOU2 (Genuine Review)",
+      "expected": {
+        "score": 6.5,
+        "satirical": false,
+        "biases": [
+          "bandwagon bias",
+          "expectation bias"
+        ]
+      },
+      "keyword": {
+        "sentimentScore": 8.5,
+        "satirical": true,
+        "biasCount": 0,
+        "biasTypes": [],
+        "approach": "keyword"
+      },
+      "semantic": {
+        "sentimentScore": 8,
+        "satirical": true,
+        "biasCount": 0,
+        "biasTypes": [],
+        "approach": "semantic"
+      },
+      "winner": {
+        "scoreAccuracy": "semantic",
+        "satiricalAccuracy": "tie",
+        "biasDetection": "tie",
+        "overall": "semantic"
+      }
+    },
+    {
+      "name": "IGN Dragon Age Veilguard",
+      "expected": {
+        "score": 8.5,
+        "satirical": false,
+        "biases": [
+          "identity bias",
+          "nostalgia bias",
+          "franchise loyalty"
+        ]
+      },
+      "keyword": {
+        "sentimentScore": 9,
+        "satirical": false,
+        "biasCount": 1,
+        "biasTypes": [
+          "representation bias"
+        ],
+        "approach": "keyword"
+      },
+      "semantic": {
+        "sentimentScore": 9,
+        "satirical": false,
+        "biasCount": 0,
+        "biasTypes": [],
+        "approach": "semantic"
+      },
+      "winner": {
+        "scoreAccuracy": "tie",
+        "satiricalAccuracy": "tie",
+        "biasDetection": "keyword",
+        "overall": "keyword"
+      }
+    },
+    {
+      "name": "IGN Hogwarts Legacy",
+      "expected": {
+        "score": 8,
+        "satirical": false,
+        "biases": [
+          "nostalgia bias",
+          "franchise attachment"
+        ]
+      },
+      "keyword": {
+        "sentimentScore": 9,
+        "satirical": false,
+        "biasCount": 0,
+        "biasTypes": [],
+        "approach": "keyword"
+      },
+      "semantic": {
+        "sentimentScore": 9,
+        "satirical": false,
+        "biasCount": 0,
+        "biasTypes": [],
+        "approach": "semantic"
+      },
+      "winner": {
+        "scoreAccuracy": "tie",
+        "satiricalAccuracy": "tie",
+        "biasDetection": "tie",
+        "overall": "tie"
+      }
+    },
+    {
+      "name": "Dunkey Zelda OOT (Satirical)",
+      "expected": {
+        "score": 9,
+        "satirical": true,
+        "biases": [
+          "sarcasm"
+        ]
+      },
+      "keyword": {
+        "sentimentScore": 9.5,
+        "satirical": true,
+        "biasCount": 0,
+        "biasTypes": [],
+        "approach": "keyword"
+      },
+      "semantic": {
+        "sentimentScore": 1,
+        "satirical": true,
+        "biasCount": 0,
+        "biasTypes": [],
+        "approach": "semantic"
+      },
+      "winner": {
+        "scoreAccuracy": "keyword",
+        "satiricalAccuracy": "tie",
+        "biasDetection": "tie",
+        "overall": "keyword"
+      }
+    },
+    {
+      "name": "Dunkey Dragon Quest XI",
+      "expected": {
+        "score": 6,
+        "satirical": false,
+        "biases": [
+          "genre bias",
+          "expectation bias"
+        ]
+      },
+      "keyword": {
+        "sentimentScore": 7.5,
+        "satirical": false,
+        "biasCount": 0,
+        "biasTypes": [],
+        "approach": "keyword"
+      },
+      "semantic": {
+        "sentimentScore": 6,
+        "satirical": true,
+        "biasCount": 0,
+        "biasTypes": [],
+        "approach": "semantic"
+      },
+      "winner": {
+        "scoreAccuracy": "semantic",
+        "satiricalAccuracy": "keyword",
+        "biasDetection": "tie",
+        "overall": "semantic"
+      }
+    }
+  ]
+}

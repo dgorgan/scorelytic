@@ -1,28 +1,21 @@
 {
-  "extends": ["next/core-web-vitals", "next"],
+  "extends": ["next/core-web-vitals", "next", "prettier"],
   "plugins": ["import"],
   "rules": {
     "@next/next/no-html-link-for-pages": "off",
     "eol-last": ["error", "always"],
-    "no-unused-vars": "warn"
+    "no-unused-vars": "warn",
+    "quotes": ["error", "single", { "avoidEscape": true, "allowTemplateLiterals": true }],
+    "comma-dangle": ["error", "always-multiline"],
+    "prettier/prettier": "error"
+    // "import/no-relative-parent-imports": "error",
+    // "import/no-relative-sibling-imports": "error"
   },
   "parserOptions": {
     "sourceType": "module",
     "ecmaVersion": 2020
   },
   "overrides": [
-    {
-      "files": [
-        "**/__tests__/**/*.{ts,tsx}",
-        "**/*.test.{ts,tsx}",
-        "**/*.spec.{ts,tsx}",
-        "scripts/**/*.{ts,js}"
-      ],
-      "rules": {
-        "no-unused-vars": "off",
-        "import/no-relative-parent-imports": "off"
-      }
-    },
     {
       "files": ["client/app/**/*.{ts,tsx}"],
       "parserOptions": {
@@ -47,7 +40,8 @@
         "project": ["shared/tsconfig.json"]
       },
       "rules": {
-        "import/no-relative-parent-imports": "error"
+        "import/no-relative-parent-imports": "error",
+        "import/no-relative-sibling-imports": "off"
       }
     },
     {
@@ -57,6 +51,18 @@
       },
       "rules": {
         "import/no-relative-parent-imports": "error"
+      }
+    },
+    {
+      "files": [
+        "**/__tests__/**/*.{ts,tsx}",
+        "**/*.test.{ts,tsx}",
+        "**/*.spec.{ts,tsx}",
+        "scripts/**/*.{ts,js}"
+      ],
+      "rules": {
+        "no-unused-vars": "off",
+        "import/no-relative-parent-imports": "off"
       }
     }
   ],

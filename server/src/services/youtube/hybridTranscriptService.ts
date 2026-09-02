@@ -61,6 +61,10 @@ export const getHybridTranscript = async (
       };
     }
   } catch (error: any) {
+    logger.error(
+      { message: error.message, stack: error.stack, videoId },
+      '[HYBRID] Error fetching captions',
+    );
     debug.push(`[HYBRID] ❌ Captions failed: ${error.message}`);
     emitStep(`❌ Captions failed: ${error.message}`);
   }
@@ -118,6 +122,10 @@ export const getHybridTranscript = async (
       debug,
     };
   } catch (error: any) {
+    logger.error(
+      { message: error.message, stack: error.stack, videoId },
+      '[HYBRID] Error in audio transcription',
+    );
     debug.push(`[HYBRID] ❌ Audio transcription failed: ${error.message}`);
     emitStep(`❌ Audio transcription failed: ${error.message}`);
     return {
@@ -140,13 +148,11 @@ export const getHybridTranscriptBatch = async (
   let totalCost = 0;
   const maxBatchCost = options.maxCostUSD || 10.0; // Default $10 max per batch
 
-  logger.info(
-    `[HYBRID] Starting batch processing for ${videoIds.length} videos (max cost: $${maxBatchCost})`,
-  );
+  logger.info({ videoIds, maxBatchCost }, '[HYBRID] Starting batch processing for videos');
 
   for (const videoId of videoIds) {
     if (totalCost >= maxBatchCost) {
-      logger.info(`[HYBRID] Batch cost limit reached: $${totalCost.toFixed(3)}`);
+      logger.info({ totalCost }, '[HYBRID] Batch cost limit reached');
       results[videoId] = {
         transcript: '',
         method: 'none',
@@ -164,10 +170,12 @@ export const getHybridTranscriptBatch = async (
       results[videoId] = result;
       totalCost += result.cost || 0;
 
-      logger.info(
-        `[HYBRID] ${videoId}: ${result.method} (cost: $${(result.cost || 0).toFixed(3)}, total: $${totalCost.toFixed(3)})`,
-      );
+      logger.info({ videoId, result }, '[HYBRID] Video processed');
     } catch (error: any) {
+      logger.error(
+        { message: error.message, stack: error.stack, videoId },
+        '[HYBRID] Error in getHybridTranscriptBatch',
+      );
       results[videoId] = {
         transcript: '',
         method: 'none',
@@ -176,6 +184,6 @@ export const getHybridTranscriptBatch = async (
     }
   }
 
-  logger.info(`[HYBRID] Batch complete. Total cost: $${totalCost.toFixed(3)}`);
+  logger.info({ totalCost }, '[HYBRID] Batch complete. Total cost');
   return results;
 };
