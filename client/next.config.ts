@@ -2,6 +2,12 @@ import type { NextConfig } from 'next';
 import path from 'path';
 import { withSentryConfig } from '@sentry/nextjs';
 
+// Backend that serves the static demo sites (server/demos, via Express).
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://scorelytic-api.onrender.com').replace(
+  /\/$/,
+  '',
+);
+
 const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
@@ -20,12 +26,11 @@ const nextConfig: NextConfig = {
   productionBrowserSourceMaps: true,
   experimental: {},
 
-  // 👇 Add this block
   async rewrites() {
     return [
       {
         source: '/demos/:path*',
-        destination: 'https://api.scorelytic.com/demos/:path*',
+        destination: `${API_URL}/demos/:path*`,
       },
     ];
   },
