@@ -1,5 +1,4 @@
 import pino from 'pino';
-import { Logtail } from '@logtail/node';
 import { env } from '@/config/env';
 
 const isProd = env.NODE_ENV === 'production';
@@ -10,11 +9,13 @@ const logtailToken = env.LOGTAIL_SOURCE_TOKEN;
 const targets: any[] = [];
 
 if (isProd && logtailToken) {
-  // Logtail target: sends logs to Logtail cloud
-  const logtail = new Logtail(logtailToken);
+  // Logtail target: sends logs to Logtail cloud.
+  // Pino transports run in a worker thread and their options are structured-cloned,
+  // so pass the token and let @logtail/pino construct the Logtail client worker-side.
+  // Passing a Logtail instance here throws DataCloneError at startup.
   targets.push({
     target: '@logtail/pino',
-    options: { logtail },
+    options: { sourceToken: logtailToken },
     level: 'info',
   });
   // Stdout target: keeps logs visible in console (e.g., Docker, cloud logs)

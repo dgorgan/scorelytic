@@ -7,13 +7,22 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
 );
 
+// Rendered per-request rather than prerendered at build time, so an unreachable
+// database degrades to an empty gallery instead of failing the whole deploy.
+export const dynamic = 'force-dynamic';
+
 async function getDemoReviews() {
-  const { data, error } = await supabase
-    .from('demo_reviews')
-    .select('id, video_url, data')
-    .order('created_at', { ascending: false });
-  if (error) throw error;
-  return data || [];
+  try {
+    const { data, error } = await supabase
+      .from('demo_reviews')
+      .select('id, video_url, data')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data || [];
+  } catch (err) {
+    console.error('[game-demos] failed to load demo reviews:', err);
+    return [];
+  }
 }
 
 export default async function GameDemosPage() {
@@ -30,6 +39,13 @@ export default async function GameDemosPage() {
           </span>
         </span>
       </h1>
+      {reviews.length === 0 && (
+        <div className="rounded-2xl border-4 border-violet-700 bg-violet-900/40 px-8 py-16 text-center">
+          <div className="text-5xl mb-4">🕹️</div>
+          <div className="text-2xl font-extrabold text-white mb-2">No demos yet</div>
+          <div className="text-violet-200">Check back once some reviews have been ingested.</div>
+        </div>
+      )}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
         {reviews.map((r: any) => {
           const meta = r.data?.metadata || r.data?.data?.metadata || {};
